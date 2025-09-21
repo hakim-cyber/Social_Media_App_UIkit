@@ -182,7 +182,3 @@ class SlideToUnlockView: UIView {
         }
     }
 }
-
-#Preview {
-    ViewController()
-}

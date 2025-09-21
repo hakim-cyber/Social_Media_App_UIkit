@@ -31,9 +31,7 @@ class ViewController: UIViewController {
         slideButton.translatesAutoresizingMaskIntoConstraints = false
         slideButton.onUnlock = {
             print("Unlocked!")
-            let alert = UIAlertController(title: "Unlocked", message: "You slid to unlock!", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            self.present(alert, animated: true)
+           
         }
 
         view.addSubview(slideButton)
@@ -47,4 +45,10 @@ class ViewController: UIViewController {
     }
 
 
+
+}
+
+
+#Preview {
+    ViewController()
 }
