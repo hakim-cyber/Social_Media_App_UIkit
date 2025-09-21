@@ -6,15 +6,18 @@
 //
 import UIKit
 extension UIView {
-    func startShimmering() {
+    func startShimmering(reverse:Bool = true) {
         //        let light = UIColor.init(white: 0, alpha: 0.1).cgColor
        
         let light = UIColor(red: 0, green: 0, blue: 0, alpha: 0.1).cgColor
         let dark =  UIColor.black.cgColor
         
         let gradientLayer: CAGradientLayer = CAGradientLayer()
-      
-        gradientLayer.colors = [dark, light,dark]
+        if reverse{
+            gradientLayer.colors = [light, dark,light]
+        }else{
+            gradientLayer.colors = [dark, light,dark]
+        }
         gradientLayer.startPoint = CGPoint(x: 0, y: 0.5)
         gradientLayer.endPoint = CGPoint(x: 1, y: 0.55)
         gradientLayer.frame = CGRect(x: -bounds.size.width, y: 0, width: 3*bounds.size.width, height: bounds.size.height)

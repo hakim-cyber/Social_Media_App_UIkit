@@ -165,7 +165,7 @@ extension UIColor {
     static let glassShare = UIColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 0.9) // Green
     static let glassSave = UIColor(red: 0.9, green: 0.6, blue: 0.2, alpha: 0.9) // Orange
     
-    static let electricPurple = UIColor(hex:  "#A259FF")
+    static let electricPurple = UIColor(hex:  "#EB4E83")
     // MARK: - Convenience Initializers
     convenience init(hex: String, alpha: CGFloat = 1.0) {
         var hexFormatted: String = hex.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).uppercased()

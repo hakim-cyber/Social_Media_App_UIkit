@@ -26,14 +26,25 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         // on a label or cell content view
-     
-        self.view.addSubview(label)
+        view.backgroundColor = .systemBackground
+        let slideButton = SlideToUnlockView()
+        slideButton.translatesAutoresizingMaskIntoConstraints = false
+        slideButton.onUnlock = {
+            print("Unlocked!")
+            let alert = UIAlertController(title: "Unlocked", message: "You slid to unlock!", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
+        }
+
+        view.addSubview(slideButton)
+
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            slideButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            slideButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            slideButton.widthAnchor.constraint(equalToConstant: 300),
+          
         ])
     }
 
 
 }
-
