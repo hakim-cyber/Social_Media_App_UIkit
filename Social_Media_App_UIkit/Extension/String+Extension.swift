@@ -1,0 +1,37 @@
+//
+//  String+Extension.swift
+//  Social_Media_App_UIkit
+//
+//  Created by aplle on 9/23/25.
+//
+
+import UIKit
+
+
+
+extension String{
+     func makeAttributedString() -> AttributedString {
+        let string = self
+           var attributedString = AttributedString()
+           let components = string.split(separator: "*", omittingEmptySubsequences: false)
+      
+           for (index, component) in components.enumerated() {
+               var substring = AttributedString(String(component))
+            
+               // Apply italic to odd components (text between asterisks)
+             
+               if index % 2 == 1 {
+                   substring.foregroundColor = .electricPurple
+                   
+               }else{
+                   substring.foregroundColor = .label
+               }
+                
+               
+               attributedString.append(substring)
+           }
+           
+           return attributedString
+       }
+
+}
