@@ -137,7 +137,7 @@ class SlideToUnlockView: UIView {
             let newX = max(0, min(bounds.width - sliderView.bounds.width, panStartX + translation.x))
             sliderLeadingConstraint.constant = newX
             trackLeadingConstraint.constant = newX
-            print(newX)
+          
             // Calculate overlap as a fraction of slider over label
                let sliderCenterX = sliderView.frame.midX
                let labelStart = label.frame.minX
@@ -161,12 +161,15 @@ class SlideToUnlockView: UIView {
             if sliderLeadingConstraint.constant >= bounds.width - sliderView.bounds.width - 5 {
                 // Fully unlocked
                 onUnlock?()
+                let impactMed = UIImpactFeedbackGenerator(style: .heavy)
+                    impactMed.impactOccurred()
                 resetSlider()
                 
             } else {
                 // Animate back
                 resetSlider()
             }
+           
         default:
             break
         }
