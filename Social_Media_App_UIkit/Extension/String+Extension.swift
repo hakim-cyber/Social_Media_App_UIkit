@@ -10,7 +10,7 @@ import UIKit
 
 
 extension String{
-     func makeAttributedString() -> AttributedString {
+    func makeAttributedString(mainColor: UIColor = .label, secondaryColor: UIColor = .electricPurple) -> AttributedString {
         let string = self
            var attributedString = AttributedString()
            let components = string.split(separator: "*", omittingEmptySubsequences: false)
@@ -21,10 +21,10 @@ extension String{
                // Apply italic to odd components (text between asterisks)
              
                if index % 2 == 1 {
-                   substring.foregroundColor = .electricPurple
+                   substring.foregroundColor = secondaryColor
                    
                }else{
-                   substring.foregroundColor = .label
+                   substring.foregroundColor = mainColor
                }
                 
                

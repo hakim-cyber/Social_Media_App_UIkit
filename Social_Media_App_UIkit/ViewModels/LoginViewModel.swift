@@ -26,4 +26,7 @@ class LoginViewModel:ObservableObject{
     func signInWithApple(){
         
     }
+    func signUp(){
+        
+    }
 }

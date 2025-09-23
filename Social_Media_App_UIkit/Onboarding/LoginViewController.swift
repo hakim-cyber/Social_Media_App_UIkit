@@ -70,7 +70,19 @@ class LoginViewController: UIViewController {
         stackView.spacing = 8
         return stackView
     }()
-    
+    var signUpButton: UIButton = {
+        let button = UIButton()
+        let text = "Don't have and account? *Sign Up*"
+        let attributedText = NSAttributedString( text.makeAttributedString(mainColor: .secondaryLabel))
+        
+      
+        button.translatesAutoresizingMaskIntoConstraints = false
+     
+        button.setAttributedTitle(attributedText, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
+        button.contentHorizontalAlignment = .trailing
+        return button
+    }()
     
     var viewModel = LoginViewModel()
     private var cancellables = Set<AnyCancellable>()
@@ -144,7 +156,7 @@ class LoginViewController: UIViewController {
         self.customSignStackView.addArrangedSubview(appleSignInButton)
         self.customSignStackView.addArrangedSubview(googleSignInButton)
     
-        
+        self.view.addSubview(signUpButton)
        
         NSLayoutConstraint.activate([
             customSignStackView.topAnchor.constraint(equalTo: label3.bottomAnchor,constant: 36),
@@ -155,7 +167,8 @@ class LoginViewController: UIViewController {
          
             googleSignInButton.heightAnchor.constraint(equalToConstant: 45),
            
-            
+            signUpButton.topAnchor.constraint(equalTo: customSignStackView.bottomAnchor, constant: 36),
+            signUpButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
     
@@ -178,7 +191,10 @@ class LoginViewController: UIViewController {
         viewModel.signInWithGoogle()
         print("Google")
     }
-    
+  @objc  func signUpButtonTapped(){
+        viewModel.signUp()
+        print("Sign UP")
+    }
     
     private func bindTextfields() {
             // View → ViewModel
@@ -219,6 +235,7 @@ class LoginViewController: UIViewController {
             self?.signInWithGoogle()
            
         }
+        signUpButton.addTarget(nil, action: #selector(signUpButtonTapped), for: .touchUpInside)
     }
     
     
