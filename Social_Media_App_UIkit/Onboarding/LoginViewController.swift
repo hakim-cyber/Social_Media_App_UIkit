@@ -6,14 +6,76 @@
 //
 
 import UIKit
+import Combine
 
 class LoginViewController: UIViewController {
     
     let customEmailTextField = CustomTextField(placeholder: "Type your email here",topLabelText: "Email",)
     let customPasswordTextField = CustomTextField(placeholder: "Type your password here",topLabelText: "Password",isSecure: true)
     
-    var viewModel = LoginViewModel()
+    let loginButton:Custom_Login_Button  = .init(backgroundColor: .electricPurple, title: "Login",cornerRadius: 22.5)
     
+    var textfieldStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        return stackView
+    }()
+    
+    var forgotPasswordButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Forgot password?", for: .normal)
+       
+        button.setTitleColor(.electricPurple, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
+        button.contentHorizontalAlignment = .trailing
+        return button
+    }()
+    
+    let label1: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Login Now To Your Account."
+        label.textColor = .label
+        label.font = .systemFont(ofSize: 20, weight: .medium)
+        return label
+    }()
+    let label2: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Discover new connections, express yourself, grow your Aura"
+        label.textColor = .secondaryLabel
+        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 11, weight: .medium)
+        return label
+    }()
+    let labelsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        return stackView
+    }()
+    let label3 = DividerWithText(text: "OR")
+    
+    let googleSignInButton:CustomSignInButton  = .init(backgroundColor: .secondarySystemBackground, title: "Sign in with Google",image: UIImage.googleLogo, cornerRadius: 22.5)
+    let appleSignInButton:CustomSignInButton  = .init(backgroundColor: .secondarySystemBackground, title: "Continue with Apple",image: UIImage.appleLogo,cornerRadius: 22.5)
+    
+    let customSignStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        return stackView
+    }()
+    
+    
+    var viewModel = LoginViewModel()
+    private var cancellables = Set<AnyCancellable>()
+    
+   
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
@@ -23,19 +85,138 @@ class LoginViewController: UIViewController {
    
         super.viewDidLoad()
         
+        self.view.backgroundColor = .systemBackground
+        bindTextfields()
+        setLabels()
+        setTextFields()
         
-        customPasswordTextField.translatesAutoresizingMaskIntoConstraints = false
+        setCustomSignInButtons()
         
-        self.view.addSubview(customPasswordTextField)
+        bindButtons()
+    }
+    func setTextFields() {
+        self.view.addSubview(textfieldStackView)
         
+        self.textfieldStackView.addArrangedSubview(customEmailTextField)
+        self.textfieldStackView.addArrangedSubview(customPasswordTextField)
+        self.textfieldStackView.addArrangedSubview(loginButton)
+        self.textfieldStackView.addArrangedSubview(forgotPasswordButton)
+        
+        
+        label3.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(label3)
+       
         NSLayoutConstraint.activate([
-            customPasswordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),
-            customPasswordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -24),
-            customPasswordTextField.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            textfieldStackView.topAnchor.constraint(equalTo: labelsStackView.bottomAnchor,constant: 36),
+            textfieldStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),
+            textfieldStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -24),
+          
+            loginButton.heightAnchor.constraint(equalToConstant: 45),
+            
+            label3.topAnchor.constraint(equalTo: textfieldStackView.bottomAnchor, constant: 36),
+            
+            label3.leadingAnchor.constraint(equalTo: textfieldStackView.leadingAnchor),
+            label3.trailingAnchor.constraint(equalTo: textfieldStackView.trailingAnchor),
+          
+            label3.heightAnchor.constraint(equalToConstant: 20)
+            
+        ])
+    }
+    func setLabels() {
+        
+        self.view.addSubview(labelsStackView)
+        
+        self.labelsStackView.addArrangedSubview(label1)
+        self.labelsStackView.addArrangedSubview(label2)
+        
+        
+       
+        NSLayoutConstraint.activate([
+            labelsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),
+            labelsStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,constant: 24),
+            labelsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -view.frame.width * 0.3)
+        ])
+    }
+    
+    func setCustomSignInButtons() {
+        self.view.addSubview(customSignStackView)
+        
+        self.customSignStackView.addArrangedSubview(appleSignInButton)
+        self.customSignStackView.addArrangedSubview(googleSignInButton)
+    
+        
+       
+        NSLayoutConstraint.activate([
+            customSignStackView.topAnchor.constraint(equalTo: label3.bottomAnchor,constant: 36),
+            customSignStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),
+            customSignStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -24),
+          
+            appleSignInButton.heightAnchor.constraint(equalToConstant: 45),
+         
+            googleSignInButton.heightAnchor.constraint(equalToConstant: 45),
+           
+            
         ])
     }
     
     
+    
+    @objc func loginButtonTapped() {
+        viewModel.login()
+        print("Login")
+    }
+    @objc func forgotPasswordsButtonTapped() {
+        viewModel.forgotPassword()
+        print("Forgot password")
+    }
+    func signInWithApple(){
+        
+    }
+    func signInWithGoogle(){
+        
+    }
+    
+    
+    private func bindTextfields() {
+            // View → ViewModel
+        NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification, object: customEmailTextField.textField)
+                .compactMap { ($0.object as? UITextField)?.text }
+                .assign(to: \.email, on: viewModel)
+                .store(in: &cancellables)
+            
+            // ViewModel → View
+        viewModel.$email
+                .receive(on: RunLoop.main)
+                .map { Optional($0) }
+                .assign(to: \.text, on: customEmailTextField.textField)
+                .store(in: &cancellables)
+        
+        // View → ViewModel
+    NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification, object: customPasswordTextField.textField)
+            .compactMap { ($0.object as? UITextField)?.text }
+            .assign(to: \.password, on: viewModel)
+            .store(in: &cancellables)
+        
+        // ViewModel → View
+    viewModel.$password
+            .receive(on: RunLoop.main)
+            .map { Optional($0) }
+            .assign(to: \.text, on: customPasswordTextField.textField)
+            .store(in: &cancellables)
+        }
+    
+    private func bindButtons() {
+        loginButton.addTarget(nil, action: #selector(loginButtonTapped), for: .touchUpInside)
+        forgotPasswordButton.addTarget(nil, action: #selector(forgotPasswordsButtonTapped), for: .touchUpInside)
+        appleSignInButton.tapAction = { [weak self] in
+            self?.signInWithApple()
+            print("Apple")
+        }
+        googleSignInButton.tapAction = { [weak self] in
+            self?.signInWithGoogle()
+            print("Google")
+        }
+    }
     
     
 }

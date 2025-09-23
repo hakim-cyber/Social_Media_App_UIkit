@@ -11,4 +11,7 @@ extension UIImage{
     static let welcome_background_1 = UIImage(named: "welcome_background_1")!
     static let welcome_background_2 = UIImage(named: "welcome_background_2")!
     static let welcome_background_3 = UIImage(named: "welcome_background_3")!
+    static let apple_logo = UIImage(named: "apple_logo")!
+    static let google_logo = UIImage(named: "google_logo")!
+    
 }

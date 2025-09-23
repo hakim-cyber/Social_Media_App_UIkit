@@ -12,7 +12,12 @@ class LoginViewModel:ObservableObject{
     @Published var password:String = ""
     
     @Published var isLoading:Bool = false
-    @Published var shpwPassword:Bool = false
+   
     
-    
+    func login(){
+        
+    }
+    func forgotPassword(){
+        
+    }
 }
