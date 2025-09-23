@@ -170,10 +170,13 @@ class LoginViewController: UIViewController {
         print("Forgot password")
     }
     func signInWithApple(){
-        
+        viewModel.signInWithApple()
+        print("Apple")
     }
+    
     func signInWithGoogle(){
-        
+        viewModel.signInWithGoogle()
+        print("Google")
     }
     
     
@@ -210,11 +213,11 @@ class LoginViewController: UIViewController {
         forgotPasswordButton.addTarget(nil, action: #selector(forgotPasswordsButtonTapped), for: .touchUpInside)
         appleSignInButton.tapAction = { [weak self] in
             self?.signInWithApple()
-            print("Apple")
+           
         }
         googleSignInButton.tapAction = { [weak self] in
             self?.signInWithGoogle()
-            print("Google")
+           
         }
     }
     

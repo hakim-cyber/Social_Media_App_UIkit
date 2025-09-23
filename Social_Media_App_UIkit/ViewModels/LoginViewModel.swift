@@ -20,4 +20,10 @@ class LoginViewModel:ObservableObject{
     func forgotPassword(){
         
     }
+    func signInWithGoogle(){
+        
+    }
+    func signInWithApple(){
+        
+    }
 }
