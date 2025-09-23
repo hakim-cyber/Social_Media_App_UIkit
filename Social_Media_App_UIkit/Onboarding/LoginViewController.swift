@@ -60,6 +60,17 @@ class LoginViewController: UIViewController {
     }()
     let label3 = DividerWithText(text: "OR")
     
+    let errorLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Something went wrong. Please try again later."
+        label.textColor = .electricPurple
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.isHidden = true
+        label.font = .systemFont(ofSize: 11, weight: .regular)
+        return label
+    }()
     let googleSignInButton:CustomSignInButton  = .init(backgroundColor: .secondarySystemBackground, title: "Sign in with Google",image: UIImage.googleLogo, cornerRadius: 22.5)
     let appleSignInButton:CustomSignInButton  = .init(backgroundColor: .secondarySystemBackground, title: "Continue with Apple",image: UIImage.appleLogo,cornerRadius: 22.5)
     
@@ -105,6 +116,7 @@ class LoginViewController: UIViewController {
         setCustomSignInButtons()
         
         bindButtons()
+        bindError()
     }
     func setTextFields() {
         self.view.addSubview(textfieldStackView)
@@ -112,11 +124,13 @@ class LoginViewController: UIViewController {
         self.textfieldStackView.addArrangedSubview(customEmailTextField)
         self.textfieldStackView.addArrangedSubview(customPasswordTextField)
         self.textfieldStackView.addArrangedSubview(loginButton)
+        self.textfieldStackView.addArrangedSubview(errorLabel)
         self.textfieldStackView.addArrangedSubview(forgotPasswordButton)
         
         
         label3.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(label3)
+        
        
         NSLayoutConstraint.activate([
             textfieldStackView.topAnchor.constraint(equalTo: labelsStackView.bottomAnchor,constant: 36),
@@ -124,6 +138,8 @@ class LoginViewController: UIViewController {
             textfieldStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -24),
           
             loginButton.heightAnchor.constraint(equalToConstant: 45),
+            
+           
             
             label3.topAnchor.constraint(equalTo: textfieldStackView.bottomAnchor, constant: 36),
             
@@ -195,6 +211,28 @@ class LoginViewController: UIViewController {
         viewModel.signUp()
         print("Sign UP")
     }
+  
+        private func bindError() {
+            viewModel.$loginError
+                .receive(on: RunLoop.main)
+               
+                .sink { [weak self] error in
+                    guard let self = self else { return }
+                    if let error{
+                      
+                            self.errorLabel.text = error.localizedDescription
+                            self.errorLabel.isHidden = false
+                        
+                    }else{
+                       
+                            self.errorLabel.text = ""
+                            self.errorLabel.isHidden = true
+                        
+                    }
+                    
+                }
+                .store(in: &cancellables)
+        }
     
     private func bindTextfields() {
             // View → ViewModel
