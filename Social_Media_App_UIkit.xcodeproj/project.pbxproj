@@ -12,6 +12,8 @@
 		084498DF2E8483C700DB8EA3 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 084498DE2E8483C700DB8EA3 /* PostgREST */; };
 		084498E12E8483C700DB8EA3 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 084498E02E8483C700DB8EA3 /* Realtime */; };
 		084498E32E8483C700DB8EA3 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 084498E22E8483C700DB8EA3 /* Storage */; };
+		08A2E0542E848E2C007B0875 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E0532E848E2C007B0875 /* Supabase */; };
+		08A2E0642E84A914007B0875 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E0632E84A914007B0875 /* KeychainAccess */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +48,8 @@
 			files = (
 				084498DF2E8483C700DB8EA3 /* PostgREST in Frameworks */,
 				084498DD2E8483C700DB8EA3 /* Functions in Frameworks */,
+				08A2E0642E84A914007B0875 /* KeychainAccess in Frameworks */,
+				08A2E0542E848E2C007B0875 /* Supabase in Frameworks */,
 				084498DB2E8483C700DB8EA3 /* Auth in Frameworks */,
 				084498E32E8483C700DB8EA3 /* Storage in Frameworks */,
 				084498E12E8483C700DB8EA3 /* Realtime in Frameworks */,
@@ -59,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				084495B72E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */,
+				08A2E0522E848E2C007B0875 /* Frameworks */,
 				084495B62E7EC8BD00DB8EA3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -69,6 +74,13 @@
 				084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		08A2E0522E848E2C007B0875 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -96,6 +108,8 @@
 				084498DE2E8483C700DB8EA3 /* PostgREST */,
 				084498E02E8483C700DB8EA3 /* Realtime */,
 				084498E22E8483C700DB8EA3 /* Storage */,
+				08A2E0532E848E2C007B0875 /* Supabase */,
+				08A2E0632E84A914007B0875 /* KeychainAccess */,
 			);
 			productName = Social_Media_App_UIkit;
 			productReference = 084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */;
@@ -127,6 +141,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				08A2E0622E84A914007B0875 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 084495B62E7EC8BD00DB8EA3 /* Products */;
@@ -164,6 +179,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Social_Media_App_UIkit/Social_Media_App_UIkit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NLRT8KSZR;
@@ -195,6 +211,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Social_Media_App_UIkit/Social_Media_App_UIkit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NLRT8KSZR;
@@ -374,6 +391,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		08A2E0622E84A914007B0875 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -401,6 +426,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Storage;
+		};
+		08A2E0532E848E2C007B0875 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		08A2E0632E84A914007B0875 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08A2E0622E84A914007B0875 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

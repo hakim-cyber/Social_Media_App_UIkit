@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import AuthenticationServices
 
 class LoginViewController: UIViewController {
     
@@ -39,7 +40,7 @@ class LoginViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Login Now To Your Account."
         label.textColor = .label
-        label.font = .systemFont(ofSize: 20, weight: .medium)
+        label.font = .systemFont(ofSize:    18, weight: .medium)
         return label
     }()
     let label2: UILabel = {
@@ -199,7 +200,7 @@ class LoginViewController: UIViewController {
         print("Forgot password")
     }
     func signInWithApple(){
-        viewModel.signInWithApple()
+        viewModel.signInWithApple(presentationContextProvider: self)
         print("Apple")
     }
     
@@ -281,4 +282,16 @@ class LoginViewController: UIViewController {
 
 #Preview {
     LoginViewController()
+}
+
+
+
+// MARK: - Confirming to ASAuthorizationControllerPresentationContextProviding
+
+extension LoginViewController: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return self.view.window!
+    }
+    
+    
 }

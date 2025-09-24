@@ -6,12 +6,14 @@
 //
 
 import UIKit
+import AuthenticationServices
 import Combine
 class LoginViewModel:ObservableObject{
     @Published var email:String = ""
     @Published var password:String = ""
     
     @Published var loginError: LoginError?
+    @Published var isLoading: Bool = false
     
     func login() {
         // Reset previous error
@@ -49,9 +51,27 @@ class LoginViewModel:ObservableObject{
     func signInWithGoogle(){
         
     }
-    func signInWithApple(){
+    // MARK: - Apple Sign In
+    func signInWithApple(presentationContextProvider:ASAuthorizationControllerPresentationContextProviding){
+        isLoading = true
         
+        AppleSignInHelper.shared.startSignInWithApple(presentationContextProvider: presentationContextProvider) { [weak self] result in
+                    guard let self = self else { return }
+                    
+                    Task {
+                        do {
+                            let (idToken, nonce) = try result.get()
+                            try await AuthService.shared.signInWithApple(idToken: idToken, nonce: nonce)
+                            self.loginError = nil
+                        } catch {
+                            self.loginError = .custom(error.localizedDescription)
+                        }
+                        self.isLoading = false
+                    }
+                }
     }
+    
+    
     func signUp(){
         
     }
@@ -62,6 +82,7 @@ enum LoginError: LocalizedError {
     case invalidEmail
     case invalidPasswordEmpty
     case invalidPasswordTooShort
+    case custom(String)
     
     var title: String {
         switch self {
@@ -71,6 +92,8 @@ enum LoginError: LocalizedError {
             return "Empty Password"
         case .invalidPasswordTooShort:
             return "Password Too Short"
+        case .custom(let error):
+            return "Unknown Error: \(error)"
         }
     }
     
@@ -82,6 +105,8 @@ enum LoginError: LocalizedError {
             return "Please enter your password."
         case .invalidPasswordTooShort:
             return "Password must be at least 6 characters long."
+        case .custom(let error):
+            return "Something went wrong,Please try again later"
         }
     }
     

@@ -6,36 +6,50 @@
 //
 
 import Foundation
+import Supabase
 
 final class AuthService {
     static let shared = AuthService()
     private init() {}
-
+    
     private let keychain = KeychainService.shared
+    private let supabase = SupabaseManager.shared.client
+    
+    
+    // MARK: - Refresh token
+    func refreshSessionIfNeeded() async throws {
+        guard let refreshToken = keychain.getRefreshToken() else {
+            throw AuthError.noRefreshToken
+        }
+        let session = try await supabase.auth.refreshSession(refreshToken: refreshToken)
+        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+    }
+    
+    // MARK: - Logout
+    func logout() {
+        UserSessionService.shared.clearSession()
+    }
+}
 
-//    var isLoggedIn: Bool {
-//        return keychain.getToken() != nil
-//    }
-//
-//    func login(email: String, password: String, completion: @escaping (Result<User, Error>) -> Void) {
-//        SupabaseClient.shared.auth.signIn(email: email, password: password) { result in
-//            switch result {
-//            case .success(let session):
-//                self.keychain.saveToken(session.accessToken)
-//                completion(.success(session.user))
-//            case .failure(let error):
-//                completion(.failure(error))
-//            }
-//        }
-//    }
-//
-//    func register(username: String, email: String, password: String, completion: @escaping (Result<User, Error>) -> Void) {
-//        SupabaseClient.shared.auth.signUp(email: email, password: password) { result in
-//            completion(result)
-//        }
-//    }
-//
-//    func logout() {
-//        keychain.clear()
-//    }
+
+// MARK: - Apple Sign In
+extension AuthService {
+    
+    
+    
+    
+    func signInWithApple(idToken:String,nonce:String)async throws -> User{
+        let session = try await supabase.auth.signInWithIdToken(credentials: .init(provider: .apple, idToken: idToken,nonce:nonce))
+        
+        
+        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+        return session.user
+    }
+    
+}
+
+
+// MARK: - Errors
+enum AuthError: Error {
+    case noRefreshToken
 }
