@@ -79,7 +79,7 @@ class SlideToUnlockView: UIView {
         trackImageView.translatesAutoresizingMaskIntoConstraints = false
        
         NSLayoutConstraint.activate([
-            self.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.15),
+            self.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2),
             trackView.trailingAnchor.constraint(equalTo: trailingAnchor),
             trackView.topAnchor.constraint(equalTo: topAnchor),
             trackView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -91,7 +91,7 @@ class SlideToUnlockView: UIView {
 
         
             sliderView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            sliderView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.15),
+            sliderView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2),
             sliderView.heightAnchor.constraint(equalTo: heightAnchor),
             
             sliderImageView.heightAnchor.constraint(equalTo: sliderView.heightAnchor,multiplier: 0.4),
@@ -115,8 +115,8 @@ class SlideToUnlockView: UIView {
     }
     override func layoutSubviews() {
         super.layoutSubviews()
-        sliderView.layer.cornerRadius = bounds.width * 0.15 / 2
-        trackView.layer.cornerRadius = bounds.width * 0.15 / 2
+        sliderView.layer.cornerRadius = bounds.width * 0.2 / 2
+        trackView.layer.cornerRadius = bounds.width * 0.2 / 2
         label.startShimmering(reverse: false)
         trackImageView.startShimmering(reverse: false)
     }

@@ -69,9 +69,9 @@ class WelcomeViewController: UIViewController {
         
         self.view.addSubview(slideButton)
         NSLayoutConstraint.activate([
-            slideButton.bottomAnchor.constraint(equalTo: self.bottomBaseView.bottomAnchor, constant: -40),
-            slideButton.leadingAnchor.constraint(equalTo: self.bottomBaseView.leadingAnchor, constant: 30),
-            slideButton.trailingAnchor.constraint(equalTo: self.bottomBaseView.trailingAnchor, constant: -30)
+            slideButton.bottomAnchor.constraint(equalTo: self.bottomBaseView.bottomAnchor, constant: -70),
+            slideButton.leadingAnchor.constraint(equalTo: self.bottomBaseView.leadingAnchor, constant: 60),
+            slideButton.trailingAnchor.constraint(equalTo: self.bottomBaseView.trailingAnchor, constant: -60)
             
             
         ])
