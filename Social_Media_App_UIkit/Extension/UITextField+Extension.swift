@@ -14,7 +14,7 @@ extension UITextField {
         
         let flexible = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneButton = UIBarButtonItem(title: title, style: UIBarButtonItem.Style.prominent, target: target, action: selector)
-        
+        doneButton.tintColor = UIColor.electricPurple
         toolbar.items = [flexible, doneButton]
         self.inputAccessoryView = toolbar
     }
