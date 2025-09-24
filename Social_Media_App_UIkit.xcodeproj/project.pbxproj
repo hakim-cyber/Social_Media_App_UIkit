@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		084498DB2E8483C700DB8EA3 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 084498DA2E8483C700DB8EA3 /* Auth */; };
+		084498DD2E8483C700DB8EA3 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 084498DC2E8483C700DB8EA3 /* Functions */; };
+		084498DF2E8483C700DB8EA3 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 084498DE2E8483C700DB8EA3 /* PostgREST */; };
+		084498E12E8483C700DB8EA3 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 084498E02E8483C700DB8EA3 /* Realtime */; };
+		084498E32E8483C700DB8EA3 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 084498E22E8483C700DB8EA3 /* Storage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Social_Media_App_UIkit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +44,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				084498DF2E8483C700DB8EA3 /* PostgREST in Frameworks */,
+				084498DD2E8483C700DB8EA3 /* Functions in Frameworks */,
+				084498DB2E8483C700DB8EA3 /* Auth in Frameworks */,
+				084498E32E8483C700DB8EA3 /* Storage in Frameworks */,
+				084498E12E8483C700DB8EA3 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +91,11 @@
 			);
 			name = Social_Media_App_UIkit;
 			packageProductDependencies = (
+				084498DA2E8483C700DB8EA3 /* Auth */,
+				084498DC2E8483C700DB8EA3 /* Functions */,
+				084498DE2E8483C700DB8EA3 /* PostgREST */,
+				084498E02E8483C700DB8EA3 /* Realtime */,
+				084498E22E8483C700DB8EA3 /* Storage */,
 			);
 			productName = Social_Media_App_UIkit;
 			productReference = 084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */;
@@ -107,6 +125,9 @@
 			);
 			mainGroup = 084495AC2E7EC8BD00DB8EA3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 084495B62E7EC8BD00DB8EA3 /* Products */;
 			projectDirPath = "";
@@ -343,6 +364,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		084498DA2E8483C700DB8EA3 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		084498DC2E8483C700DB8EA3 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		084498DE2E8483C700DB8EA3 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		084498E02E8483C700DB8EA3 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		084498E22E8483C700DB8EA3 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 084495AD2E7EC8BD00DB8EA3 /* Project object */;
 }
