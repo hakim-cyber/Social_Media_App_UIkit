@@ -110,16 +110,20 @@ class LoginViewController: UIViewController {
         super.viewDidLoad()
         
         self.view.backgroundColor = .systemBackground
-        bindTextfields()
+       
         setLabels()
         setTextFields()
         
         setCustomSignInButtons()
         
+        createDismissKeyboardTapGesture()
+        bindTextfields()
         bindButtons()
         bindError()
+        bindLoading()
     }
     func setTextFields() {
+        addDoneButtonOnKeyboard(for:  [customEmailTextField.textField,customPasswordTextField.textField])
         self.view.addSubview(textfieldStackView)
         
         self.textfieldStackView.addArrangedSubview(customEmailTextField)
@@ -127,6 +131,7 @@ class LoginViewController: UIViewController {
         self.textfieldStackView.addArrangedSubview(loginButton)
         self.textfieldStackView.addArrangedSubview(errorLabel)
         self.textfieldStackView.addArrangedSubview(forgotPasswordButton)
+        
         
         
         label3.translatesAutoresizingMaskIntoConstraints = false
@@ -234,6 +239,22 @@ class LoginViewController: UIViewController {
                 }
                 .store(in: &cancellables)
         }
+    private func bindLoading() {
+        viewModel.$isLoading
+            .receive(on: RunLoop.main)
+            .sink { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                if isLoading {
+                    self.showLoadingView()
+                  
+                } else {
+                    self.dismissLoadingView()
+                  
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     private func bindTextfields() {
             // View → ViewModel

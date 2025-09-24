@@ -49,7 +49,11 @@ class LoginViewModel:ObservableObject{
         
     }
     func signInWithGoogle(){
+        self.isLoading = true
         
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2){
+            self.isLoading = false
+        }
     }
     // MARK: - Apple Sign In
     func signInWithApple(presentationContextProvider:ASAuthorizationControllerPresentationContextProviding){
@@ -61,7 +65,7 @@ class LoginViewModel:ObservableObject{
                     Task {
                         do {
                             let (idToken, nonce) = try result.get()
-                            try await AuthService.shared.signInWithApple(idToken: idToken, nonce: nonce)
+                            let user = try await AuthService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                             self.loginError = nil
                         } catch {
                             self.loginError = .custom(error.localizedDescription)
