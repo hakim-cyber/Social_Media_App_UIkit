@@ -46,13 +46,31 @@ class LoginViewModel:ObservableObject{
         return predicate.evaluate(with: email)
     }
     func forgotPassword(){
+        Task{
+            do{
+              try await  AuthService.shared.logout()
+            }catch{
+                print(error)
+            }
+        }
         
     }
-    func signInWithGoogle(){
-        self.isLoading = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2){
-            self.isLoading = false
+    func signInWithGoogle(viewController:UIViewController){
+        isLoading = true
+        GoogleSignInHelper.shared.startGoogleSignIn(viewController: viewController) {[weak self]  result in
+            guard let self = self else { return }
+            
+            Task {
+                do {
+                    let idToken = try result.get()
+                    let user = try await AuthService.shared.signInWithGoogle(idToken: idToken)
+                    self.loginError = nil
+                } catch {
+                    print("Error signing in: \(error)")
+                    self.loginError = .custom(error.localizedDescription)
+                }
+                self.isLoading = false
+            }
         }
     }
     // MARK: - Apple Sign In
@@ -87,6 +105,7 @@ enum LoginError: LocalizedError {
     case invalidPasswordEmpty
     case invalidPasswordTooShort
     case custom(String)
+    case defaultError
     
     var title: String {
         switch self {
@@ -98,6 +117,8 @@ enum LoginError: LocalizedError {
             return "Password Too Short"
         case .custom(let error):
             return "Unknown Error: \(error)"
+        case .defaultError:
+            return "Unknown Error"
         }
     }
     
@@ -110,6 +131,8 @@ enum LoginError: LocalizedError {
         case .invalidPasswordTooShort:
             return "Password must be at least 6 characters long."
         case .custom(let error):
+            return "Unknown Error \(error)"
+        case .defaultError:
             return "Something went wrong,Please try again later"
         }
     }

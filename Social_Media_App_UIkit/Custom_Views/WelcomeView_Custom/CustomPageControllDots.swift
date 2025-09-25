@@ -25,7 +25,7 @@ class CustomPageControlDots: UIStackView {
         indicators.forEach { $0.removeFromSuperview() }
         indicators = []
         
-        for id in 0..<numberOfPages {
+        for _ in 0..<numberOfPages {
             let dot = UIView()
             dot.backgroundColor = .tertiaryLabel
             dot.layer.cornerRadius = dotSize / 2

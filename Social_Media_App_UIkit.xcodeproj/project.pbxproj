@@ -14,6 +14,8 @@
 		084498E32E8483C700DB8EA3 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 084498E22E8483C700DB8EA3 /* Storage */; };
 		08A2E0542E848E2C007B0875 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E0532E848E2C007B0875 /* Supabase */; };
 		08A2E0642E84A914007B0875 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E0632E84A914007B0875 /* KeychainAccess */; };
+		08A2E1762E85CA8E007B0875 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E1752E85CA8E007B0875 /* GoogleSignIn */; };
+		08A2E1782E85CA8E007B0875 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E1772E85CA8E007B0875 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,7 +48,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				08A2E1782E85CA8E007B0875 /* GoogleSignInSwift in Frameworks */,
 				084498DF2E8483C700DB8EA3 /* PostgREST in Frameworks */,
+				08A2E1762E85CA8E007B0875 /* GoogleSignIn in Frameworks */,
 				084498DD2E8483C700DB8EA3 /* Functions in Frameworks */,
 				08A2E0642E84A914007B0875 /* KeychainAccess in Frameworks */,
 				08A2E0542E848E2C007B0875 /* Supabase in Frameworks */,
@@ -110,6 +114,8 @@
 				084498E22E8483C700DB8EA3 /* Storage */,
 				08A2E0532E848E2C007B0875 /* Supabase */,
 				08A2E0632E84A914007B0875 /* KeychainAccess */,
+				08A2E1752E85CA8E007B0875 /* GoogleSignIn */,
+				08A2E1772E85CA8E007B0875 /* GoogleSignInSwift */,
 			);
 			productName = Social_Media_App_UIkit;
 			productReference = 084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */;
@@ -142,6 +148,7 @@
 			packageReferences = (
 				084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				08A2E0622E84A914007B0875 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				08A2E1742E85CA8E007B0875 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 084495B62E7EC8BD00DB8EA3 /* Products */;
@@ -399,6 +406,14 @@
 				kind = branch;
 			};
 		};
+		08A2E1742E85CA8E007B0875 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -436,6 +451,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 08A2E0622E84A914007B0875 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
+		};
+		08A2E1752E85CA8E007B0875 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08A2E1742E85CA8E007B0875 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		08A2E1772E85CA8E007B0875 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08A2E1742E85CA8E007B0875 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -210,7 +210,7 @@ class LoginViewController: UIViewController {
     }
     
     func signInWithGoogle(){
-        viewModel.signInWithGoogle()
+        viewModel.signInWithGoogle(viewController: self)
         print("Google")
     }
   @objc  func signUpButtonTapped(){

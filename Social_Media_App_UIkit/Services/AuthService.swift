@@ -26,7 +26,8 @@ final class AuthService {
     }
     
     // MARK: - Logout
-    func logout() {
+    func logout() async throws {
+      try await  supabase.auth.signOut()
         UserSessionService.shared.clearSession()
     }
 }
@@ -35,9 +36,6 @@ final class AuthService {
 // MARK: - Apple Sign In
 extension AuthService {
     
-    
-    
-    
     func signInWithApple(idToken:String,nonce:String)async throws -> User{
         let session = try await supabase.auth.signInWithIdToken(credentials: .init(provider: .apple, idToken: idToken,nonce:nonce))
         
@@ -45,6 +43,21 @@ extension AuthService {
         UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
         return session.user
     }
+    
+}
+// MARK: - Google Sign In
+extension AuthService {
+    
+    func signInWithGoogle(idToken:String)async throws -> User{
+        let session = try await supabase.auth.signInWithIdToken(credentials: .init(provider: .google, idToken: idToken))
+        
+        
+        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+        print("succes google")
+        print(session.user)
+        return session.user
+    }
+    
     
 }
 
