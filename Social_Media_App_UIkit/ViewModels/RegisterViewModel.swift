@@ -21,7 +21,7 @@ class RegisterViewModel:ObservableObject{
   // returns email to show in alert
     func signUp(complete: @escaping (String) -> Void){
         // Reset previous error
-        isLoading = true
+       
         loginError = nil
         
         // Validate email
@@ -45,6 +45,8 @@ class RegisterViewModel:ObservableObject{
             newError(AuthError.passwordsDoNotMatch)
             return
         }
+        
+        isLoading = true
         Task{
             do{
                 let user =  try await  AuthService.shared.signUp(email: email, password: password)
@@ -58,6 +60,7 @@ class RegisterViewModel:ObservableObject{
             }
             isLoading = false
         }
+       
         
     }
     

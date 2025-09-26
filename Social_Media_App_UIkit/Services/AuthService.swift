@@ -124,3 +124,23 @@ extension AuthService{
 }
 
 
+
+// MARK: - Apple Sign In
+
+
+extension AuthService{
+    func restoreSession(from url: URL) async throws -> User {
+           // Supabase parses the access token from the URL and restores session
+           let session = try await supabase.auth.session(from: url)
+           
+        print("Restored session \(session)")
+           // Save session tokens locally
+           UserSessionService.shared.setSession(
+               user: session.user,
+               accessToken: session.accessToken,
+               refreshToken: session.refreshToken
+           )
+           
+           return session.user
+       }
+}

@@ -25,15 +25,29 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         self.window = window
     }
-
-    // Handle incoming URLs (e.g., Google Sign-In) using UIScene lifecycle
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         for context in URLContexts {
-            if GIDSignIn.sharedInstance.handle(context.url) {
+            let url = context.url
+            
+            // 1️⃣ Handle Google Sign-In
+            if GIDSignIn.sharedInstance.handle(url) {
                 return
             }
+            
+            // 2️⃣ Handle Supabase Email Confirmation / Auth Callback
+            if url.scheme == "myapp" { // your custom URL scheme
+                Task {
+                    do {
+                        let user = try await AuthService.shared.restoreSession(from: url)
+                        print(user)
+                    } catch {
+                        print("Failed to restore Supabase session: \(error)")
+                    }
+                }
+            }
+            
+            // 3️⃣ Handle other URLs if needed
         }
-        // Handle other URL types here if needed
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

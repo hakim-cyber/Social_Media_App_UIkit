@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import Supabase
 import AuthenticationServices
 
 class LoginViewController: UIViewController {
@@ -220,6 +221,9 @@ class LoginViewController: UIViewController {
       self.navigationController?.pushViewController(RegisterViewController(), animated: true)
         print("Sign UP")
     }
+   
+    
+    // MARK: - Bindings
   
         private func bindError() {
             viewModel.$loginError
