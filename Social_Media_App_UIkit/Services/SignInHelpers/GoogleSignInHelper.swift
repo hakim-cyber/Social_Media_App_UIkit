@@ -18,7 +18,7 @@ final class GoogleSignInHelper:NSObject{
             guard error == nil else {   completion(.failure(NSError(domain: "Google sign in", code: -1, userInfo: [NSLocalizedDescriptionKey: "Error signing in with Google \(String(describing: error))"])));return }
            
             guard let user = signInResult?.user,let idToken = user.idToken else{
-                completion(.failure(LoginError.defaultError))
+                completion(.failure(AuthError.userNotFound))
                 print("cant get user or id token")
                 return
             }

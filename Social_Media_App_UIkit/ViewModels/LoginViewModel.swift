@@ -12,7 +12,7 @@ class LoginViewModel:ObservableObject{
     @Published var email:String = ""
     @Published var password:String = ""
     
-    @Published var loginError: LoginError?
+    @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
     
     func login() {
@@ -22,29 +22,30 @@ class LoginViewModel:ObservableObject{
         
         // Validate email
         guard isValidEmail(email) else {
-            loginError = .invalidEmail
+            newError(AuthError.invalidEmail)
             return
         }
         
         // Validate password
         guard !password.isEmpty else {
-            loginError = .invalidPasswordEmpty
+            newError(AuthError.invalidPasswordEmpty)
             return
         }
         
         guard password.count >= 6 else {
-            loginError = .invalidPasswordTooShort
+            newError(AuthError.invalidPasswordTooShort)
             return
         }
         Task{
             do{
                 let user =  try await  AuthService.shared.signIn(email: email, password: password)
-                isLoading = false
+               
             }catch{
                 print(error)
-                self.loginError = .custom(error.localizedDescription)
-                
+               newError(error)
+               
             }
+            isLoading = false
         }
       
     }
@@ -77,7 +78,7 @@ class LoginViewModel:ObservableObject{
                     self.loginError = nil
                 } catch {
                     print("Error signing in: \(error)")
-                    self.loginError = .custom(error.localizedDescription)
+                    self.newError(error)
                 }
                 self.isLoading = false
             }
@@ -96,7 +97,8 @@ class LoginViewModel:ObservableObject{
                             let user = try await AuthService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                             self.loginError = nil
                         } catch {
-                            self.loginError = .custom(error.localizedDescription)
+                            self.newError(error)
+                          
                         }
                         self.isLoading = false
                     }
@@ -107,45 +109,16 @@ class LoginViewModel:ObservableObject{
     func signUp(){
         
     }
+    
+    // MARK: - Helper functions
+    
+    func newError(_ error:Error){
+        if let error = error as? AuthError {
+            self.loginError = error
+        }else{
+          let error =  AuthError.mapSupabaseError(error)
+            self.loginError = error
+        }
+    }
    
-}
-
-enum LoginError: LocalizedError {
-    case invalidEmail
-    case invalidPasswordEmpty
-    case invalidPasswordTooShort
-    case custom(String)
-    case defaultError
-    
-    var title: String {
-        switch self {
-        case .invalidEmail:
-            return "Invalid Email"
-        case .invalidPasswordEmpty:
-            return "Empty Password"
-        case .invalidPasswordTooShort:
-            return "Password Too Short"
-        case .custom(let error):
-            return "Unknown Error: \(error)"
-        case .defaultError:
-            return "Unknown Error"
-        }
-    }
-    
-    var message: String {
-        switch self {
-        case .invalidEmail:
-            return "Your email address is not valid. Make sure it includes '@' and a domain, like 'example@mail.com'."
-        case .invalidPasswordEmpty:
-            return "Please enter your password."
-        case .invalidPasswordTooShort:
-            return "Password must be at least 6 characters long."
-        case .custom(let error):
-            return "Unknown Error \(error)"
-        case .defaultError:
-            return "Something went wrong,Please try again later"
-        }
-    }
-    
-    var errorDescription: String? { message }
 }

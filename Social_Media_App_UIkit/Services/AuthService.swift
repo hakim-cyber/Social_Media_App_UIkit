@@ -82,7 +82,3 @@ extension AuthService {
 }
 
 
-// MARK: - Errors
-enum AuthError: Error {
-    case noRefreshToken
-}
