@@ -125,7 +125,7 @@ extension AuthService{
 
 
 
-// MARK: - Apple Sign In
+// MARK: - Restore Session From url for handling url
 
 
 extension AuthService{
@@ -143,4 +143,31 @@ extension AuthService{
            
            return session.user
        }
+}
+
+
+// MARK: - Forgot Pasword
+
+extension AuthService {
+    func sendPasswordReset(email: String) async throws {
+        try await supabase.auth.resetPasswordForEmail(email,redirectTo: URL(string:  "myapp://auth-callback/account/update-password"))
+    }
+   
+        func changePassword(currentPassword: String, newPassword: String) async throws {
+            guard let email = UserSessionService.shared.currentUser?.email else {
+                throw AuthError.userNotFound
+            }
+            
+            // Re-authenticate user with current password
+            _ = try await supabase.auth.signIn(email: email, password: currentPassword)
+            
+            // Update password
+            try await self.updatePassword(newPassword: newPassword)
+        }
+    
+    
+    func updatePassword(newPassword: String) async throws-> User {
+      let user =  try await supabase.auth.update(user: UserAttributes(password: newPassword))
+        return user
+      }
 }

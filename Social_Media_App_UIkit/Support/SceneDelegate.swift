@@ -38,10 +38,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             if url.scheme == "myapp" { // your custom URL scheme
                 Task {
                     do {
-                        let user = try await AuthService.shared.restoreSession(from: url)
-                        print(user)
+                        if url.path == "/account/update-password" {
+                            // Forgot password / Reset flow
+                            try await handleForgotPasswordLink(url: url)
+                        } else {
+                            // Email confirmation / generic deep link
+                            try await handleEmailConfirmationLink(url: url)
+                        }
                     } catch {
-                        print("Failed to restore Supabase session: \(error)")
+                        print("Failed to handle Supabase URL: \(error)")
                     }
                 }
             }
@@ -79,3 +84,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+extension SceneDelegate{
+    private func handleEmailConfirmationLink(url: URL) async throws {
+        // Restore session and auto-login
+        let user = try await AuthService.shared.restoreSession(from: url)
+      //  authCoordinator.handleLoginSuccess(user: user)
+    }
+
+    private func handleForgotPasswordLink(url: URL) async throws {
+        // Restore session (optional)
+        let user = try await AuthService.shared.restoreSession(from: url)
+        
+        // Show Reset Password screen with coordinator
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                let window = windowScene.windows.first,
+                let rootVC = window.rootViewController else { return }
+          
+          let resetVC = ForgotPasswordChangeVIew()
+        resetVC.modalPresentationStyle = .automatic
+          rootVC.present(resetVC, animated: true)
+    }
+}

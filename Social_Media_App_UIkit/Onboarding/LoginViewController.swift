@@ -202,8 +202,12 @@ class LoginViewController: UIViewController {
         print("Login")
     }
     @objc func forgotPasswordsButtonTapped() {
-        viewModel.forgotPassword()
         print("Forgot password")
+        let vc = ForgetPasswordEmailViewController()
+        vc.viewModel.email = self.viewModel.email
+       
+        self.navigationController?.pushViewController(vc, animated: true)
+       
     }
     func signInWithApple(){
         viewModel.signInWithApple(presentationContextProvider: self)
