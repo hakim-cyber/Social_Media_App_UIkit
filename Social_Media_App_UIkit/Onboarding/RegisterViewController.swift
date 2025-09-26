@@ -1,20 +1,21 @@
 //
-//  LoginViewController.swift
+//  RegisterViewController.swift
 //  Social_Media_App_UIkit
 //
-//  Created by aplle on 9/23/25.
+//  Created by aplle on 9/26/25.
 //
 
 import UIKit
 import Combine
 import AuthenticationServices
 
-class LoginViewController: UIViewController {
+class RegisterViewController: UIViewController {
     
     let customEmailTextField = CustomTextField(placeholder: "Type your email here",topLabelText: "Email",)
     let customPasswordTextField = CustomTextField(placeholder: "Type your password here",topLabelText: "Password",isSecure: true)
+    let confirmPasswordTextField = CustomTextField(placeholder: "Confirm your password here",topLabelText: "Confirm Password",isSecure: true)
     
-    let loginButton:Custom_Login_Button  = .init(backgroundColor: .electricPurple, title: "Login",cornerRadius: 22.5)
+    let registerButton:Custom_Login_Button  = .init(backgroundColor: .electricPurple, title: "Create Account",cornerRadius: 22.5)
     
     var textfieldStackView: UIStackView = {
         let stackView = UIStackView()
@@ -24,34 +25,16 @@ class LoginViewController: UIViewController {
         return stackView
     }()
     
-    var forgotPasswordButton: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Forgot password?", for: .normal)
-       
-        button.setTitleColor(.electricPurple, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
-        button.contentHorizontalAlignment = .trailing
-        return button
-    }()
-    
+   
     let label1: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Login Now To Your Account."
+        label.text = "Create Account"
         label.textColor = .label
         label.font = .systemFont(ofSize:    18, weight: .medium)
         return label
     }()
-    let label2: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Discover new connections, express yourself, grow your Aura"
-        label.textColor = .secondaryLabel
-        label.numberOfLines = 0
-        label.font = .systemFont(ofSize: 11, weight: .medium)
-        return label
-    }()
+    
     let labelsStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -82,21 +65,8 @@ class LoginViewController: UIViewController {
         stackView.spacing = 8
         return stackView
     }()
-    var signUpButton: UIButton = {
-        let button = UIButton()
-        let text = "Don't have and account? *Sign Up*"
-        let attributedText = NSAttributedString( text.makeAttributedString(mainColor: .secondaryLabel))
-        
-      
-        button.translatesAutoresizingMaskIntoConstraints = false
-     
-        button.setAttributedTitle(attributedText, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
-        button.contentHorizontalAlignment = .trailing
-        return button
-    }()
     
-    var viewModel = LoginViewModel()
+    var viewModel = RegisterViewModel()
     private var cancellables = Set<AnyCancellable>()
     
    
@@ -123,14 +93,15 @@ class LoginViewController: UIViewController {
         bindLoading()
     }
     func setTextFields() {
-        addDoneButtonOnKeyboard(for:  [customEmailTextField.textField,customPasswordTextField.textField])
+        addDoneButtonOnKeyboard(for:  [customEmailTextField.textField,customPasswordTextField.textField,confirmPasswordTextField.textField])
         self.view.addSubview(textfieldStackView)
         
         self.textfieldStackView.addArrangedSubview(customEmailTextField)
         self.textfieldStackView.addArrangedSubview(customPasswordTextField)
-        self.textfieldStackView.addArrangedSubview(loginButton)
+        self.textfieldStackView.addArrangedSubview(confirmPasswordTextField)
+        self.textfieldStackView.addArrangedSubview(registerButton)
         self.textfieldStackView.addArrangedSubview(errorLabel)
-        self.textfieldStackView.addArrangedSubview(forgotPasswordButton)
+      
         
         
         
@@ -143,7 +114,7 @@ class LoginViewController: UIViewController {
             textfieldStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),
             textfieldStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -24),
           
-            loginButton.heightAnchor.constraint(equalToConstant: 45),
+            registerButton.heightAnchor.constraint(equalToConstant: 45),
             
            
             
@@ -161,7 +132,7 @@ class LoginViewController: UIViewController {
         self.view.addSubview(labelsStackView)
         
         self.labelsStackView.addArrangedSubview(label1)
-        self.labelsStackView.addArrangedSubview(label2)
+        
         
         
        
@@ -178,7 +149,7 @@ class LoginViewController: UIViewController {
         self.customSignStackView.addArrangedSubview(appleSignInButton)
         self.customSignStackView.addArrangedSubview(googleSignInButton)
     
-        self.view.addSubview(signUpButton)
+      
        
         NSLayoutConstraint.activate([
             customSignStackView.topAnchor.constraint(equalTo: label3.bottomAnchor,constant: 36),
@@ -189,21 +160,33 @@ class LoginViewController: UIViewController {
          
             googleSignInButton.heightAnchor.constraint(equalToConstant: 45),
            
-            signUpButton.topAnchor.constraint(equalTo: customSignStackView.bottomAnchor, constant: 36),
-            signUpButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+         
         ])
     }
     
+    func showConfirmMailAlert(email:String){
+        let alert = UIAlertController(
+                                title: "Verify Email",
+                                message: "We sent a confirmation link to \(email). Please verify before logging in.",
+                                preferredStyle: .alert
+                            )
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
+            self.navigationController?.popViewController(animated: true)
+        }))
+                            self.present(alert, animated: true)
+    }
     
     
-    @objc func loginButtonTapped() {
-        viewModel.login()
-        print("Login")
+    
+    @objc func registerButtonTapped() {
+   
+                
+                viewModel.signUp {[weak self] email in
+                    self?.showConfirmMailAlert(email: email)
+                }
+               
     }
-    @objc func forgotPasswordsButtonTapped() {
-        viewModel.forgotPassword()
-        print("Forgot password")
-    }
+   
     func signInWithApple(){
         viewModel.signInWithApple(presentationContextProvider: self)
         print("Apple")
@@ -213,13 +196,7 @@ class LoginViewController: UIViewController {
         viewModel.signInWithGoogle(viewController: self)
         print("Google")
     }
-  @objc  func signUpButtonTapped(){
-      
-        viewModel.goToSignUP()
-      
-      self.navigationController?.pushViewController(RegisterViewController(), animated: true)
-        print("Sign UP")
-    }
+ 
   
         private func bindError() {
             viewModel.$loginError
@@ -285,11 +262,23 @@ class LoginViewController: UIViewController {
             .map { Optional($0) }
             .assign(to: \.text, on: customPasswordTextField.textField)
             .store(in: &cancellables)
+        // View → ViewModel
+    NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification, object: confirmPasswordTextField.textField)
+            .compactMap { ($0.object as? UITextField)?.text }
+            .assign(to: \.confirmPassword, on: viewModel)
+            .store(in: &cancellables)
+        
+        // ViewModel → View
+    viewModel.$confirmPassword
+            .receive(on: RunLoop.main)
+            .map { Optional($0) }
+            .assign(to: \.text, on: confirmPasswordTextField.textField)
+            .store(in: &cancellables)
         }
     
     private func bindButtons() {
-        loginButton.addTarget(nil, action: #selector(loginButtonTapped), for: .touchUpInside)
-        forgotPasswordButton.addTarget(nil, action: #selector(forgotPasswordsButtonTapped), for: .touchUpInside)
+        registerButton.addTarget(nil, action: #selector(registerButtonTapped), for: .touchUpInside)
+       
         appleSignInButton.tapAction = { [weak self] in
             self?.signInWithApple()
            
@@ -298,7 +287,7 @@ class LoginViewController: UIViewController {
             self?.signInWithGoogle()
            
         }
-        signUpButton.addTarget(nil, action: #selector(signUpButtonTapped), for: .touchUpInside)
+    
     }
     
     
@@ -312,7 +301,7 @@ class LoginViewController: UIViewController {
 
 // MARK: - Confirming to ASAuthorizationControllerPresentationContextProviding
 
-extension LoginViewController: ASAuthorizationControllerPresentationContextProviding {
+extension RegisterViewController: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         return self.view.window!
     }

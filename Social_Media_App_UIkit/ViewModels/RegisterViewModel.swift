@@ -1,21 +1,25 @@
 //
-//  LoginViewModel.swift
+//  RegisterViewModel.swift
 //  Social_Media_App_UIkit
 //
-//  Created by aplle on 9/23/25.
+//  Created by aplle on 9/26/25.
 //
+
 
 import UIKit
 import AuthenticationServices
 import Combine
-class LoginViewModel:ObservableObject{
+internal import Auth
+class RegisterViewModel:ObservableObject{
     @Published var email:String = ""
     @Published var password:String = ""
+    @Published var confirmPassword:String = ""
     
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
     
-    func login() {
+  // returns email to show in alert
+    func signUp(complete: @escaping (String) -> Void){
         // Reset previous error
         isLoading = true
         loginError = nil
@@ -23,7 +27,7 @@ class LoginViewModel:ObservableObject{
         // Validate email
         guard email.isValidEmail else {
             newError(AuthError.invalidEmail)
-            return
+           return
         }
         
         // Validate password
@@ -36,31 +40,27 @@ class LoginViewModel:ObservableObject{
             newError(AuthError.invalidPasswordTooShort)
             return
         }
+        
+        guard password == confirmPassword else {
+            newError(AuthError.passwordsDoNotMatch)
+            return
+        }
         Task{
             do{
-                let user =  try await  AuthService.shared.signIn(email: email, password: password)
-               
+                let user =  try await  AuthService.shared.signUp(email: email, password: password)
+                if let email = user.email{
+                    complete( email)
+                }
             }catch{
                 print(error)
                newError(error)
-               
+                
             }
             isLoading = false
         }
-      
-    }
-    
-    
-    func forgotPassword(){
-        Task{
-            do{
-              try await  AuthService.shared.logout()
-            }catch{
-                print(error)
-            }
-        }
         
     }
+    
     func signInWithGoogle(viewController:UIViewController){
         isLoading = true
         AuthService.shared.signInWithGoogleUI(viewController: viewController) {  [weak self]  result in
@@ -92,11 +92,7 @@ class LoginViewModel:ObservableObject{
         }
     }
     
-    
-    func goToSignUP(){
-        
-    }
-    
+   
     // MARK: - Helper functions
     
     func newError(_ error:Error){

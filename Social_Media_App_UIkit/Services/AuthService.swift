@@ -7,6 +7,7 @@
 
 import Foundation
 import Supabase
+import AuthenticationServices
 
 final class AuthService {
     static let shared = AuthService()
@@ -79,6 +80,47 @@ extension AuthService {
     }
     
     
+}
+
+
+// MARK: - Google/Apple Sign In UI Functions
+
+extension AuthService{
+    func signInWithGoogleUI(
+        viewController: UIViewController,
+        completion: @escaping (Result<User, Error>) -> Void
+    ) {
+        GoogleSignInHelper.shared.startGoogleSignIn(viewController: viewController) { [weak self] result in
+            guard let self else { return }
+            Task {
+                do {
+                    let idToken = try result.get()
+                    let user = try await self.signInWithGoogle(idToken: idToken)
+                    completion(.success(user))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    func signInWithAppleUI(
+        presentationContextProvider: ASAuthorizationControllerPresentationContextProviding,
+        completion: @escaping (Result<User, Error>) -> Void
+    ) {
+        AppleSignInHelper.shared.startSignInWithApple(presentationContextProvider: presentationContextProvider) {[weak self] result in
+            guard let self else { return }
+            Task {
+                do {
+                    let (idToken, nonce) = try result.get()
+                    let user = try await self.signInWithApple(idToken: idToken, nonce: nonce)
+                    completion(.success(user))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
 }
 
 
