@@ -32,6 +32,26 @@ final class AuthService {
     }
 }
 
+// MARK: - Sign in/up with email
+extension AuthService {
+    
+    
+    func signIn(email: String, password: String) async throws -> User {
+        
+        let session = try await supabase.auth.signIn(email: email, password: password)
+        print(session)
+        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+        return session.user
+    }
+    func signUp(email: String, password: String) async throws -> User {
+        
+        let session = try await supabase.auth.signUp(email: email, password: password)
+        print(session.session)
+        
+//        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+        return session.user
+    }
+}
 
 // MARK: - Apple Sign In
 extension AuthService {

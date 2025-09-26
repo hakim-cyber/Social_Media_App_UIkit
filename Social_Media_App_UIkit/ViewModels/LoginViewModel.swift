@@ -17,6 +17,7 @@ class LoginViewModel:ObservableObject{
     
     func login() {
         // Reset previous error
+        isLoading = true
         loginError = nil
         
         // Validate email
@@ -35,7 +36,16 @@ class LoginViewModel:ObservableObject{
             loginError = .invalidPasswordTooShort
             return
         }
-        
+        Task{
+            do{
+                let user =  try await  AuthService.shared.signIn(email: email, password: password)
+                isLoading = false
+            }catch{
+                print(error)
+                self.loginError = .custom(error.localizedDescription)
+                
+            }
+        }
       
     }
     
