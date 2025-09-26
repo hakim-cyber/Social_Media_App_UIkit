@@ -12,7 +12,7 @@ import UIKit
 class CustomTextField: UIView {
     
     // MARK: - UI Elements
-    var height = 40.0
+    var height = 45.0
     private var topLabel: UILabel?
     
     let textField: UITextField = {
@@ -20,7 +20,7 @@ class CustomTextField: UIView {
         tf.borderStyle = .none
         tf.backgroundColor = .clear
         tf.textColor = .label
-        tf.font = .systemFont(ofSize: 12)
+        tf.font = .systemFont(ofSize: 45 / 3)
         tf.translatesAutoresizingMaskIntoConstraints = false
         return tf
     }()
@@ -47,7 +47,7 @@ class CustomTextField: UIView {
     }()
     
     // MARK: - Init
-    init(placeholder: String, topLabelText: String? = nil, isSecure: Bool = false,height:CGFloat = 40.0) {
+    init(placeholder: String, topLabelText: String? = nil, isSecure: Bool = false,height:CGFloat = 45.0) {
         super.init(frame: .zero)
         
         textField.placeholder = placeholder
