@@ -48,18 +48,26 @@ final class AppCoordinator: Coordinator {
     }
 
     private func showMainFlow() {
-        // Create a blank VC
+        // Create main/blank VC
         let blankVC = UIViewController()
         blankVC.view.backgroundColor = .white
         
-        // Add a tap gesture to the whole view
+        // Tap gesture for testing logout
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(blankViewTapped))
         blankVC.view.addGestureRecognizer(tapGesture)
         
-        navigationController.setViewControllers([blankVC], animated: true)
+        // Add custom bottom-to-top transition
+        let transition = CATransition()
+        transition.duration = 0.25
+        transition.type = .moveIn
+        transition.subtype = .fromTop    // slides from bottom to top
+        transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        navigationController.view.layer.add(transition, forKey: kCATransition)
+        navigationController.setViewControllers([blankVC], animated: false)
+        
         authCoordinator = nil
     }
-
     @objc private func blankViewTapped() {
         Task {
             do {
