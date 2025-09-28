@@ -9,36 +9,34 @@ import Supabase
 import Combine
 final class UserSessionService {
     static let shared = UserSessionService()
-    private init() {}
+    private init() {
+        loadSessionFromSupabase()
+    }
     
     @Published var currentUser: User?
     @Published var accessToken: String?
       @Published var refreshToken: String?
       @Published var isLoggedIn: Bool = false
- 
-    // MARK: - Load session from Keychain
-       private func loadSessionFromKeychain() {
-           accessToken = KeychainService.shared.getAccessToken()
-           refreshToken = KeychainService.shared.getRefreshToken()
-           // You can optionally load userID as well
-           isLoggedIn = accessToken != nil
-       }
     
+    private let supabase = SupabaseManager.shared.client
+ 
+    // MARK: - Load session from Supabase
+    private func loadSessionFromSupabase() {
+        if let user =  supabase.auth.currentUser {
+            self.currentUser = user
+            self.isLoggedIn = true
+        } else {
+            self.currentUser = nil
+            self.isLoggedIn = false
+        }
+    }
     // MARK: - Set new session
        func setSession(user: User, accessToken: String, refreshToken: String) {
            self.currentUser = user
            self.accessToken = accessToken
            self.refreshToken = refreshToken
            self.isLoggedIn = true
-           
-           // Save to Keychain
-           do {
-               try KeychainService.shared.saveAccessToken(accessToken)
-               try KeychainService.shared.saveRefreshToken(refreshToken)
-               try KeychainService.shared.saveUserID(user.id.uuidString)
-           } catch {
-               print("Keychain error:", error)
-           }
+          
        }
     
     // MARK: - Clear session (Logout)
@@ -47,12 +45,5 @@ final class UserSessionService {
            accessToken = nil
            refreshToken = nil
            isLoggedIn = false
-           
-           // Remove from Keychain
-           do {
-               try KeychainService.shared.clearAll()
-           } catch {
-               print("Keychain error:", error)
-           }
        }
 }

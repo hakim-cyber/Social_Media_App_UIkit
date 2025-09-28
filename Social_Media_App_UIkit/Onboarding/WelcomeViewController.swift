@@ -29,7 +29,7 @@ class WelcomeViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-   
+    var onUnlock: (() -> Void)?
     var visibleBackgroundImage:Int = 0
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -62,10 +62,7 @@ class WelcomeViewController: UIViewController {
     func setSwipetoUnlockButton(){
         let slideButton = SlideToUnlockView()
         slideButton.translatesAutoresizingMaskIntoConstraints = false
-        slideButton.onUnlock = {
-            print("Unlocked!")
-            
-        }
+        slideButton.onUnlock = onUnlock
         
         self.view.addSubview(slideButton)
         NSLayoutConstraint.activate([

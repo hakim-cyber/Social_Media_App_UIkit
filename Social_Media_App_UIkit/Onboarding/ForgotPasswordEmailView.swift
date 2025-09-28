@@ -47,9 +47,17 @@ class ForgetPasswordEmailViewController: UIViewController {
     }()
   
    
-    var viewModel = ForgotPasswordViewModel()
-    private var cancellables = Set<AnyCancellable>()
     
+      let viewModel:ForgotPasswordViewModel
+      private var cancellables = Set<AnyCancellable>()
+      init(viewModel: ForgotPasswordViewModel) {
+          self.viewModel = viewModel
+          super.init(nibName: nil, bundle: nil)
+      }
+      
+      required init?(coder: NSCoder) {
+          fatalError("init(coder:) has not been implemented")
+      }
    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -112,26 +120,10 @@ class ForgetPasswordEmailViewController: UIViewController {
     }
    
     
-    func showConfirmMailAlert(email:String){
-        let alert = UIAlertController(
-                                title: "Check Your Email",
-                                message:"A password reset link has been sent to \(email).",
-                                preferredStyle: .alert
-                            )
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-            self.navigationController?.popViewController(animated: true)
-        }))
-                            self.present(alert, animated: true)
-    }
-    
-    
-    
     @objc func sendButtonTapped() {
    
        
-                viewModel.sendPasswordReset{[weak self] in
-                    self?.showConfirmMailAlert(email: self?.viewModel.email ?? "")
-                }
+                viewModel.sendPasswordReset()
                
     }
    
@@ -202,5 +194,5 @@ class ForgetPasswordEmailViewController: UIViewController {
 }
 
 #Preview {
-    LoginViewController()
+    LoginViewController(viewModel: .init())
 }

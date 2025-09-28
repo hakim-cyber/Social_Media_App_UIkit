@@ -66,9 +66,17 @@ class RegisterViewController: UIViewController {
         return stackView
     }()
     
-    var viewModel = RegisterViewModel()
-    private var cancellables = Set<AnyCancellable>()
     
+      let viewModel:RegisterViewModel
+      private var cancellables = Set<AnyCancellable>()
+      init(viewModel: RegisterViewModel) {
+          self.viewModel = viewModel
+          super.init(nibName: nil, bundle: nil)
+      }
+      
+      required init?(coder: NSCoder) {
+          fatalError("init(coder:) has not been implemented")
+      }
    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -164,26 +172,10 @@ class RegisterViewController: UIViewController {
         ])
     }
     
-    func showConfirmMailAlert(email:String){
-        let alert = UIAlertController(
-                                title: "Verify Email",
-                                message: "We sent a confirmation link to \(email). Please verify before logging in.",
-                                preferredStyle: .alert
-                            )
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-            self.navigationController?.popViewController(animated: true)
-        }))
-                            self.present(alert, animated: true)
-    }
-    
-    
-    
     @objc func registerButtonTapped() {
    
                 
-                viewModel.signUp {[weak self] email in
-                    self?.showConfirmMailAlert(email: email)
-                }
+                viewModel.signUp()
                
     }
    
@@ -294,7 +286,7 @@ class RegisterViewController: UIViewController {
 }
 
 #Preview {
-    LoginViewController()
+    LoginViewController(viewModel: .init())
 }
 
 

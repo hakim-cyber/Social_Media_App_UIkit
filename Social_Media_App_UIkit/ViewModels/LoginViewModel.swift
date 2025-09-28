@@ -9,6 +9,7 @@ import UIKit
 import AuthenticationServices
 import Combine
 class LoginViewModel:ObservableObject{
+    weak var delegate: AuthViewModelDelegate?
     @Published var email:String = ""
     @Published var password:String = ""
     
@@ -39,7 +40,7 @@ class LoginViewModel:ObservableObject{
         isLoading = true
         Task{
             do{
-                let user =  try await  AuthService.shared.signIn(email: email, password: password)
+                let _ =  try await  AuthService.shared.signIn(email: email, password: password)
                
             }catch{
                 print(error)
@@ -53,21 +54,15 @@ class LoginViewModel:ObservableObject{
     
     
     func forgotPassword(){
-        Task{
-            do{
-              try await  AuthService.shared.logout()
-            }catch{
-                print(error)
-            }
-        }
-        
+      
+        self.delegate?.showForgotPasswordEmailScreen(email: email)
     }
     func signInWithGoogle(viewController:UIViewController){
         isLoading = true
         AuthService.shared.signInWithGoogleUI(viewController: viewController) {  [weak self]  result in
             guard let self = self else { return }
             switch result {
-            case .success(let user):
+            case .success(_):
                 self.loginError = nil
             case .failure(let error):
                 self.newError(error)
@@ -84,7 +79,7 @@ class LoginViewModel:ObservableObject{
             guard let self = self else { return }
             
             switch result {
-            case .success(let user):
+            case .success(_):
                 self.loginError = nil
             case .failure(let error):
                 self.newError(error)
@@ -95,7 +90,7 @@ class LoginViewModel:ObservableObject{
     
     
     func goToSignUP(){
-        
+        self.delegate?.showSignUpScreen(email: email)
     }
     
     // MARK: - Helper functions

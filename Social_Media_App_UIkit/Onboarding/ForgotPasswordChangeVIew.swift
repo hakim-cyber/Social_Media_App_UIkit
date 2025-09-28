@@ -48,11 +48,16 @@ class ForgotPasswordChangeVIew: UIViewController {
         return label
     }()
   
-   
-    var viewModel = ForgotPasswordViewModel()
+    let viewModel:ForgotPasswordViewModel
     private var cancellables = Set<AnyCancellable>()
+    init(viewModel: ForgotPasswordViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
     
-   
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
@@ -216,5 +221,5 @@ class ForgotPasswordChangeVIew: UIViewController {
 }
 
 #Preview {
-    LoginViewController()
+    LoginViewController(viewModel: .init())
 }

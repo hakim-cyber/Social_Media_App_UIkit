@@ -12,18 +12,25 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
+    var appCoordinator: AppCoordinator?
+    
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
+
+               // Setup window
+               let window = UIWindow(windowScene: windowScene)
+        window.tintColor = .electricPurple
+               self.window = window
+               window.makeKeyAndVisible()
         
-        let window = UIWindow(windowScene: windowScene)
-        window.tintColor = UIColor.electricPurple // your custom color
-        window.rootViewController = UINavigationController(rootViewController: LoginViewController())
-        window.makeKeyAndVisible()
-        
-        self.window = window
+        let appCoordinator = AppCoordinator(window: window)
+               self.appCoordinator = appCoordinator
+
+               // Start coordinator
+               appCoordinator.start(animated: false)
     }
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         for context in URLContexts {
@@ -87,7 +94,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 extension SceneDelegate{
     private func handleEmailConfirmationLink(url: URL) async throws {
         // Restore session and auto-login
-        let user = try await AuthService.shared.restoreSession(from: url)
+        let _ = try await AuthService.shared.restoreSession(from: url)
       //  authCoordinator.handleLoginSuccess(user: user)
     }
 
@@ -95,13 +102,7 @@ extension SceneDelegate{
         // Restore session (optional)
         let user = try await AuthService.shared.restoreSession(from: url)
         
-        // Show Reset Password screen with coordinator
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                let window = windowScene.windows.first,
-                let rootVC = window.rootViewController else { return }
-          
-          let resetVC = ForgotPasswordChangeVIew()
-        resetVC.modalPresentationStyle = .automatic
-          rootVC.present(resetVC, animated: true)
+        self.appCoordinator?.showChangePasswordViewController()
+     
     }
 }

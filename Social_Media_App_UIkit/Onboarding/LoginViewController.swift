@@ -11,7 +11,18 @@ import Supabase
 import AuthenticationServices
 
 class LoginViewController: UIViewController {
+    let viewModel:LoginViewModel
+    private var cancellables = Set<AnyCancellable>()
+    init(viewModel: LoginViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
     
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+   
     let customEmailTextField = CustomTextField(placeholder: "Type your email here",topLabelText: "Email",)
     let customPasswordTextField = CustomTextField(placeholder: "Type your password here",topLabelText: "Password",isSecure: true)
     
@@ -97,8 +108,7 @@ class LoginViewController: UIViewController {
         return button
     }()
     
-    var viewModel = LoginViewModel()
-    private var cancellables = Set<AnyCancellable>()
+ 
     
    
     override func viewDidAppear(_ animated: Bool) {
@@ -203,11 +213,7 @@ class LoginViewController: UIViewController {
     }
     @objc func forgotPasswordsButtonTapped() {
         print("Forgot password")
-        let vc = ForgetPasswordEmailViewController()
-        vc.viewModel.email = self.viewModel.email
-       
-        self.navigationController?.pushViewController(vc, animated: true)
-       
+        viewModel.forgotPassword()
     }
     func signInWithApple(){
         viewModel.signInWithApple(presentationContextProvider: self)
@@ -221,9 +227,7 @@ class LoginViewController: UIViewController {
   @objc  func signUpButtonTapped(){
       
         viewModel.goToSignUP()
-      
-      self.navigationController?.pushViewController(RegisterViewController(), animated: true)
-        print("Sign UP")
+     
     }
    
     
@@ -313,7 +317,7 @@ class LoginViewController: UIViewController {
 }
 
 #Preview {
-    LoginViewController()
+    LoginViewController(viewModel: LoginViewModel())
 }
 
 

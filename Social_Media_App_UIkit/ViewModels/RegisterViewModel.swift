@@ -11,6 +11,7 @@ import AuthenticationServices
 import Combine
 internal import Auth
 class RegisterViewModel:ObservableObject{
+    weak var delegate: AuthViewModelDelegate?
     @Published var email:String = ""
     @Published var password:String = ""
     @Published var confirmPassword:String = ""
@@ -19,7 +20,7 @@ class RegisterViewModel:ObservableObject{
     @Published var isLoading: Bool = false
     
   // returns email to show in alert
-    func signUp(complete: @escaping (String) -> Void){
+    func signUp(){
         // Reset previous error
        
         loginError = nil
@@ -51,7 +52,7 @@ class RegisterViewModel:ObservableObject{
             do{
                 let user =  try await  AuthService.shared.signUp(email: email, password: password)
                 if let email = user.email{
-                    complete( email)
+                    self.delegate?.showConfirmAlert(email: email, type: .emailVerification)
                 }
             }catch{
                 print(error)
@@ -69,7 +70,7 @@ class RegisterViewModel:ObservableObject{
         AuthService.shared.signInWithGoogleUI(viewController: viewController) {  [weak self]  result in
             guard let self = self else { return }
             switch result {
-            case .success(let user):
+            case .success(_):
                 self.loginError = nil
             case .failure(let error):
                 self.newError(error)
@@ -86,7 +87,7 @@ class RegisterViewModel:ObservableObject{
             guard let self = self else { return }
             
             switch result {
-            case .success(let user):
+            case .success(_):
                 self.loginError = nil
             case .failure(let error):
                 self.newError(error)

@@ -8,6 +8,7 @@ import Foundation
 import Combine
 
 class ForgotPasswordViewModel {
+    weak var delegate: AuthViewModelDelegate?
     @Published var email:String = ""
     
     @Published var newPassword:String = ""
@@ -42,7 +43,7 @@ class ForgotPasswordViewModel {
         }
         
     }
-    func sendPasswordReset(complete: @escaping ()->Void)  {
+    func sendPasswordReset()  {
         // Validate email
         guard email.isValidEmail else {
             self.loginError = AuthError.invalidEmail
@@ -52,7 +53,7 @@ class ForgotPasswordViewModel {
         Task{
             do{
                 try await AuthService.shared.sendPasswordReset(email: email)
-                complete()
+                self.delegate?.showConfirmAlert(email: email, type: .passwordReset)
             }catch{
                 self.loginError = .custom(error.localizedDescription)
             }

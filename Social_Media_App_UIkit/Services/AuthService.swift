@@ -13,17 +13,18 @@ final class AuthService {
     static let shared = AuthService()
     private init() {}
     
-    private let keychain = KeychainService.shared
+  
     private let supabase = SupabaseManager.shared.client
     
     
     // MARK: - Refresh token
     func refreshSessionIfNeeded() async throws {
-        guard let refreshToken = keychain.getRefreshToken() else {
-            throw AuthError.noRefreshToken
-        }
-        let session = try await supabase.auth.refreshSession(refreshToken: refreshToken)
-        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+        let session = try await supabase.auth.refreshSession()
+        UserSessionService.shared.setSession(
+            user: session.user,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
     }
     
     // MARK: - Logout

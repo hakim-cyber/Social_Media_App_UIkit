@@ -66,7 +66,13 @@ class CustomTextField: UIView {
         
         if isSecure {
             textField.isSecureTextEntry = true
+          
+            textField.textContentType = .password
             eyeButton.isHidden = false
+        }else{
+            textField.textContentType = .username
+            textField.autocapitalizationType = .none
+            textField.autocorrectionType = .no
         }
     }
     
