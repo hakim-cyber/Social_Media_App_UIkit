@@ -19,4 +19,10 @@ class OnboardingSetupViewModel{
         self.image = image
         delegate?.selectedProfileImage()
     }
+    func setInfo(userName: String, name: String, bio: String) {
+        self.userName = userName
+        self.name = name
+        self.bio = bio
+       
+    }
 }

@@ -53,8 +53,9 @@ class ProfileInfoSetupView: UIViewController {
         return usernameField
     }()
     let bioTextField:InputFieldWithTitleAndCounter = {
-        let usernameField = InputFieldWithTitleAndCounter(title: "Bio",maxCharacters: 150)
+        let usernameField = InputFieldWithTitleAndCounter(title: "Bio",maxCharacters: 149)
        
+    
         usernameField.translatesAutoresizingMaskIntoConstraints = false
       
         return usernameField
@@ -153,11 +154,12 @@ class ProfileInfoSetupView: UIViewController {
     
     @objc func handleNext(){
         print("next")
+        self.viewModel.setInfo(userName: userNameTextField.textField.text ?? "", name: nameTextField.textField.text ?? "", bio: bioTextField.textView.text ?? "")
         
     }
     @objc func handleSkip(){
         print("skip")
-        
+        self.viewModel.setInfo(userName: "", name: "", bio: "")
     }
 }
 

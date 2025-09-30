@@ -27,7 +27,10 @@ final class OnboardingSetupCoordinator : Coordinator {
         navigationController.setViewControllers([vc], animated: true)
     }
     func showInfoSelect(){
-       print("Show info")
+      
+        let vc = ProfileInfoSetupView(viewModel: viewModel)
+      
+        navigationController.setViewControllers([vc], animated: true)
     }
     
     
@@ -37,12 +40,16 @@ final class OnboardingSetupCoordinator : Coordinator {
 
 protocol OnboardingSetupViewModelDelegate: AnyObject {
     func selectedProfileImage()
+    func finishedInfoSetup()
 }
 
 extension OnboardingSetupCoordinator: OnboardingSetupViewModelDelegate {
     func selectedProfileImage() {
-     
         showInfoSelect()
+    }
+    func finishedInfoSetup() {
+     
+       
     }
     
     

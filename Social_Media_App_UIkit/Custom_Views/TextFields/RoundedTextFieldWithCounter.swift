@@ -109,7 +109,7 @@ class InputFieldWithTitleAndCounter: UIView, UITextViewDelegate {
 
     private func updateCounter() {
         let count = textView.text.count
-        counterLabel.text = "\(count)/\(maxCharacters)"
+        counterLabel.text = "\(count)/\(maxCharacters + 1)"
         counterLabel.textColor = count > maxCharacters ? .systemRed : .secondaryLabel
     }
 
