@@ -15,7 +15,7 @@ class ProfileInfoSetupView: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Info About You"
         label.textColor = .label
-        label.font = .systemFont(ofSize:    25, weight: .bold)
+        label.font = .systemFont(ofSize:    20, weight: .bold)
         return label
     }()
     let label2: UILabel = {
@@ -114,6 +114,8 @@ class ProfileInfoSetupView: UIViewController {
         
     }
     func setTextfields(){
+        createDismissKeyboardTapGesture()
+        addDoneButtonOnKeyboard(for:  [userNameTextField.textField,nameTextField.textField,bioTextField.textView])
         self.view.addSubview(userNameTextField)
         self.view.addSubview(nameTextField)
         self.view.addSubview(bioTextField)
@@ -131,7 +133,7 @@ class ProfileInfoSetupView: UIViewController {
             bioTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),
             bioTextField.topAnchor.constraint(equalTo: nameTextField.bottomAnchor,constant: 24),
             bioTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor,constant: -24),
-          
+            bioTextField.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.3)
            
             
         ])

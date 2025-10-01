@@ -81,14 +81,7 @@ extension ParentCoordinator {
      - Parameters:
      - child: The child coordinator to be removed from the list.
      */
-    func childDidFinish(_ child: Coordinator?) {
-        for (index, coordinator) in childCoordinators.enumerated() {
-            if coordinator === child {
-                childCoordinators.remove(at: index)
-                break
-            }
-        }
-    }
+    
 }
 
 /// All Child coordinators should conform to this protocol

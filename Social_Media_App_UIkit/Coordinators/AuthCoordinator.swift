@@ -9,10 +9,11 @@ import UIKit
 
 final class AuthCoordinator: Coordinator {
     var navigationController: UINavigationController
-    let onboardingService: OnboardingService = .init()
+    let onboardingService: OnboardingService
 
-    init(navigationController: UINavigationController) {
+    init(navigationController: UINavigationController,onboardingService:OnboardingService) {
         self.navigationController = navigationController
+        self.onboardingService = onboardingService
     }
 
     func start(animated: Bool = true) {

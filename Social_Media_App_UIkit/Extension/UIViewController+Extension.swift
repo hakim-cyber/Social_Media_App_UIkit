@@ -49,16 +49,17 @@ extension UIViewController{
     
     
     
-    
-    /// Adds a "Done" button to the keyboard for the provided text fields
-        func addDoneButtonOnKeyboard(for textFields: [UITextField], title: String = "Done") {
-            textFields.forEach { textField in
-                textField.addDoneButton(target: self, selector: #selector(dismissKeyboard))
+   
+        /// Adds a "Done" button to the keyboard for the provided text inputs
+        func addDoneButtonOnKeyboard(for inputs: [UIResponder], title: String = "Done") {
+            inputs.forEach { input in
+                input.addDoneButton(title: title, target: self, selector: #selector(dismissKeyboard))
             }
         }
         
         @objc func dismissKeyboard() {
             view.endEditing(true)
         }
+    
     
 }

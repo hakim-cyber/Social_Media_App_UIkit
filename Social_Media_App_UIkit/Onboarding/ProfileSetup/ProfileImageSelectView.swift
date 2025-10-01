@@ -15,7 +15,7 @@ class ProfileImageSelectView: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Pick a profile picture"
         label.textColor = .label
-        label.font = .systemFont(ofSize:    25, weight: .bold)
+        label.font = .systemFont(ofSize:    20, weight: .bold)
         return label
     }()
     let label2: UILabel = {

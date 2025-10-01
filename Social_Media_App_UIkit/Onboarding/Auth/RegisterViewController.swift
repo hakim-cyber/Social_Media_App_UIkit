@@ -94,13 +94,14 @@ class RegisterViewController: UIViewController {
         
         setCustomSignInButtons()
         
-        createDismissKeyboardTapGesture()
+       
         bindTextfields()
         bindButtons()
         bindError()
         bindLoading()
     }
     func setTextFields() {
+        createDismissKeyboardTapGesture()
         addDoneButtonOnKeyboard(for:  [customEmailTextField.textField,customPasswordTextField.textField,confirmPasswordTextField.textField])
         self.view.addSubview(textfieldStackView)
         

@@ -85,6 +85,7 @@ class ProfileImageView: UIView {
         imageView.tintColor = imageColor
         
         imageView.image = (imageView.image ?? placeholderImage)
+        imageView.contentMode = .scaleAspectFill
         
         containerView.clipsToBounds = true
         containerView.contentMode = .scaleAspectFill

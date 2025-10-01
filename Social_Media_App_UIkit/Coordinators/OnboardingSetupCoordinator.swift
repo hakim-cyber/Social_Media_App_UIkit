@@ -9,7 +9,7 @@ import UIKit
 
 
 final class OnboardingSetupCoordinator : Coordinator {
-   
+    weak var parentCoordinator: ParentCoordinator?
     var navigationController: UINavigationController
     let viewModel = OnboardingSetupViewModel()
     init(navigationController: UINavigationController) {
@@ -49,7 +49,7 @@ extension OnboardingSetupCoordinator: OnboardingSetupViewModelDelegate {
     }
     func finishedInfoSetup() {
      
-       
+        parentCoordinator?.childDidFinish(self)
     }
     
     
