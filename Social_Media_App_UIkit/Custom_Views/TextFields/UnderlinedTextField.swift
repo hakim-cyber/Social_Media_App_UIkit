@@ -50,7 +50,10 @@ class UnderlinedTextFieldView: UIView {
         super.init(coder: coder)
         setupView()
     }
-    
+    func changeUnderlineColor(color:UIColor){
+        self.underlineColor = color
+        self.underline.backgroundColor = color
+    }
     private func setupView() {
         titleLabel.textColor = titleColor
         underline.backgroundColor = underlineColor

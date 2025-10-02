@@ -6,7 +6,7 @@
 //
 
 import UIKit
-
+import Combine
 
 class OnboardingSetupViewModel{
     weak var delegate: OnboardingSetupViewModelDelegate?
@@ -14,7 +14,21 @@ class OnboardingSetupViewModel{
     var userName:String = ""
     var name:String = ""
     var bio:String = ""
+    let userNameValidator:UsernameValidator = .init()
+    @Published var error:String? = nil
     
+    func checkUsername(userName:String)async->Bool{
+      let (valid,error) = await userNameValidator.validate(userName)
+        if !valid{
+            self.error = error
+        }else{
+            self.error = nil
+        }
+        return valid
+    }
+    func checkName(name:String){
+        
+    }
     func setProfileImage(_ image: UIImage?) {
         self.image = image
         delegate?.selectedProfileImage()

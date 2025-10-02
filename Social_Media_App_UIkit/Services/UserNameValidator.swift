@@ -10,7 +10,7 @@ import Supabase
 
 
 
-final class UsernameValidator {
+ struct UsernameValidator {
     private let supabase = SupabaseManager.shared.client
     
     // Validate format
