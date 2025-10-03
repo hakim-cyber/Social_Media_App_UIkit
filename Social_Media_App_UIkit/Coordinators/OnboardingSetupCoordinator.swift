@@ -11,9 +11,12 @@ import UIKit
 final class OnboardingSetupCoordinator : Coordinator {
     weak var parentCoordinator: ParentCoordinator?
     var navigationController: UINavigationController
-    let viewModel = OnboardingSetupViewModel()
-    init(navigationController: UINavigationController) {
+    let profileService: ProfileService
+    let viewModel:OnboardingSetupViewModel
+    init(navigationController: UINavigationController,profileService:ProfileService) {
         self.navigationController = navigationController
+        self.profileService = profileService
+        self.viewModel = .init(profileService: profileService)
       
     }
  

@@ -124,6 +124,7 @@ class ProfileInfoSetupView: UIViewController {
         setTextfields()
         setButtons()
         bindError()
+        bindLoading()
     }
     @objc private func usernameEditingChanged(_ textField: UITextField) {
            // Cancel previous timer
@@ -272,6 +273,22 @@ class ProfileInfoSetupView: UIViewController {
             }
             .store(in: &cancellables)
     }
+    private func bindLoading() {
+        viewModel.$loading
+            .receive(on: RunLoop.main)
+            .sink { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                if isLoading {
+                    self.showLoadingView()
+                  
+                } else {
+                    self.dismissLoadingView()
+                  
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     @objc func handleNext(){
         if self.userNameIsValid && nameIsValid{
@@ -303,6 +320,6 @@ class ProfileInfoSetupView: UIViewController {
 }
 
 #Preview{
-    ProfileInfoSetupView(viewModel: OnboardingSetupViewModel())
+    ProfileInfoSetupView(viewModel: OnboardingSetupViewModel(profileService: .init()))
 }
 

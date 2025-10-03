@@ -28,21 +28,5 @@ final class OnboardingService {
     func resetHasSeenWelcome() {
         defaults.removeObject(forKey: Keys.hasSeenWelcome)
     }
-    
-    func checkIfUserHasProfile() async throws -> Bool {
-        // Ensure we have a logged-in user
-        guard let userId = supabase.auth.currentUser?.id else {
-            return false
-        }
-        
-        // Perform a HEAD request with count to efficiently check existence
-        let response = try await supabase
-            .from("users")
-            .select("id", head: true, count: .exact)
-            .eq("id", value: userId)
-            .execute()
-        
-        // If count > 0, a row exists
-        return (response.count ?? 0) > 0
-    }
+  
 }

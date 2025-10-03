@@ -33,8 +33,21 @@ class MainViewController: UIViewController {
         super.viewDidLoad()
         
         self.view.backgroundColor = .red
+        
+        self.view.addGestureRecognizer(UITapGestureRecognizer(target:self, action: #selector(tap)))
        
         
+    }
+    @objc func tap(){
+        Task{
+            do{
+                print("Logout")
+                try await    AuthService.shared.logout()
+                print("loged out")
+            }catch{
+                
+            }
+        }
     }
     
 }

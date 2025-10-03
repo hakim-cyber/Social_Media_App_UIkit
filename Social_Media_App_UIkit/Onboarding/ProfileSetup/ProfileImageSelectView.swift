@@ -135,7 +135,7 @@ class ProfileImageSelectView: UIViewController {
 }
 
 #Preview(){
-    ProfileImageSelectView(viewModel: OnboardingSetupViewModel())
+    ProfileImageSelectView(viewModel: OnboardingSetupViewModel(profileService: .init()))
 }
 
 extension ProfileImageSelectView:UIImagePickerControllerDelegate,UINavigationControllerDelegate{

@@ -13,10 +13,12 @@ class MainCoordinator{
     
     var navigationController: UINavigationController
     let onboardingService: OnboardingService
+    let profileService: ProfileService
     
     init(navigationController: UINavigationController,onboardingService:OnboardingService) {
         self.navigationController = navigationController
         self.onboardingService  = onboardingService
+        self.profileService = ProfileService()
     }
     func start(animated: Bool) {
         Task{
@@ -25,7 +27,7 @@ class MainCoordinator{
     }
     private func checkAndShowSetupIfNeeded() async {
             do {
-                let userHasProfile = try await onboardingService.checkIfUserHasProfile()
+                let userHasProfile = try await profileService.checkIfUserHasProfile()
                 
                 await MainActor.run {
                     if userHasProfile {
@@ -57,7 +59,7 @@ class MainCoordinator{
     }
     
     private func showOnboardingSetup() {
-        let onboardingCoordinator = OnboardingSetupCoordinator(navigationController: navigationController)
+        let onboardingCoordinator = OnboardingSetupCoordinator(navigationController: navigationController,profileService: profileService)
         onboardingCoordinator.parentCoordinator = self
         self.addChild(onboardingCoordinator)
         onboardingCoordinator.start(animated: true)
