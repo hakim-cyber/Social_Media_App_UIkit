@@ -31,7 +31,7 @@ class MainCoordinator{
                 
                 await MainActor.run {
                     if userHasProfile {
-                        showMainView()
+                        showMainView(animated: false)
                     } else {
                         showOnboardingSetup()
                     }
@@ -44,17 +44,19 @@ class MainCoordinator{
                 }
             }
         }
-    func showMainView(){
-        // Add custom bottom-to-top transition
-        let transition = CATransition()
-        transition.duration = 0.25
-        transition.type = .moveIn
-        transition.subtype = .fromTop    // slides from bottom to top
-        transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        
+    func showMainView(animated:Bool = true){
+        if animated{
+            // Add custom bottom-to-top transition
+            let transition = CATransition()
+            transition.duration = 0.25
+            transition.type = .moveIn
+            transition.subtype = .fromTop    // slides from bottom to top
+            transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            navigationController.view.layer.add(transition, forKey: kCATransition)
+        }
         let vc = MainViewController(viewModel: MainCoordinatorViewModel())
-        navigationController.view.layer.add(transition, forKey: kCATransition)
-        navigationController.setViewControllers([vc], animated: false)
+        
+        navigationController.setViewControllers([vc], animated:!animated)
         
     }
     
