@@ -1,0 +1,182 @@
+//
+//  PostCreationViewController.swift
+//  Social_Media_App_UIkit
+//
+//  Created by aplle on 10/5/25.
+//
+
+import UIKit
+
+
+class PostCreationViewController: UIViewController {
+  
+    var selectImageView:PostImageSelectView = .init()
+    
+    let captionTextField:InputFieldWithTitleAndCounter = {
+        let field = InputFieldWithTitleAndCounter(title: "Caption",maxCharacters: 249)
+       
+    
+        field.translatesAutoresizingMaskIntoConstraints = false
+      
+        return field
+    }()
+    
+    let locationButton:LocationPickerButton = .init()
+    
+    
+    var selectedImage:UIImage?
+    
+    init() {
+       
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+    }
+    
+    override func viewDidLoad() {
+        
+        super.viewDidLoad()
+        
+        self.view.backgroundColor = .systemBackground
+     
+        setupNavBar()
+       
+       
+        setImageSelectView()
+        setTextField()
+        setLocationButton()
+    }
+    
+    private func setupNavBar() {
+        // Cancel button
+        let cancelButton = UIBarButtonItem(
+            title: "Cancel",
+            style: .plain,
+            target: self,
+            action: #selector(cancelTapped)
+        )
+
+        // Post button
+        let postButton = UIBarButtonItem(
+            title: "Post",
+            style: .prominent,
+            target: self,
+            action: #selector(postTapped)
+        )
+
+        // Apply electric purple tint
+        let electricPurple = UIColor.electricPurple
+        cancelButton.tintColor = electricPurple
+        postButton.tintColor = electricPurple
+
+        navigationItem.leftBarButtonItem = cancelButton
+        navigationItem.rightBarButtonItem = postButton
+    }
+
+    @objc private func cancelTapped() {
+        dismiss(animated: true)
+    }
+
+    @objc private func postTapped() {
+        // Handle post logic here
+        print("Post tapped with caption: \(captionTextField.textView.text ?? "") location: \(locationButton.locationText ?? "none")")
+    }
+    func setLocationButton(){
+        self.view.addSubview(locationButton)
+        // Open picker
+           locationButton.onTap = { [weak self] in
+               self?.presentLocationPicker()
+           }
+        locationButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            locationButton.topAnchor.constraint(equalTo: captionTextField.bottomAnchor, constant: 12),
+            locationButton.leadingAnchor.constraint(equalTo: selectImageView.leadingAnchor),  locationButton.trailingAnchor.constraint(equalTo: selectImageView.trailingAnchor),
+            
+        ])
+    }
+    
+    private func presentLocationPicker() {
+        let picker = LocationTextPickerViewController()
+        picker.onSelect = { [weak self] locationString in
+            // Update UI + VM
+            self?.locationButton.locationText = locationString
+            
+            // self?.viewModel.location = locationString
+        }
+        // Present modally with a nav (so there’s a search bar title area)
+        let nav = UINavigationController(rootViewController: picker)
+        present(nav, animated: true)
+    }
+    
+    func setTextField(){
+        view.addSubview(captionTextField)
+        NSLayoutConstraint.activate([
+            
+                       captionTextField.leadingAnchor.constraint(equalTo:  selectImageView.leadingAnchor),
+                       captionTextField.topAnchor.constraint(equalTo: selectImageView.bottomAnchor,constant: 24),
+                       captionTextField.trailingAnchor.constraint(equalTo: selectImageView.trailingAnchor),
+                       captionTextField.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.3),
+                     
+                       ])
+    }
+    
+    func setImageSelectView(){
+        selectImageView.onTap = {[weak self] in
+            print("on tap closure")
+            self?.presentImagePicker()
+        }
+        self.view.addSubview(selectImageView)
+        NSLayoutConstraint.activate([
+            selectImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,constant: 24),
+           
+            selectImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant:  36),
+            selectImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant:  -36),
+                   // 👇 Square
+            selectImageView.heightAnchor.constraint(equalTo: selectImageView.widthAnchor),
+          
+               
+        ])
+    }
+  
+    
+    func presentImagePicker(){
+        print("show")
+        let picker = UIImagePickerController()
+        picker.sourceType = .photoLibrary
+        picker.delegate = self
+        picker.allowsEditing = true
+        present(picker, animated: true)
+    }
+    
+}
+
+#Preview(){
+    UINavigationController(rootViewController: PostCreationViewController())
+}
+
+
+extension PostCreationViewController:UIImagePickerControllerDelegate,UINavigationControllerDelegate{
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+       
+        if let editedImage = info[.editedImage] as? UIImage {
+            self.selectedImage = editedImage
+        } else if let originalImage = info[.originalImage] as? UIImage {
+            self.selectedImage = originalImage
+        }
+       
+        selectImageView.setImage(image: selectedImage)
+        picker.dismiss(animated: true)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
+}
