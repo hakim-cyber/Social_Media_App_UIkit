@@ -9,35 +9,6 @@ import Foundation
 import Supabase
 import UIKit
 
-enum ProfileCreateError: Error, LocalizedError {
-    case notAuthenticated
-    case usernameTaken
-    case unknown(String)
-    // Profile Creation Errors
-    case profileCreationFailed
-    case profileAlreadyExists
-    case bioTooLong
-    case invalidImageData
-    case uploadFailed
-
-    var errorDescription: String? {
-        switch self {
-        case .notAuthenticated: return "No signed-in user."
-        case .usernameTaken:    return "This username is already taken."
-        case .profileCreationFailed:
-            return "Failed to create user profile. Please try again."
-        case .profileAlreadyExists:
-            return "Profile already exists for this user."
-        case .bioTooLong:
-            return "Bio must be 150 characters or less."
-        case .invalidImageData:
-            return "Invalid image format. Please try another image."
-        case .uploadFailed:
-            return "Failed to upload image. Please try again."
-        case .unknown(let m):   return m
-        }
-    }
-}
 
 class ProfileService {
     private let supabase = SupabaseManager.shared.client
@@ -133,32 +104,18 @@ extension ProfileService {
 
     /// Upload profile avatar image
     func uploadProfileAvatar(_ image: UIImage, userId: UUID) async throws -> (path: String, publicUrl: String) {
-        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
-            throw ProfileCreateError.invalidImageData
-        }
-        // Versioned filename for cache-busting
-           let fileName = "avatar.jpg"
-
-           // Path INSIDE the bucket (no "avatars/" prefix). Must start with {auth.uid()} to satisfy folder-based Storage RLS.
-        let filePath = "\(userId.uuidString.lowercased())/\(fileName)"
-  
-           // Upload (public bucket). Upsert lets the user replace their avatar.
-           _ = try await supabase.storage
-               .from("avatars")
-               
-               .upload(
-                filePath,
-                   data: imageData,
-                options: FileOptions(contentType: "image/jpeg", upsert: true)
-               )
-
-           // Public URL (String; non-throwing)
-           let publicURL: String = try supabase.storage
-               .from("avatars")
-               .getPublicURL(path: filePath)
-               .absoluteString
-
-           return (filePath, publicURL)
+        let svc = SupabaseStorageService()
+           // Keep filename fixed if you want "avatar.jpg" (browser may cache; changing path busts cache)
+           let res = try await svc.uploadImage(
+               image,
+               userId: userId,
+               bucket: .avatars,
+               fileName: "avatar.jpg",        // fixed name, same path
+               jpegQuality: 0.7,
+               upsert: true,                  // allow replace
+               publicBucket: true             // typical for avatars; set false if you want private + signed
+           )
+           return (res.path, res.url.absoluteString)
       
     }
 }

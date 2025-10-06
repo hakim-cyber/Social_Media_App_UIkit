@@ -85,8 +85,24 @@ class PostCreationViewController: UIViewController {
     }
 
     @objc private func postTapped() {
-        // Handle post logic here
-        print("Post tapped with caption: \(captionTextField.textView.text ?? "") location: \(locationButton.locationText ?? "none")")
+        
+        if let image = self.selectedImage{
+            // Handle post logic here
+            print("Post tapped with caption: \(captionTextField.textView.text ?? "") location: \(locationButton.locationText ?? "none")")
+            let (caption,location) = (captionTextField.textView.text,locationButton.locationText)
+            let sv = PostService()
+            Task{
+                self.showLoadingView()
+                do{
+                    try await   sv.createPost(caption: caption, image: image , location: location)
+                    self.dismissLoadingView()
+                }catch{
+                    print(error)
+                    print(error.localizedDescription)
+                    self.dismissLoadingView()
+                }
+            }
+        }
     }
     func setLocationButton(){
         self.view.addSubview(locationButton)
@@ -116,6 +132,8 @@ class PostCreationViewController: UIViewController {
     }
     
     func setTextField(){
+        addDoneButtonOnKeyboard(for:  [captionTextField.textView])
+        self.createDismissKeyboardTapGesture()
         view.addSubview(captionTextField)
         NSLayoutConstraint.activate([
             
