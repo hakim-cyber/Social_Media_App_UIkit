@@ -37,7 +37,12 @@ class PostCreationViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        enableKeyboardAvoidance()
         
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        disableKeyboardAvoidance()
     }
     
     override func viewDidLoad() {
@@ -52,7 +57,9 @@ class PostCreationViewController: UIViewController {
         setImageSelectView()
         setTextField()
         setLocationButton()
+     
     }
+   
     
     private func setupNavBar() {
         // Cancel button
@@ -81,6 +88,9 @@ class PostCreationViewController: UIViewController {
     }
 
     @objc private func cancelTapped() {
+        Task{
+         try? await   AuthService.shared.logout()
+        }
         dismiss(animated: true)
     }
 

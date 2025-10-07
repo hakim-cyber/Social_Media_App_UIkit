@@ -63,3 +63,58 @@ extension UIViewController{
     
     
 }
+
+
+import UIKit
+
+extension UIViewController {
+
+    /// Call this in `viewWillAppear` (and remove in `viewWillDisappear`)
+    /// to automatically shift the view up when the keyboard shows.
+    func enableKeyboardAvoidance() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardWillShow),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleKeyboardWillHide),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+
+    /// Remove observers when you no longer need them
+    func disableKeyboardAvoidance() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    // MARK: - Private handlers
+
+    @objc private func handleKeyboardWillShow(_ notification: Notification) {
+        guard
+            let keyboardFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        // Move view up smoothly (you can tweak the divisor)
+        UIView.animate(withDuration: duration) {
+            if self.view.frame.origin.y == 0 {
+                self.view.frame.origin.y -= keyboardFrame.height / 2.5
+            }
+        }
+    }
+
+    @objc private func handleKeyboardWillHide(_ notification: Notification) {
+        guard
+            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+        else { return }
+
+        UIView.animate(withDuration: duration) {
+            self.view.frame.origin.y = 0
+        }
+    }
+}
