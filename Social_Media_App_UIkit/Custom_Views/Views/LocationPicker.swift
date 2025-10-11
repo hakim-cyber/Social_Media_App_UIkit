@@ -79,7 +79,7 @@ UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, MKLocalSear
 
         let r = results[indexPath.row]
         var picked = r.title
-        if !r.subtitle.isEmpty { picked += ", \(r.subtitle)" }
+       
         onSelect?(picked)
 
         // ✅ First deactivate the search controller
