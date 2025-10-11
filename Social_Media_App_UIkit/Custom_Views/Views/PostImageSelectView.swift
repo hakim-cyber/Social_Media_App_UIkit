@@ -9,7 +9,7 @@ import UIKit
 
 class PostImageSelectView: UIView {
     var onTap: (() -> Void)?
-    var cornerRadius:CGFloat = 12
+    var cornerRadius:CGFloat = 15
     var image:UIImage? = nil
     let containerView: UIView = {
         let view = UIView()
@@ -32,7 +32,7 @@ class PostImageSelectView: UIView {
         imageView.tintColor = .label
         return imageView
     }()
-    init(frame: CGRect = .zero,cornerRadius:CGFloat = 12,image:UIImage? = nil) {
+    init(frame: CGRect = .zero,cornerRadius:CGFloat = 15,image:UIImage? = nil) {
         
         super.init(frame: frame)
          self.cornerRadius = cornerRadius

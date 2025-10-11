@@ -69,4 +69,46 @@ struct Post: Identifiable, Hashable, Codable, Sendable {
         self.isLiked = try container.decodeIfPresent(Bool.self, forKey: .isLiked) ?? false
         self.isSaved = try container.decodeIfPresent(Bool.self, forKey: .isSaved) ?? false
     }
+    init(
+            id: UUID = UUID(),
+            caption: String,
+            imageURL: URL,
+            location: String? = nil,
+            likeCount: Int = 0,
+            commentCount: Int = 0,
+            createdAt: Date = Date(),
+            author: UserSummary,
+            isLiked: Bool = false,
+            isSaved: Bool = false
+        ) {
+            self.id = id
+            self.caption = caption
+            self.imageURL = imageURL
+            self.location = location
+            self.likeCount = likeCount
+            self.commentCount = commentCount
+            self.createdAt = createdAt
+            self.author = author
+            self.isLiked = isLiked
+            self.isSaved = isSaved
+        }
+    
+    
+    static let mockUser = UserSummary(
+        id: UUID(),
+        username: "hakim",
+        fullName: "Hakim Aliyev",
+        avatarURL: URL(string: "https://i.pinimg.com/736x/3e/dd/95/3edd95bdf7f5c2eddfe42c499fba05ed.jpg"),
+        isVerified: true
+    )
+
+    static  let mockPost = Post(
+        caption: "This is my favorite photo 🌅",
+        imageURL: URL(string: "https://i.pinimg.com/1200x/e2/97/de/e297de3f7c348cec55f3e6444ed57b40.jpg")!,
+        location: "Baku, Azerbaijan",
+        likeCount: 128,
+        commentCount: 14,
+        author: mockUser,
+        isLiked: true
+    )
 }

@@ -16,6 +16,9 @@
 		08A2E0642E84A914007B0875 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E0632E84A914007B0875 /* KeychainAccess */; };
 		08A2E1762E85CA8E007B0875 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E1752E85CA8E007B0875 /* GoogleSignIn */; };
 		08A2E1782E85CA8E007B0875 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 08A2E1772E85CA8E007B0875 /* GoogleSignInSwift */; };
+		08F1BB342E9AA55C009C3B30 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 08F1BB332E9AA55C009C3B30 /* Kingfisher */; };
+		08F1BB552E9AFFDE009C3B30 /* CropViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 08F1BB542E9AFFDE009C3B30 /* CropViewController */; };
+		08F1BB572E9AFFDE009C3B30 /* TOCropViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 08F1BB562E9AFFDE009C3B30 /* TOCropViewController */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,10 +55,13 @@
 				084498DF2E8483C700DB8EA3 /* PostgREST in Frameworks */,
 				08A2E1762E85CA8E007B0875 /* GoogleSignIn in Frameworks */,
 				084498DD2E8483C700DB8EA3 /* Functions in Frameworks */,
+				08F1BB342E9AA55C009C3B30 /* Kingfisher in Frameworks */,
 				08A2E0642E84A914007B0875 /* KeychainAccess in Frameworks */,
+				08F1BB552E9AFFDE009C3B30 /* CropViewController in Frameworks */,
 				08A2E0542E848E2C007B0875 /* Supabase in Frameworks */,
 				084498DB2E8483C700DB8EA3 /* Auth in Frameworks */,
 				084498E32E8483C700DB8EA3 /* Storage in Frameworks */,
+				08F1BB572E9AFFDE009C3B30 /* TOCropViewController in Frameworks */,
 				084498E12E8483C700DB8EA3 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -116,6 +122,9 @@
 				08A2E0632E84A914007B0875 /* KeychainAccess */,
 				08A2E1752E85CA8E007B0875 /* GoogleSignIn */,
 				08A2E1772E85CA8E007B0875 /* GoogleSignInSwift */,
+				08F1BB332E9AA55C009C3B30 /* Kingfisher */,
+				08F1BB542E9AFFDE009C3B30 /* CropViewController */,
+				08F1BB562E9AFFDE009C3B30 /* TOCropViewController */,
 			);
 			productName = Social_Media_App_UIkit;
 			productReference = 084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */;
@@ -149,6 +158,8 @@
 				084498D92E8483C700DB8EA3 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				08A2E0622E84A914007B0875 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				08A2E1742E85CA8E007B0875 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				08F1BB322E9AA55C009C3B30 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				08F1BB532E9AFFDE009C3B30 /* XCRemoteSwiftPackageReference "TOCropViewController" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 084495B62E7EC8BD00DB8EA3 /* Products */;
@@ -416,6 +427,22 @@
 				minimumVersion = 9.0.0;
 			};
 		};
+		08F1BB322E9AA55C009C3B30 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.6.0;
+			};
+		};
+		08F1BB532E9AFFDE009C3B30 /* XCRemoteSwiftPackageReference "TOCropViewController" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/TimOliver/TOCropViewController";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -463,6 +490,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 08A2E1742E85CA8E007B0875 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		08F1BB332E9AA55C009C3B30 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08F1BB322E9AA55C009C3B30 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		08F1BB542E9AFFDE009C3B30 /* CropViewController */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08F1BB532E9AFFDE009C3B30 /* XCRemoteSwiftPackageReference "TOCropViewController" */;
+			productName = CropViewController;
+		};
+		08F1BB562E9AFFDE009C3B30 /* TOCropViewController */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 08F1BB532E9AFFDE009C3B30 /* XCRemoteSwiftPackageReference "TOCropViewController" */;
+			productName = TOCropViewController;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

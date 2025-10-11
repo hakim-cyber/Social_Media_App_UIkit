@@ -20,3 +20,23 @@ extension UIView {
         ])
     }
 }
+
+extension UIView {
+    /// Applies an ultra-thin material background with optional rounded corners.
+  
+    func applyUltraThinMaterial( blurStyle: UIBlurEffect.Style = .systemUltraThinMaterial){
+        // Add blur effect
+           let blurEffect = UIBlurEffect(style: blurStyle)
+           let blurView = UIVisualEffectView(effect: blurEffect)
+           blurView.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(blurView)
+           
+           NSLayoutConstraint.activate([
+               blurView.topAnchor.constraint(equalTo: self.topAnchor),
+               blurView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+               blurView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+               blurView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+           ])
+    }
+    
+}

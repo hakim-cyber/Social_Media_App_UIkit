@@ -1,5 +1,5 @@
 {
-  "originHash" : "9a8e9d5ea1d247b5936e18c80c318c7cbeb423e7cb08ffaba5d0ccefdb552814",
+  "originHash" : "b09f9cbf9316f099455e911219627118cf0a7010d0f06aac8d774198af14820d",
   "pins" : [
     {
       "identity" : "app-check",
@@ -65,6 +65,15 @@
       }
     },
     {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher.git",
+      "state" : {
+        "revision" : "dd3c422ec3088404d6f7e8c905a8318b3de12d6f",
+        "version" : "8.6.0"
+      }
+    },
+    {
       "identity" : "promises",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/promises.git",
@@ -125,6 +134,15 @@
       "state" : {
         "revision" : "a0a57e949a8903563aba4615869310c0ebf14c03",
         "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "tocropviewcontroller",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/TimOliver/TOCropViewController",
+      "state" : {
+        "revision" : "4901016b791bf2dab2a660125463e230d7298214",
+        "version" : "3.0.0"
       }
     },
     {

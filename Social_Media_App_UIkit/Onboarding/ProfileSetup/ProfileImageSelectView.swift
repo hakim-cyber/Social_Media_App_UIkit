@@ -92,11 +92,11 @@ class ProfileImageSelectView: UIViewController {
         viewModel.setProfileImage(nil)
     }
     func presentImagePicker(){
-        let picker = UIImagePickerController()
-        picker.sourceType = .photoLibrary
-        picker.delegate = self
-        picker.allowsEditing = true
-        present(picker, animated: true)
+        ImagePickerCropper.shared.present(from: self) {[weak self] image in
+            guard let self else{return}
+            self.selectedImage = image
+            self.profileImageView.setImage(self.selectedImage, animated: true)
+        }
     }
     func setProfileImageView() {
         
@@ -136,23 +136,4 @@ class ProfileImageSelectView: UIViewController {
 
 #Preview(){
     ProfileImageSelectView(viewModel: OnboardingSetupViewModel(profileService: .init()))
-}
-
-extension ProfileImageSelectView:UIImagePickerControllerDelegate,UINavigationControllerDelegate{
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-       
-        if let editedImage = info[.editedImage] as? UIImage {
-            self.selectedImage = editedImage
-        } else if let originalImage = info[.originalImage] as? UIImage {
-            self.selectedImage = originalImage
-        }
-       
-        profileImageView.setImage(selectedImage, animated: true)
-        picker.dismiss(animated: true)
-    }
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true)
-    }
 }

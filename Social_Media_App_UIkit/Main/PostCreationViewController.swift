@@ -164,10 +164,10 @@ class PostCreationViewController: UIViewController {
         NSLayoutConstraint.activate([
             selectImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,constant: 24),
            
-            selectImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant:  36),
-            selectImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant:  -36),
+            selectImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant:  16),
+            selectImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant:  -16),
                    // 👇 Square
-            selectImageView.heightAnchor.constraint(equalTo: selectImageView.widthAnchor),
+            selectImageView.heightAnchor.constraint(equalTo: selectImageView.widthAnchor ,multiplier: AppConstants.Media.defaultPostCropRatio.height),
           
                
         ])
@@ -175,12 +175,11 @@ class PostCreationViewController: UIViewController {
   
     
     func presentImagePicker(){
-        print("show")
-        let picker = UIImagePickerController()
-        picker.sourceType = .photoLibrary
-        picker.delegate = self
-        picker.allowsEditing = true
-        present(picker, animated: true)
+        ImagePickerCropper.shared.present(from: self, aspectRatio: AppConstants.Media.defaultPostCropRatio) { [weak self] image in
+            guard let self else{return}
+            self.selectedImage = image
+            self.selectImageView.setImage(image: selectedImage)
+        }
     }
     
 }
