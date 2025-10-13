@@ -31,6 +31,20 @@ class PostFeedTableViewCell_View: UIView {
        
         return view
     }()
+
+    let likeTextView:UILabel = {
+        let view = UILabel()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.numberOfLines = 1
+      
+        view.textColor = .label
+        view.font = .systemFont(ofSize: 12, weight: .light)
+        view.lineBreakMode = .byTruncatingTail
+        return view
+    }()
+    let likeButton:ToggleButton =  ToggleButton()
+  
+    
    
     let topTextStackView:UIStackView = {
         let view = UIStackView()
@@ -50,6 +64,14 @@ class PostFeedTableViewCell_View: UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+    let bottomContainerView:UIView = {
+        let view = UIView()
+      
+       
+        view.backgroundColor = .clear
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     init(frame: CGRect = .zero,post:Post) {
         self.post = post
         super.init(frame:frame )
@@ -63,6 +85,7 @@ class PostFeedTableViewCell_View: UIView {
     private func setupView(){
         setupPostImageView()
         setupTopContainerView()
+        setupBottomContainerView()
     }
     func setupPostImageView(){
         if let post{
@@ -70,6 +93,7 @@ class PostFeedTableViewCell_View: UIView {
         }
         self.addSubview(postImageView)
         postImageView.translatesAutoresizingMaskIntoConstraints = false
+        postImageView.isUserInteractionEnabled = true
         NSLayoutConstraint.activate([
             postImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor,constant: 16),
             postImageView.trailingAnchor.constraint(equalTo: self.trailingAnchor,constant: -16),
@@ -88,6 +112,17 @@ class PostFeedTableViewCell_View: UIView {
             self.topContainerView.leadingAnchor.constraint(equalTo: self.postImageView.leadingAnchor),
             self.topContainerView.trailingAnchor.constraint(equalTo: self.postImageView.trailingAnchor),
             self.topContainerView.heightAnchor.constraint(equalTo: self.postImageView.heightAnchor, multiplier: 0.14)
+        ])
+    }
+    func setupBottomContainerView(){
+        self.postImageView.addSubview(bottomContainerView)
+        
+        self.setupLikeButtonUI()
+        NSLayoutConstraint.activate([
+            self.bottomContainerView.bottomAnchor.constraint(equalTo: self.postImageView.bottomAnchor),
+            self.bottomContainerView.leadingAnchor.constraint(equalTo: self.postImageView.leadingAnchor),
+            self.bottomContainerView.trailingAnchor.constraint(equalTo: self.postImageView.trailingAnchor),
+            self.bottomContainerView.heightAnchor.constraint(equalTo: self.postImageView.heightAnchor, multiplier: 0.2)
         ])
     }
     func setupAvatarImageView(){
@@ -134,6 +169,46 @@ class PostFeedTableViewCell_View: UIView {
          
             
            ])
+    }
+    func setupLikeButtonUI(){
+      
+        likeButton.normalImage = UIImage(systemName: "heart")
+        likeButton.toggledImage = UIImage(systemName: "heart.fill")
+        likeButton.normalColor = UIColor.label
+        likeButton.toggledColor = .systemRed
+       
+        
+
+        likeButton.onToggle = { isLiked in
+            if isLiked {
+                // Supabase call to insert like
+            } else {
+                // Supabase call to remove like
+            }
+        }
+        
+        self.bottomContainerView.addSubview(likeButton)
+      
+        NSLayoutConstraint.activate([
+            self.likeButton.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor, constant: 15),
+            self.likeButton.topAnchor.constraint(equalTo: bottomContainerView.topAnchor, constant: 5),
+            self.likeButton.widthAnchor.constraint(equalToConstant: 33),
+            self.likeButton.heightAnchor.constraint(equalToConstant: 33)
+        ])
+        
+        self.bottomContainerView.addSubview(likeTextView)
+        NSLayoutConstraint.activate([
+            self.likeTextView.leadingAnchor.constraint(equalTo: likeButton.trailingAnchor, constant: 0),
+            self.likeTextView.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
+          
+            self.likeTextView.heightAnchor.constraint(equalToConstant: 13)
+        ])
+        changeLikeCount(count: 9989)
+        
+        
+    }
+    func changeLikeCount(count:Int){
+        self.likeTextView.text = "\(count.shortFormatted)"
     }
     @objc func didTapMore(){
       
