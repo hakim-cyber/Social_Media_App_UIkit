@@ -14,16 +14,22 @@ final class LocationView: UIView {
         super.init(frame: .zero)
         icon.tintColor = .secondaryLabel
         icon.contentMode = .scaleAspectFit
+       
         label.font = .systemFont(ofSize: 12)
         label.textColor = .secondaryLabel
+        label.minimumScaleFactor = 0.9
+        label.adjustsFontSizeToFitWidth = true
         label.text = text
         let stack = UIStackView(arrangedSubviews: [icon, label])
         stack.axis = .horizontal
-        stack.spacing = 2
+        stack.spacing = 0
         stack.alignment = .center
         addSubview(stack)
         stack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
+          
+            icon.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.9),
+            
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
             stack.leadingAnchor.constraint(equalTo: leadingAnchor),

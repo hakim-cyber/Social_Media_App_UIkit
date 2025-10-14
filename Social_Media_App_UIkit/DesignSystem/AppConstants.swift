@@ -22,7 +22,7 @@ enum AppConstants {
                    /// 4:5 Instagram portrait
                    static let portrait45 = CGSize(width: 4, height: 5)
                    /// 1:1.2 custom portrait
-                   static let portraitCustom = CGSize(width: 1, height: 1.2)
+            static let portraitCustom = CGSize(width: 1, height: 1)
                    /// 16:9 landscape
                    static let landscape169 = CGSize(width: 16, height: 9)
                    /// Stories: 9:16

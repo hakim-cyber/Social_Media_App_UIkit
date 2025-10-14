@@ -11,7 +11,7 @@ import UIKit
 class PostFeedTableViewCell_View: UIView {
     weak var delegate: PostCellDelegate?
     var post:Post? = nil
-    let postImageView = RoundedImageView(url: nil, isCircular: false, cornerRadius: AppConstants.UI.postCornerRadius)
+    let postImageView = RoundedImageView(url: nil, isCircular: false, cornerRadius: AppConstants.UI.postCornerRadius,maskedCorners: [.layerMaxXMaxYCorner,.layerMinXMaxYCorner])
     let avatarImageView = RoundedImageView(url: nil,isCircular: true)
     let moreButton:UIButton = {
         let view = UIButton()
@@ -25,7 +25,8 @@ class PostFeedTableViewCell_View: UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.numberOfLines = 1
         view.font = .boldSystemFont(ofSize: 15)
-        
+        view.minimumScaleFactor = 0.9
+        view.adjustsFontSizeToFitWidth = true
         view.textColor = .label
         view.lineBreakMode = .byTruncatingTail
        
@@ -38,11 +39,42 @@ class PostFeedTableViewCell_View: UIView {
         view.numberOfLines = 1
       
         view.textColor = .label
-        view.font = .systemFont(ofSize: 12, weight: .light)
+        view.font = .systemFont(ofSize: 12,weight: .bold)
         view.lineBreakMode = .byTruncatingTail
         return view
     }()
     let likeButton:ToggleButton =  ToggleButton()
+    let saveButton:ToggleButton =  ToggleButton()
+    
+    let descriptionLabel:ExpandableLabel = {
+        let descriptionLabel = ExpandableLabel()
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        descriptionLabel.numberOfLines = 0 // important
+        descriptionLabel.collapsedNumberOfLines = 2
+        descriptionLabel.font = .systemFont(ofSize: 10)
+        descriptionLabel.textColor = .label
+        
+        return descriptionLabel
+    }()
+    let commentButton:UIButton = {
+        let btn = UIButton()
+        btn.setImage(UIImage(systemName: "bubble.right"), for: .normal)
+        btn.tintColor = .label
+        btn.imageView?.contentMode = .scaleAspectFit
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+    
+    let commentTextView:UILabel = {
+        let view = UILabel()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.numberOfLines = 1
+      
+        view.textColor = .label
+        view.font = .systemFont(ofSize: 12,weight: .bold)
+        view.lineBreakMode = .byTruncatingTail
+        return view
+    }()
   
     
    
@@ -57,10 +89,10 @@ class PostFeedTableViewCell_View: UIView {
     let topContainerView:UIView = {
         let view = UIView()
       
-        view.applyUltraThinMaterial(blurStyle: .systemChromeMaterial)
+        view.backgroundColor = .glassBackground
         view.layer.cornerRadius = AppConstants.UI.postCornerRadius
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        view.clipsToBounds = true
+    
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -83,6 +115,7 @@ class PostFeedTableViewCell_View: UIView {
     }
     
     private func setupView(){
+        
         setupPostImageView()
         setupTopContainerView()
         setupBottomContainerView()
@@ -102,27 +135,35 @@ class PostFeedTableViewCell_View: UIView {
         ])
     }
     func setupTopContainerView(){
-        self.postImageView.addSubview(topContainerView)
+        self.addSubview(topContainerView)
         
         setupAvatarImageView()
         setupMoreButton()
         setupTextViews()
         NSLayoutConstraint.activate([
-            self.topContainerView.topAnchor.constraint(equalTo: self.postImageView.topAnchor),
+            self.topContainerView.bottomAnchor.constraint(equalTo: self.postImageView.topAnchor),
             self.topContainerView.leadingAnchor.constraint(equalTo: self.postImageView.leadingAnchor),
             self.topContainerView.trailingAnchor.constraint(equalTo: self.postImageView.trailingAnchor),
             self.topContainerView.heightAnchor.constraint(equalTo: self.postImageView.heightAnchor, multiplier: 0.14)
         ])
     }
     func setupBottomContainerView(){
-        self.postImageView.addSubview(bottomContainerView)
+        self.addSubview(bottomContainerView)
         
         self.setupLikeButtonUI()
+        setupCommentButtonUI()
+        setupSaveButtonUI()
+        setupDescriptionLabelUI()
+        
+        if let post{
+            changeDescriptionAndUsername(post: post)
+            
+        }
         NSLayoutConstraint.activate([
-            self.bottomContainerView.bottomAnchor.constraint(equalTo: self.postImageView.bottomAnchor),
+            self.bottomContainerView.topAnchor.constraint(equalTo: self.postImageView.bottomAnchor),
             self.bottomContainerView.leadingAnchor.constraint(equalTo: self.postImageView.leadingAnchor),
             self.bottomContainerView.trailingAnchor.constraint(equalTo: self.postImageView.trailingAnchor),
-            self.bottomContainerView.heightAnchor.constraint(equalTo: self.postImageView.heightAnchor, multiplier: 0.2)
+            bottomContainerView.bottomAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 12)
         ])
     }
     func setupAvatarImageView(){
@@ -131,6 +172,8 @@ class PostFeedTableViewCell_View: UIView {
         }
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         self.topContainerView.addSubview(avatarImageView)
+        avatarImageView.isUserInteractionEnabled = true
+        avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         NSLayoutConstraint.activate([
             self.avatarImageView.leadingAnchor.constraint(equalTo: self.topContainerView.leadingAnchor, constant: 15),
             self.avatarImageView.centerYAnchor.constraint(equalTo: self.topContainerView.centerYAnchor),
@@ -149,7 +192,7 @@ class PostFeedTableViewCell_View: UIView {
         
         self.topTextStackView.addArrangedSubview(nameTextView)
         self.topTextStackView.addArrangedSubview(locationView)
-       
+        topTextStackView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         NSLayoutConstraint.activate([
             topTextStackView.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 8),
             topTextStackView.centerYAnchor.constraint(equalTo: avatarImageView.centerYAnchor),
@@ -179,21 +222,17 @@ class PostFeedTableViewCell_View: UIView {
        
         
 
-        likeButton.onToggle = { isLiked in
-            if isLiked {
-                // Supabase call to insert like
-            } else {
-                // Supabase call to remove like
-            }
+        likeButton.onToggle = {[weak self] isLiked in
+            self?.didTapLike(isLiked: isLiked)
         }
         
         self.bottomContainerView.addSubview(likeButton)
       
         NSLayoutConstraint.activate([
-            self.likeButton.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor, constant: 15),
+            self.likeButton.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor),
             self.likeButton.topAnchor.constraint(equalTo: bottomContainerView.topAnchor, constant: 5),
-            self.likeButton.widthAnchor.constraint(equalToConstant: 33),
-            self.likeButton.heightAnchor.constraint(equalToConstant: 33)
+            self.likeButton.widthAnchor.constraint(equalToConstant: 30),
+            self.likeButton.heightAnchor.constraint(equalToConstant: 20)
         ])
         
         self.bottomContainerView.addSubview(likeTextView)
@@ -201,20 +240,112 @@ class PostFeedTableViewCell_View: UIView {
             self.likeTextView.leadingAnchor.constraint(equalTo: likeButton.trailingAnchor, constant: 0),
             self.likeTextView.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
           
-            self.likeTextView.heightAnchor.constraint(equalToConstant: 13)
+            self.likeTextView.heightAnchor.constraint(equalToConstant: 20),
+            self.likeTextView.widthAnchor.constraint(lessThanOrEqualToConstant: 50)
         ])
-        changeLikeCount(count: 9989)
+        changeCountOnLabel(count: 60700,label:likeTextView)
         
         
     }
-    func changeLikeCount(count:Int){
-        self.likeTextView.text = "\(count.shortFormatted)"
+    func setupCommentButtonUI(){
+        self.bottomContainerView.addSubview(commentButton)
+        
+        commentButton.addTarget(self, action: #selector(didTapComment), for: .touchUpInside)
+        
+          NSLayoutConstraint.activate([
+            self.commentButton.leadingAnchor.constraint(equalTo: likeTextView.trailingAnchor , constant: 10),
+              self.commentButton.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
+              self.commentButton.widthAnchor.constraint(equalToConstant: 30),
+              self.commentButton.heightAnchor.constraint(equalToConstant: 18)
+          ])
+          
+        self.bottomContainerView.addSubview(commentTextView)
+        
+        NSLayoutConstraint.activate([
+            self.commentTextView.leadingAnchor.constraint(equalTo: commentButton.trailingAnchor, constant: 0),
+            self.commentTextView.centerYAnchor.constraint(equalTo: commentButton.centerYAnchor),
+          
+            self.commentTextView.heightAnchor.constraint(equalToConstant: 20),
+            self.commentTextView.widthAnchor.constraint(lessThanOrEqualToConstant: 50)
+        ])
+        changeCountOnLabel(count: 97,label:commentTextView)
+    }
+   
+    func setupSaveButtonUI(){
+        
+          saveButton.normalImage = UIImage(systemName: "bookmark")
+        saveButton.toggledImage = UIImage(systemName: "bookmark.fill")
+        saveButton.normalColor = UIColor.label
+        saveButton.toggledColor = .label
+        saveButton.imageView.contentMode = .scaleToFill
+          saveButton.onToggle = {[weak self] bool in
+              self?.didTapSave(isSaved: bool)
+          }
+          
+        self.bottomContainerView.addSubview(saveButton)
+        NSLayoutConstraint.activate([
+            self.saveButton.trailingAnchor.constraint(equalTo: self.bottomContainerView.trailingAnchor,constant: -5),
+            self.saveButton.centerYAnchor.constraint(equalTo:self.likeButton.centerYAnchor),
+            
+            self.saveButton.widthAnchor.constraint(equalToConstant:20),
+            self.saveButton.heightAnchor.constraint(equalToConstant: 15)
+        ])
+        
+    }
+    
+    
+    func setupDescriptionLabelUI(){
+        
+        descriptionLabel.onToggle = {[weak self] isExpanded in
+            // If inside a UITableView/UICollectionView cell, animate height change:
+            // tableView?.beginUpdates(); tableView?.endUpdates()
+            self?.expandedDescription(isExpanded)
+        }
+        self.bottomContainerView.addSubview(descriptionLabel)
+        NSLayoutConstraint.activate([
+            self.descriptionLabel.leadingAnchor.constraint(equalTo: self.likeButton.leadingAnchor,constant: 7),
+            self.descriptionLabel.trailingAnchor.constraint(equalTo: self.saveButton.trailingAnchor,constant: -9),
+            self.descriptionLabel.topAnchor.constraint(equalTo: self.saveButton.bottomAnchor, constant: 10)
+            
+            ])
+    }
+    
+    
+    func changeDescriptionAndUsername(post:Post){
+        let text = "*\(post.author.username)* \(post.caption)"
+        let attributedText = NSAttributedString( text.makeAttributedString(mainColor: .label,secondaryColor: .label,secondaryWeight: .heavy,size: 10))
+        
+        self.descriptionLabel.attributedText = attributedText
+       
+    }
+    
+    func expandedDescription(_ bool:Bool){
+       print("Expanded: \(bool)")
+    }
+    func changeCountOnLabel(count:Int,label:UILabel){
+        label.text = "\(count.shortFormatted)"
     }
     @objc func didTapMore(){
-      
+      print("More")
     }
+    @objc func didTapComment(){
+        print("Comment")
+    }
+    @objc func didTapAvatar(){
+        print("Avatar")
+    }
+    func didTapLike(isLiked:Bool){
+        print("Like")
+    }
+    func didTapSave(isSaved:Bool){
+        print("save")
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
+        
+        print(descriptionLabel.bounds.width)
+        print(bottomContainerView.bounds.width)
     }
 }
 

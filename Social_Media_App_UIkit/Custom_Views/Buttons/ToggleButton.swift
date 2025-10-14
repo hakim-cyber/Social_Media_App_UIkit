@@ -8,7 +8,7 @@
 
 import UIKit
 final class ToggleButton: UIControl {
-    private let imageView = UIImageView()
+     let imageView = UIImageView()
     private let feedback = UIImpactFeedbackGenerator(style: .light)
 
     var isToggled: Bool = false { didSet { updateAppearance(animated: true) } }
@@ -36,15 +36,12 @@ final class ToggleButton: UIControl {
         imageView.contentMode = .scaleAspectFit
 
         NSLayoutConstraint.activate([
-            // ensure the control has a tap area even if no external constraints
-            widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
-            heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
-
+            
             // center the icon and give it explicit size
             imageView.centerXAnchor.constraint(equalTo: centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 24),
-            imageView.heightAnchor.constraint(equalToConstant: 24),
+            imageView.widthAnchor.constraint(equalTo: self.widthAnchor),
+            imageView.heightAnchor.constraint(equalTo: self.heightAnchor),
         ])
     }
 

@@ -10,7 +10,7 @@ import UIKit
 
 
 extension String{
-    func makeAttributedString(mainColor: UIColor = .label, secondaryColor: UIColor = .electricPurple) -> AttributedString {
+    func makeAttributedString(mainColor: UIColor = .label, secondaryColor: UIColor = .electricPurple,mainWeight: UIFont.Weight = .regular,secondaryWeight: UIFont.Weight = .semibold,size: CGFloat = 14) -> AttributedString {
         let string = self
            var attributedString = AttributedString()
            let components = string.split(separator: "*", omittingEmptySubsequences: false)
@@ -22,9 +22,11 @@ extension String{
              
                if index % 2 == 1 {
                    substring.foregroundColor = secondaryColor
+                   substring.font = .systemFont(ofSize: size, weight: secondaryWeight)
                    
                }else{
                    substring.foregroundColor = mainColor
+                   substring.font = .systemFont(ofSize: size, weight: mainWeight)
                }
                 
                

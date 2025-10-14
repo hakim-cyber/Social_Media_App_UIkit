@@ -13,6 +13,7 @@ final class RoundedImageView: UIImageView {
     // MARK: - Configuration
     private let isCircular: Bool
     private let cornerRadiusValue: CGFloat
+    private let maskedCorners: CACornerMask
     private var currentURL: URL?
     
     // MARK: - Init
@@ -20,17 +21,19 @@ final class RoundedImageView: UIImageView {
         url: URL?,
         isCircular: Bool = true,
         cornerRadius: CGFloat = 12,
+        maskedCorners:CACornerMask = [.layerMaxXMaxYCorner,.layerMinXMaxYCorner,.layerMinXMinYCorner,.layerMaxXMinYCorner],
         borderWidth: CGFloat = 0,
         borderColor: UIColor = .clear
     ) {
         self.isCircular = isCircular
         self.cornerRadiusValue = cornerRadius
+        self.maskedCorners = maskedCorners
         super.init(frame: .zero)
         
         translatesAutoresizingMaskIntoConstraints = false
         clipsToBounds = true
         contentMode = .scaleAspectFill
-        
+        layer.maskedCorners = maskedCorners
         layer.borderWidth = borderWidth
         layer.borderColor = borderColor.cgColor
         backgroundColor = .glassBackground

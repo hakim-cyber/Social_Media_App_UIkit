@@ -98,13 +98,20 @@ struct Post: Identifiable, Hashable, Codable, Sendable {
         id: UUID(),
         username: "hakim",
         fullName: "Hakim Aliyev",
-        avatarURL: URL(string: "https://i.pinimg.com/736x/3e/dd/95/3edd95bdf7f5c2eddfe42c499fba05ed.jpg"),
+        avatarURL: URL(string: "https://i.pinimg.com/736x/17/9c/52/179c526f10c256d0dcb2ab46e726f6b6.jpg"),
         isVerified: true
     )
+    static  let mockCaption = """
+    ✨ Some nights feel like soft pages from a dream — the kind that smells like coffee, rain, and unfinished thoughts. The city lights blur into watercolor, and for a moment, everything feels beautifully uncertain. 🌙
+
+    I’m learning that growth doesn’t always look loud. Sometimes it’s silent mornings, small steps, and choosing peace over perfection. 🕊️
+
+    Here’s to the in-between — where we outgrow old versions of ourselves, and quietly bloom into something new. 🌸
+    """
 
     static  let mockPost = Post(
-        caption: "This is my favorite photo 🌅",
-        imageURL: URL(string: "https://i.pinimg.com/1200x/e2/97/de/e297de3f7c348cec55f3e6444ed57b40.jpg")!,
+        caption: mockCaption,
+        imageURL: URL(string: "https://i.pinimg.com/1200x/ff/ed/a5/ffeda5698ef608ee9ea54187fcc5c29e.jpg")!,
         location: "Baku, Azerbaijan",
         likeCount: 128,
         commentCount: 14,
