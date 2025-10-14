@@ -111,10 +111,10 @@ struct Post: Identifiable, Hashable, Codable, Sendable {
 
     static  let mockPost = Post(
         caption: mockCaption,
-        imageURL: URL(string: "https://i.pinimg.com/1200x/ff/ed/a5/ffeda5698ef608ee9ea54187fcc5c29e.jpg")!,
+        imageURL: URL(string: "https://i.pinimg.com/736x/c4/e8/d0/c4e8d07cfa77ecce2ad5c84041d8643f.jpg")!,
         location: "Baku, Azerbaijan",
-        likeCount: 128,
-        commentCount: 14,
+        likeCount: 1280000,
+        commentCount: 1400,
         author: mockUser,
         isLiked: true
     )
