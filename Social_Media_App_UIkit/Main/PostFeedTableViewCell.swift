@@ -304,7 +304,7 @@ final class PostFeedTableViewCell: UITableViewCell {
             // Description BETWEEN like & save buttons width-wise
             descriptionLabel.leadingAnchor.constraint(equalTo: likeButton.leadingAnchor, constant: 7),
             descriptionLabel.trailingAnchor.constraint(equalTo: saveButton.leadingAnchor, constant: -9),
-            descriptionLabel.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 10),
+            descriptionLabel.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 14),
             
             // In setupBottomContainerView(), add this to the constraints block:
             descriptionLabel.bottomAnchor.constraint(equalTo: bottomContainerView.bottomAnchor, constant: -12),
@@ -360,61 +360,4 @@ private extension UITableViewCell {
         while v != nil && (v as? UITableView) == nil { v = v?.superview }
         return v as? UITableView
     }
-}
-
-
-// MARK: - SwiftUI Preview Wrapper
-
-
-import SwiftUI
-import UIKit
-struct MockFeedTable_Preview: UIViewRepresentable {
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    func makeUIView(context: Context) -> UITableView {
-        let tableView = UITableView(frame: .zero, style: .plain)
-        tableView.backgroundColor = .systemBackground
-        tableView.separatorStyle = .none
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 600
-        tableView.showsVerticalScrollIndicator = false
-        tableView.dataSource = context.coordinator
-        tableView.delegate = context.coordinator
-
-        // Register your exact cell class
-        tableView.register(PostFeedTableViewCell.self, forCellReuseIdentifier: "PostCell")
-
-        return tableView
-    }
-
-    func updateUIView(_ uiView: UITableView, context: Context) {
-        uiView.reloadData()
-    }
-
-    // MARK: - DataSource / Delegate
-    final class Coordinator: NSObject, UITableViewDataSource, UITableViewDelegate {
-        // Use your app’s mock(s). If you only have one, just repeat it.
-        // You can vary captions to test the ExpandableLabel.
-        private let posts: [Post] = {
-            return [.mockPost,.mockPost,.mockPost,.mockPost]
-        }()
-
-        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-            posts.count
-        }
-
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "PostCell", for: indexPath) as! PostFeedTableViewCell
-            cell.selectionStyle = .none
-            cell.configure(with: posts[indexPath.row])
-            return cell
-        }
-    }
-}
-
-#Preview {
-    MockFeedTable_Preview()
-       
-        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height) // iPhone width-ish
-        .background(Color(.systemGroupedBackground))
 }
