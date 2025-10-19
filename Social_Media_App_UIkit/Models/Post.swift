@@ -23,8 +23,9 @@ struct UserSummary: Identifiable, Hashable, Codable {
         case isVerified = "is_verified"
     }
 }
+nonisolated
 struct Post: Identifiable, Hashable, Codable, Sendable {
-    let id: UUID
+    var id: UUID
     let caption: String
     let imageURL: URL
     let location: String?

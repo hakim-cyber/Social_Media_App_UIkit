@@ -5,16 +5,18 @@
 //  Created by aplle on 10/19/25.
 //
 import UIKit
-
 import Foundation
+
+nonisolated enum PostFeedSection: Hashable, Sendable {
+    case main
+}
+
 class PostFeedViewController: UIViewController {
-    enum Section{
-        case main
-    }
+    
 //    var viewModel:
 //    private var cancellables = Set<AnyCancellable>()
     
-    var dataSource: UITableViewDiffableDataSource<Section, Post>?
+    var dataSource: UITableViewDiffableDataSource<PostFeedSection, Post>?
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -31,6 +33,7 @@ class PostFeedViewController: UIViewController {
         setup()
         configureDataSource()
         bindToViewModel()
+       
     }
     
     func bindToViewModel() {
@@ -38,7 +41,7 @@ class PostFeedViewController: UIViewController {
     }
     
     func updateData(posts: [Post]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Post>()
+        var snapshot = NSDiffableDataSourceSnapshot<PostFeedSection, Post>()
         snapshot.appendSections([.main])
         snapshot.appendItems(posts, toSection: .main)
         DispatchQueue.main.async {
@@ -56,12 +59,12 @@ class PostFeedViewController: UIViewController {
         tv.separatorStyle = .none
         tv.register(PostFeedTableViewCell.self, forCellReuseIdentifier: PostFeedTableViewCell.reuseID)
         tv.allowsSelection = true
-        tv.delegate = self
+      
         return tv
     }()
     
     func configureDataSource() {
-        dataSource = UITableViewDiffableDataSource(tableView: postFeedTableView, cellProvider: { tableView, indexPath, post in
+        dataSource = UITableViewDiffableDataSource<PostFeedSection, Post>(tableView: postFeedTableView, cellProvider: { (tableView: UITableView, indexPath: IndexPath, post: Post) in
             let cell = tableView.dequeueReusableCell(withIdentifier: PostFeedTableViewCell.reuseID, for: indexPath) as! PostFeedTableViewCell
             cell.selectionStyle = .none
             cell.userInteractionEnabledWhileDragging = true
