@@ -54,7 +54,7 @@ class MainCoordinator{
             transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             navigationController.view.layer.add(transition, forKey: kCATransition)
         }
-        let vc = /*MainViewController(viewModel: MainCoordinatorViewModel())*/ PostCreationViewController()
+        let vc = /*MainViewController(viewModel: MainCoordinatorViewModel())*/ PostFeedViewController()
         
         navigationController.setViewControllers([vc], animated:!animated)
         

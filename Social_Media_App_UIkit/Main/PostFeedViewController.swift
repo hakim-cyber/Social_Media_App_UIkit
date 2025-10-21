@@ -37,9 +37,16 @@ class PostFeedViewController: UIViewController {
     }
     
     func bindToViewModel() {
-     
+        Task{
+            do{
+                let posts = try await FeedService().loadGlobalFeed()
+                print(posts)
+            }catch{
+                print(error)
+            }
+        }
     }
-    
+   
     func updateData(posts: [Post]) {
         var snapshot = NSDiffableDataSourceSnapshot<PostFeedSection, Post>()
         snapshot.appendSections([.main])
