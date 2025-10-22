@@ -38,7 +38,7 @@ class PostFeedViewController: UIViewController {
         private let refreshControl = UIRefreshControl()
     
     init() {
-        vm = FeedViewModel(service: FeedService())
+        vm = FeedViewModel(service: FeedService(),realtime: FeedRealtime())
         super.init(nibName: nil, bundle: nil)
       
     }
