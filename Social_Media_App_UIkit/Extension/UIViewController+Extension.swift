@@ -48,6 +48,13 @@ extension UIViewController{
     }
     
     
+     func showToast(_ msg: String) {
+          let alert = UIAlertController(title: nil, message: msg, preferredStyle: .alert)
+          present(alert, animated: true)
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak alert] in alert?.dismiss(animated: true) }
+      }
+    
+    
     
    
         /// Adds a "Done" button to the keyboard for the provided text inputs

@@ -26,11 +26,11 @@ struct UserSummary: Identifiable, Hashable, Codable {
 nonisolated
 struct Post: Identifiable, Hashable, Codable, Sendable {
     var id: UUID
-    let caption: String
+    var caption: String
     let imageURL: URL
     let location: String?
-    let likeCount: Int
-    let commentCount: Int
+    var likeCount: Int
+    var commentCount: Int
     let createdAt: Date
     let author: UserSummary
     var isLiked: Bool
@@ -119,4 +119,15 @@ struct Post: Identifiable, Hashable, Codable, Sendable {
         author: mockUser,
         isLiked: true
     )
+}
+
+struct RawPost: Codable, Sendable {
+    let id: UUID
+    let caption: String
+    let image_url: URL
+    let location: String?
+    let like_count: Int
+    let comment_count: Int
+    let created_at: Date
+    let author_id: UUID
 }

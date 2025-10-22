@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Kingfisher
 
 protocol PostCellDelegate: AnyObject {
     func postCellDidTapAvatar(_ cell: PostFeedTableViewCell)
@@ -141,7 +142,9 @@ final class PostFeedTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         postImageView.image = nil
+        postImageView.kf.cancelDownloadTask()
         avatarImageView.image = nil
+        avatarImageView.kf.cancelDownloadTask()
         nameTextView.text = nil
         likeTextView.text = nil
         commentTextView.text = nil
