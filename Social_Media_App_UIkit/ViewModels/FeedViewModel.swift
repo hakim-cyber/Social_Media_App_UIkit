@@ -21,6 +21,9 @@ class FeedViewModel{
     private let service: FeedService
     private let realtime: FeedRealtime
     private var state = FeedState()
+    private let userService = UserService()
+    private let authorCache = AuthorCache()
+
     
     
     init(service: FeedService, realtime: FeedRealtime) {
@@ -41,22 +44,56 @@ class FeedViewModel{
             do {
                 try await realtime.subscribe(handlers: .init(
                     onInsert: { [weak self] raw in
-//                        await self?.handleInsertRaw(raw)
+                        Task { @MainActor in await self?.handleInsertRaw(raw) }
+                       
                     },
                     onUpdate: { [weak self] raw in
-                        Task{
-                            await self?.handleUpdateRaw(raw)
-                        }
+                      
+                        Task { @MainActor in  await self?.handleUpdateRaw(raw) }
                     },
                     onDelete: { [weak self] id in
-                        self?.handleDelete(id)
+                        Task { @MainActor in self?.handleDelete(id) }
                     }
                 ))
             } catch {
                 errorMessage = "Realtime subscribe failed: \(error.localizedDescription)"
             }
         }
-   
+    func handleInsertRaw(_ raw: RawPost) async {
+            // 1) author via cache (inflight dedup + TTL)
+            let author: UserSummary? = try? await authorCache.getOrFetch(raw.author_id) { [weak self] id in
+                guard let self = self else { throw CancellationError() }
+                return try await self.userService.fetchUserSummary(id: id)
+            }
+      
+            // 2) Build full Post (flags are false on insert by default)
+            let full = Post(
+                id: raw.id,
+                caption: raw.caption,
+                imageURL: raw.image_url,
+                location: raw.location,
+                likeCount: raw.like_count,
+                commentCount: raw.comment_count,
+                createdAt: raw.created_at,
+                author: author  ?? UserSummary(id:raw.author_id, username: "Unknown", fullName: "Someone", avatarURL: nil, isVerified: false) ,
+                isLiked: false,
+                isSaved: false
+            )
+
+            // 3) Dedupe + buffer/insert using topCursor
+            if let top = state.topCursor {
+                let newer = (full.createdAt > top.createdAt) ||
+                            (full.createdAt == top.createdAt && full.id.uuidString > top.postId.uuidString)
+                guard newer && !state.seen.contains(full.id) else { return }
+                state.bufferedNew.append(full)
+                bufferedNewCount = state.bufferedNew.count
+            } else {
+                state.posts.insert(full, at: 0)
+                state.seen.insert(full.id)
+                posts = state.posts
+                state.topCursor = FeedCursor(createdAt: full.createdAt, postId: full.id)
+            }
+        }
         private func handleUpdateRaw(_ raw: RawPost) async {
             // Update existing post (if visible)
                if let index = state.posts.firstIndex(where: { $0.id == raw.id }) {

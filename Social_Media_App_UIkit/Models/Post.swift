@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Domain
-struct UserSummary: Identifiable, Hashable, Codable {
+struct UserSummary: Identifiable, Hashable, Codable, Sendable {
     let id: UUID
     let username: String
     let fullName: String
@@ -131,3 +131,4 @@ struct RawPost: Codable, Sendable {
     let created_at: Date
     let author_id: UUID
 }
+
