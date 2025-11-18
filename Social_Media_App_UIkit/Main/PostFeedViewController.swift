@@ -40,6 +40,7 @@ class PostFeedViewController: UIViewController {
     init() {
         vm = FeedViewModel(service: FeedService(),realtime: FeedRealtime())
         super.init(nibName: nil, bundle: nil)
+        
       
     }
     
@@ -54,6 +55,7 @@ class PostFeedViewController: UIViewController {
         setup()
         configureDataSource()
         bindToViewModel()
+        Task { await vm.start() }
        
     }
     func setup() {
@@ -73,7 +75,7 @@ class PostFeedViewController: UIViewController {
         ])
     }
     @objc private func handlePullToRefresh() {
-        Task { /*await vm.refresh()*/ }    // triggers your ViewModel’s newer fetch
+        Task { await vm.refresh() }   
     }
     
     
@@ -120,6 +122,12 @@ class PostFeedViewController: UIViewController {
             }
             .store(in: &cancellables)
         
+        vm.$bufferedNewCount
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] count in
+//                        self?.updateNewPostsBanner(count: count)
+                    }
+                    .store(in: &cancellables)
         
         // 5) Errors → toast/alert
                 vm.$errorMessage
@@ -166,8 +174,8 @@ extension PostFeedViewController: UITableViewDelegate {
         let offsetY = scrollView.contentOffset.y
         let threshold = scrollView.contentSize.height - scrollView.bounds.height * 1.8
         if offsetY > threshold {
-            let lastVisible = postFeedTableView.indexPathsForVisibleRows?.map(\.row).max() ?? 0
-            Task {/* await vm.loadMoreIfNeeded(currentLastVisibleIndex: lastVisible)*/ }
+           
+            Task {await vm.loadMore() }
         }
     }
 }

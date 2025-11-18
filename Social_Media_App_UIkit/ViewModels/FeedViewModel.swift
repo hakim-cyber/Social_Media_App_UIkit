@@ -32,7 +32,7 @@ class FeedViewModel{
         }
     private(set) var cancellables = Set<AnyCancellable>()
     private let pageSize = 20
-    private let newerPageSize = 30
+    private let newerPageSize = 40
     
     // Call from VC.viewDidLoad in a Task
         func start() async {
@@ -155,9 +155,97 @@ class FeedViewModel{
             isRefreshing = false
             bufferedNewCount = 0
         }catch{
-            
+            errorMessage = "Failed to load First page: \(error.localizedDescription)"
+                   
         }
     }
+    
+    // post fetching funcs
+    func loadMore()async{
+        guard !isLoadingMore,let nextCursor = state.nextCursor else{return}
+        
+        state.isLoadingMore = true
+        self.isLoadingMore = true
+        do{
+            let response = try await service.loadGlobalFeed(limit: pageSize, beforeCreatedAt: nextCursor.createdAt, beforeId: nextCursor.postId)
+            
+            let newPosts = response.posts.filter { !state.seen.contains($0.id) }
+            
+            state.posts.append(contentsOf:  response.posts)
+            newPosts.forEach{post in state.seen.insert(post.id)}
+           
+            state.nextCursor = response.nextCursor
+        
+            // publishing
+            posts = state.posts
+            isLoadingMore = false
+            bufferedNewCount = 0
+        }catch{
+            errorMessage = "Failed to load more: \(error.localizedDescription)"
+                   
+        }
+        isLoadingMore = false
+        bufferedNewCount = 0
+        
+    }
+  
+        func refresh() async {
+            // 1) Don’t overlap refreshes
+            guard !state.isRefreshing else { return }
+
+            state.isRefreshing = true
+            isRefreshing = true
+            defer {
+                state.isRefreshing = false
+                isRefreshing = false
+            }
+
+            guard let topCursor = state.topCursor else{
+                await loadInitial()
+                return
+            }
+            do{
+                let response = try await service.loadGlobalFeed(limit: newerPageSize)
+                
+                let fresh = response.posts.filter({
+                    ($0.createdAt > topCursor.createdAt) || ($0.createdAt == topCursor.createdAt && $0.id.uuidString > topCursor.postId.uuidString)
+                })
+                self.state.posts.insert(contentsOf: fresh, at: 0)
+                fresh.forEach { state.seen.insert($0.id) }
+                
+                if let first = state.posts.first{
+                    self.state.topCursor  = .init(createdAt: first.createdAt, postId: first.id)
+                }
+                
+                self.posts = state.posts
+            }catch{
+                errorMessage = "Refresh failed: \(error.localizedDescription)"
+            }
+        }
+    func revealBufferedNew() {
+           guard !state.bufferedNew.isEmpty else { return }
+        
+        
+        let sorted = state.bufferedNew.sorted {post1,post2 in
+            if post1.createdAt != post2.createdAt{
+                return post1.createdAt > post2.createdAt
+            }
+            return post1.id.uuidString > post2.id.uuidString
+        }
+        
+        state.bufferedNew.removeAll(keepingCapacity: true)
+        bufferedNewCount = 0
+        
+        state.posts.insert(contentsOf: sorted, at: 0)
+        sorted.forEach { state.seen.insert($0.id) }
+        
+        if let first = state.posts.first{
+            self.state.topCursor = .init(createdAt: first.createdAt, postId: first.id)
+        }
+        
+        self.posts = state.posts
+       }
+    
 }
 
 // MARK: - UI-facing lightweight state
