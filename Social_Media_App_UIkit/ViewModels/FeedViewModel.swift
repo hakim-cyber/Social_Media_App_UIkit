@@ -31,8 +31,8 @@ class FeedViewModel{
             self.realtime = realtime
         }
     private(set) var cancellables = Set<AnyCancellable>()
-    private let pageSize = 20
-    private let newerPageSize = 40
+    private let pageSize = 2
+    private let newerPageSize = 4
     
     // Call from VC.viewDidLoad in a Task
         func start() async {
@@ -44,14 +44,16 @@ class FeedViewModel{
             do {
                 try await realtime.subscribe(handlers: .init(
                     onInsert: { [weak self] raw in
+                        print("Realtime insert \(raw)")
                         Task { @MainActor in await self?.handleInsertRaw(raw) }
                        
                     },
                     onUpdate: { [weak self] raw in
-                      
+                        print("Realtime update \(raw)")
                         Task { @MainActor in  await self?.handleUpdateRaw(raw) }
                     },
                     onDelete: { [weak self] id in
+                        print("Realtime delete \(id)")
                         Task { @MainActor in self?.handleDelete(id) }
                     }
                 ))
@@ -87,6 +89,7 @@ class FeedViewModel{
                 guard newer && !state.seen.contains(full.id) else { return }
                 state.bufferedNew.append(full)
                 bufferedNewCount = state.bufferedNew.count
+                print("Buffer count \(bufferedNewCount)")
             } else {
                 state.posts.insert(full, at: 0)
                 state.seen.insert(full.id)
@@ -138,6 +141,11 @@ class FeedViewModel{
         
         state.isRefreshing = true
         self.isRefreshing = true
+        defer{
+            isRefreshing = false
+            state.isRefreshing = false
+        }
+        
         do{
             let response = try await service.loadGlobalFeed(limit: pageSize)
             
@@ -152,7 +160,7 @@ class FeedViewModel{
             
             // publishing
             posts = state.posts
-            isRefreshing = false
+           
             bufferedNewCount = 0
         }catch{
             errorMessage = "Failed to load First page: \(error.localizedDescription)"
@@ -161,67 +169,81 @@ class FeedViewModel{
     }
     
     // post fetching funcs
-    func loadMore()async{
-        guard !isLoadingMore,let nextCursor = state.nextCursor else{return}
-        
+    func loadMore() async {
+        // Use internal flag for logic
+        guard !state.isLoadingMore, let nextCursor = state.nextCursor else { return }
+print("Loading more...")
         state.isLoadingMore = true
-        self.isLoadingMore = true
-        do{
-            let response = try await service.loadGlobalFeed(limit: pageSize, beforeCreatedAt: nextCursor.createdAt, beforeId: nextCursor.postId)
-            
-            let newPosts = response.posts.filter { !state.seen.contains($0.id) }
-            
-            state.posts.append(contentsOf:  response.posts)
-            newPosts.forEach{post in state.seen.insert(post.id)}
-           
-            state.nextCursor = response.nextCursor
-        
-            // publishing
-            posts = state.posts
+        isLoadingMore = true
+        defer {
+            state.isLoadingMore = false
             isLoadingMore = false
-            bufferedNewCount = 0
-        }catch{
-            errorMessage = "Failed to load more: \(error.localizedDescription)"
-                   
         }
-        isLoadingMore = false
-        bufferedNewCount = 0
-        
+
+        do {
+            let response = try await service.loadGlobalFeed(
+                limit: pageSize,
+                beforeCreatedAt: nextCursor.createdAt,
+                beforeId: nextCursor.postId
+            )
+            
+            // Only take posts we haven't seen yet
+            let newPosts = response.posts.filter { !state.seen.contains($0.id) }
+          
+           
+            // Append only the new ones
+            state.posts.append(contentsOf: newPosts)
+            newPosts.forEach { state.seen.insert($0.id) }
+
+            state.nextCursor = response.nextCursor
+
+            // publish
+            posts = state.posts
+            
+        } catch {
+            errorMessage = "Failed to load more: \(error.localizedDescription)"
+           print("Failed to load more: \(error.localizedDescription)")
+        }
     }
   
-        func refresh() async {
-            // 1) Don’t overlap refreshes
-            guard !state.isRefreshing else { return }
+    func refresh() async {
+        guard !state.isRefreshing else { return }
 
-            state.isRefreshing = true
-            isRefreshing = true
-            defer {
-                state.isRefreshing = false
-                isRefreshing = false
-            }
-
-            guard let topCursor = state.topCursor else{
-                await loadInitial()
-                return
-            }
-            do{
-                let response = try await service.loadGlobalFeed(limit: newerPageSize)
-                
-                let fresh = response.posts.filter({
-                    ($0.createdAt > topCursor.createdAt) || ($0.createdAt == topCursor.createdAt && $0.id.uuidString > topCursor.postId.uuidString)
-                })
-                self.state.posts.insert(contentsOf: fresh, at: 0)
-                fresh.forEach { state.seen.insert($0.id) }
-                
-                if let first = state.posts.first{
-                    self.state.topCursor  = .init(createdAt: first.createdAt, postId: first.id)
-                }
-                
-                self.posts = state.posts
-            }catch{
-                errorMessage = "Refresh failed: \(error.localizedDescription)"
-            }
+        state.isRefreshing = true
+        isRefreshing = true
+        defer {
+            state.isRefreshing = false
+            isRefreshing = false
         }
+
+        do {
+            let response = try await service.loadGlobalFeed(limit: pageSize)
+
+            // Replace posts
+            state.posts = response.posts
+            state.seen = Set(response.posts.map(\.id))
+
+            // 🔹 IMPORTANT: reset pagination cursor
+            state.nextCursor = response.nextCursor
+
+            // 🔹 Reset top cursor to newest post
+            if let first = response.posts.first {
+                state.topCursor = .init(createdAt: first.createdAt, postId: first.id)
+            } else {
+                state.topCursor = nil
+            }
+
+            // 🔹 Clear buffered realtime items (or choose merge strategy)
+            state.bufferedNew.removeAll(keepingCapacity: true)
+            bufferedNewCount = 0
+
+            // Publish to UI
+            posts = state.posts
+        } catch {
+            errorMessage = "Refresh failed: \(error.localizedDescription)"
+            print("Refresh failed: \(error.localizedDescription)")
+        }
+    }
     func revealBufferedNew() {
            guard !state.bufferedNew.isEmpty else { return }
         
@@ -258,3 +280,64 @@ struct FeedState {
     var isLoadingMore = false
     var isRefreshing = false
 }
+
+// MARK: - MOCK (for UI design & testing)
+//extension FeedViewModel {
+//
+//    /// Fill the feed with mock posts so UI can be designed without backend.
+//    func loadMockData() {
+//        var items: [Post] = []
+//
+//        let authors: [UserSummary] = [
+//            UserSummary(id: UUID(),
+//                        username: "hakim_cyber",
+//                        fullName: "Hakim Aliyev",
+//                        avatarURL: URL(string: "https://picsum.photos/60"),
+//                        isVerified: true),
+//            UserSummary(id: UUID(),
+//                        username: "zarina",
+//                        fullName: "Zarina Aliyeva",
+//                        avatarURL: URL(string: "https://picsum.photos/61"),
+//                        isVerified: true),
+//            UserSummary(id: UUID(),
+//                        username: "swift_dev",
+//                        fullName: "Swift Developer",
+//                        avatarURL: URL(string: "https://picsum.photos/62"),
+//                        isVerified: false),
+//        ]
+//
+//        // Generate 20 mock posts
+//        for i in 0..<20 {
+//            let author = authors[i % authors.count]
+//
+//            let post = Post(
+//                id: UUID(),
+//                caption: "Mock caption #\(i). Designing UI without backend.",
+//                imageURL: URL(string: "https://www.gettyimages.com/photos/white-color")!  ,
+//                location: i % 3 == 0 ? "Istanbul" : nil,
+//                likeCount: Int.random(in: 30...999),
+//                commentCount: Int.random(in: 0...100),
+//                createdAt: Date().addingTimeInterval(-Double(i * 300)), // spaced by 5min
+//                author: author,
+//                isLiked: false,
+//                isSaved: false
+//            )
+//
+//            items.append(post)
+//        }
+//
+//        // Update state
+//        state.posts = items
+//        posts = items
+//
+//        // Cursor info (fake)
+//        if let first = items.first {
+//            state.topCursor = FeedCursor(createdAt: first.createdAt, postId: first.id)
+//        }
+//        if let last = items.last {
+//            state.nextCursor = FeedCursor(createdAt: last.createdAt, postId: last.id)
+//        }
+//
+//        state.seen = Set(items.map { $0.id })
+//    }
+//}

@@ -60,7 +60,7 @@ final class PostFeedTableViewCell: UITableViewCell {
         l.translatesAutoresizingMaskIntoConstraints = false
         l.numberOfLines = 1
         l.textColor = .label
-        l.font = .systemFont(ofSize: 12, weight: .bold)
+        l.font = .systemFont(ofSize: 15, weight: .bold)
         l.lineBreakMode = .byTruncatingTail
         return l
     }()
@@ -70,7 +70,7 @@ final class PostFeedTableViewCell: UITableViewCell {
         l.translatesAutoresizingMaskIntoConstraints = false
         l.numberOfLines = 1
         l.textColor = .label
-        l.font = .systemFont(ofSize: 12, weight: .bold)
+        l.font = .systemFont(ofSize: 15, weight: .bold)
         l.lineBreakMode = .byTruncatingTail
         return l
     }()
@@ -80,8 +80,9 @@ final class PostFeedTableViewCell: UITableViewCell {
 
     let commentButton: UIButton = {
         let b = UIButton(type: .system)
+        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .light)
         b.translatesAutoresizingMaskIntoConstraints = false
-        b.setImage(UIImage(systemName: "bubble.right"), for: .normal)
+        b.setImage(UIImage(systemName: "bubble.right", withConfiguration: config), for: .normal)
         b.tintColor = .label
         b.imageView?.contentMode = .scaleAspectFit
         return b
@@ -92,7 +93,7 @@ final class PostFeedTableViewCell: UITableViewCell {
         l.translatesAutoresizingMaskIntoConstraints = false
         l.numberOfLines = 0
         l.collapsedNumberOfLines = 2
-        l.font = .systemFont(ofSize: 12)
+        l.font = .systemFont(ofSize:15)
         l.textColor = .label
         return l
     }()
@@ -109,8 +110,9 @@ final class PostFeedTableViewCell: UITableViewCell {
     let topContainerView: UIView = {
         let v = UIView()
         v.translatesAutoresizingMaskIntoConstraints = false
-        v.backgroundColor = .glassBackground
+        v.backgroundColor = .quaternaryLabel
         v.layer.cornerRadius = AppConstants.UI.postCornerRadius
+       
         v.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         v.layer.cornerCurve = .continuous
         v.clipsToBounds = true
@@ -163,7 +165,7 @@ final class PostFeedTableViewCell: UITableViewCell {
         changeCountOnLabel(count: post.commentCount, label: commentTextView)
 
         // Make sure label font set BEFORE attributed text
-        descriptionLabel.font = .systemFont(ofSize: 12)
+        descriptionLabel.font = .systemFont(ofSize: 15)
         descriptionLabel.textAlignment = .left
         changeDescriptionAndUsername(post: post)
         
@@ -227,7 +229,10 @@ final class PostFeedTableViewCell: UITableViewCell {
         postImageView.isUserInteractionEnabled = true
         postImageView.layer.cornerCurve = .continuous
         postImageView.clipsToBounds = true
-
+       
+        let tap = UITapGestureRecognizer(target: self, action: #selector(doubleTapped))
+        tap.numberOfTapsRequired = 2
+        postImageView.addGestureRecognizer(tap)
         NSLayoutConstraint.activate([
             postImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             postImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
@@ -241,8 +246,9 @@ final class PostFeedTableViewCell: UITableViewCell {
         contentView.addSubview(bottomContainerView)
       
         // Like
-        likeButton.normalImage = UIImage(systemName: "heart")
-        likeButton.toggledImage = UIImage(systemName: "heart.fill")
+        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .light)
+        likeButton.normalImage = UIImage(systemName: "heart", withConfiguration: config)
+        likeButton.toggledImage = UIImage(systemName: "heart.fill", withConfiguration: config)
         likeButton.normalColor = .label
         likeButton.toggledColor = .systemRed
         likeButton.onToggle = { [weak self] isLiked in self?.didTapLike(isLiked: isLiked) }
@@ -256,8 +262,8 @@ final class PostFeedTableViewCell: UITableViewCell {
         bottomContainerView.addSubview(commentTextView)
 
         // Save
-        saveButton.normalImage = UIImage(systemName: "bookmark")
-        saveButton.toggledImage = UIImage(systemName: "bookmark.fill")
+        saveButton.normalImage = UIImage(systemName: "bookmark", withConfiguration: config)
+        saveButton.toggledImage = UIImage(systemName: "bookmark.fill", withConfiguration: config)
         saveButton.normalColor = .label
         saveButton.toggledColor = .label
         saveButton.imageView.contentMode = .scaleToFill
@@ -281,18 +287,18 @@ final class PostFeedTableViewCell: UITableViewCell {
             // Buttons row
             likeButton.leadingAnchor.constraint(equalTo: bottomContainerView.leadingAnchor),
             likeButton.topAnchor.constraint(equalTo: bottomContainerView.topAnchor, constant: 5),
-            likeButton.widthAnchor.constraint(equalToConstant: 30),
-            likeButton.heightAnchor.constraint(equalToConstant: 24),
+            likeButton.widthAnchor.constraint(equalToConstant: 40),
+            likeButton.heightAnchor.constraint(equalToConstant:30),
 
             likeTextView.leadingAnchor.constraint(equalTo: likeButton.trailingAnchor, constant: 0),
             likeTextView.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
-            likeTextView.heightAnchor.constraint(equalToConstant: 20),
+            likeTextView.heightAnchor.constraint(equalToConstant: 30),
             likeTextView.widthAnchor.constraint(lessThanOrEqualToConstant: 50),
 
             commentButton.leadingAnchor.constraint(equalTo: likeTextView.trailingAnchor, constant: 10),
             commentButton.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
-            commentButton.widthAnchor.constraint(equalToConstant: 30),
-            commentButton.heightAnchor.constraint(equalToConstant: 22),
+            commentButton.widthAnchor.constraint(equalToConstant: 35),
+            commentButton.heightAnchor.constraint(equalToConstant: 25),
 
             commentTextView.leadingAnchor.constraint(equalTo: commentButton.trailingAnchor, constant: 0),
             commentTextView.centerYAnchor.constraint(equalTo: commentButton.centerYAnchor),
@@ -301,8 +307,8 @@ final class PostFeedTableViewCell: UITableViewCell {
 
             saveButton.trailingAnchor.constraint(equalTo: bottomContainerView.trailingAnchor, constant: -5),
             saveButton.centerYAnchor.constraint(equalTo: likeButton.centerYAnchor),
-            saveButton.widthAnchor.constraint(equalToConstant: 20),
-            saveButton.heightAnchor.constraint(equalToConstant: 18),
+            saveButton.widthAnchor.constraint(equalToConstant: 30),
+            saveButton.heightAnchor.constraint(equalToConstant:25),
 
             // Description BETWEEN like & save buttons width-wise
             descriptionLabel.leadingAnchor.constraint(equalTo: likeButton.leadingAnchor, constant: 7),
@@ -333,7 +339,10 @@ final class PostFeedTableViewCell: UITableViewCell {
     private func changeCountOnLabel(count: Int, label: UILabel) {
         label.text = "\(count.shortFormatted)"
     }
-
+    @objc func doubleTapped() {
+        likeButton.isToggled.toggle()
+        self.didTapLike(isLiked:  likeButton.isToggled)
+    }
     @objc private func didTapMore() {
         delegate?.postCellDidTapMore(self)
     }
@@ -353,6 +362,47 @@ final class PostFeedTableViewCell: UITableViewCell {
     private func didTapSave(isSaved: Bool) {
         delegate?.postCellDidTapSave(self)
     }
+    func styleTopRoundedView(_ v: UIView) {
+        // --- Adaptive background color (same behavior as UILabel) ---
+        v.backgroundColor = .secondarySystemBackground
+
+        // --- Rounded top corners ---
+        v.layer.cornerRadius = 16
+        v.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        v.layer.cornerCurve = .continuous
+        v.layer.masksToBounds = true
+
+        // --- Remove old border layers (if reusing view) ---
+        v.layer.sublayers?
+            .filter { $0.name == "TopBorderLayer" }
+            .forEach { $0.removeFromSuperlayer() }
+
+        // --- Add custom border on top + left + right ---
+        let border = CAShapeLayer()
+        border.name = "TopBorderLayer"
+        border.strokeColor = UIColor.separator.cgColor   // adaptive (light/dark)
+        border.fillColor = UIColor.clear.cgColor
+        border.lineWidth = 0.5
+
+        let path = UIBezierPath()
+        let w = v.bounds.width
+        let h: CGFloat = v.bounds.height
+
+        // Draw only:
+        // left edge  (vertical)
+        // top edge   (horizontal)
+        // right edge (vertical)
+
+        path.move(to: CGPoint(x: 0, y: h))        // bottom-left (start)
+        path.addLine(to: CGPoint(x: 0, y: 0))     // left side
+        path.addLine(to: CGPoint(x: w, y: 0))     // top side
+        path.addLine(to: CGPoint(x: w, y: h))     // right side
+
+        border.path = path.cgPath
+        v.layer.addSublayer(border)
+    }
+
+    
 }
 
 // MARK: - Helpers

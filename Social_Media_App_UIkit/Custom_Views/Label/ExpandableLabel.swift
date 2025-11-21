@@ -93,7 +93,7 @@ public final class ExpandableLabel: UILabel {
     private func rebuild() {
         guard let source = original, bounds.width > 0 else { return }
 
-        let f = font ?? .systemFont(ofSize: 10)
+        let f = font ?? .systemFont(ofSize: 15)
 
         if isExpanded {
             // full text + optional " less"

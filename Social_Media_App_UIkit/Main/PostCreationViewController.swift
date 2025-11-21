@@ -25,6 +25,7 @@ class PostCreationViewController: UIViewController {
     
     
     var selectedImage:UIImage?
+    var creatingPost:Bool = false
     
     init() {
        
@@ -88,15 +89,15 @@ class PostCreationViewController: UIViewController {
     }
 
     @objc private func cancelTapped() {
-        Task{
-         try? await   AuthService.shared.logout()
-        }
+        self.navigationController?.popViewController(animated: true)
         dismiss(animated: true)
     }
 
     @objc private func postTapped() {
-        
+        guard !creatingPost else{return}
+      
         if let image = self.selectedImage{
+            creatingPost = true
             // Handle post logic here
             print("Post tapped with caption: \(captionTextField.textView.text ?? "") location: \(locationButton.locationText ?? "none")")
             let (caption,location) = (captionTextField.textView.text,locationButton.locationText)
@@ -111,6 +112,7 @@ class PostCreationViewController: UIViewController {
                     print(error.localizedDescription)
                     self.dismissLoadingView()
                 }
+                creatingPost = false
             }
         }
     }

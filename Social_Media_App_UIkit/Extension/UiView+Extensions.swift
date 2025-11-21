@@ -9,14 +9,15 @@ import UIKit
 
 extension UIView {
     /// Resizes and pins the view to exactly match its parent view’s bounds
-    func resizeToParent() {
+    func resizeToParent(paddings:[CGFloat] = [0,0,0,0]) {
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: superview.topAnchor),
-            leadingAnchor.constraint(equalTo: superview.leadingAnchor),
-            trailingAnchor.constraint(equalTo: superview.trailingAnchor),
-            bottomAnchor.constraint(equalTo: superview.bottomAnchor)
+            bottomAnchor.constraint(equalTo: superview.bottomAnchor,constant: paddings[safe:0] ?? 0),
+            topAnchor.constraint(equalTo: superview.topAnchor,constant: paddings[safe:1] ?? 0),
+            leadingAnchor.constraint(equalTo: superview.leadingAnchor,constant: paddings[safe:2] ?? 0) ,
+            trailingAnchor.constraint(equalTo: superview.trailingAnchor,constant:paddings[safe:3] ?? 0),
+            
         ])
     }
 }
