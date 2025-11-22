@@ -1,17 +1,17 @@
-//
-//  CompressableLabel.swift
-//  Social_Media_App_UIkit
-//
-//  Created by aplle on 10/15/25.
-//
-
-
 import UIKit
 
 public final class ExpandableLabel: UILabel {
 
     // MARK: Public API
-    public var collapsedNumberOfLines: Int = 2 { didSet { if !isExpanded { numberOfLines = collapsedNumberOfLines; rebuild() } } }
+    public var collapsedNumberOfLines: Int = 2 {
+        didSet {
+            if !isExpanded {
+                numberOfLines = collapsedNumberOfLines
+                tc.maximumNumberOfLines = collapsedNumberOfLines
+                rebuild()
+            }
+        }
+    }
     public var moreText: String = " ...more"
     public var lessText: String = " ...less"
     public var tokenColor: UIColor = .label
@@ -20,18 +20,28 @@ public final class ExpandableLabel: UILabel {
     public override var text: String? {
         didSet {
             if let t = text {
-                let attrs: [NSAttributedString.Key: Any] = [.font: font as Any, .foregroundColor: textColor as Any]
+                let attrs: [NSAttributedString.Key: Any] = [
+                    .font: font as Any,
+                    .foregroundColor: textColor as Any
+                ]
                 original = NSAttributedString(string: t, attributes: attrs)
-            } else { original = nil }
+            } else {
+                original = nil
+            }
             rebuild()
         }
     }
+
     public override var attributedText: NSAttributedString? {
-        didSet { original = attributedText; rebuild() }
+        didSet {
+            original = attributedText
+            rebuild()
+        }
     }
 
     // MARK: Internals
     private var isExpanded = false
+    private var isExpandable = false   // NEW: text actually overflows?
     private var original: NSAttributedString?
 
     // TextKit (only for measuring/truncation)
@@ -41,10 +51,13 @@ public final class ExpandableLabel: UILabel {
 
     // MARK: Init
     public override init(frame: CGRect) {
-        super.init(frame: frame); setup()
+        super.init(frame: frame)
+        setup()
     }
+
     public required init?(coder: NSCoder) {
-        super.init(coder: coder); setup()
+        super.init(coder: coder)
+        setup()
     }
 
     private func setup() {
@@ -53,7 +66,7 @@ public final class ExpandableLabel: UILabel {
         isUserInteractionEnabled = true
 
         let tap = UITapGestureRecognizer(target: self, action: #selector(toggleTap))
-        tap.cancelsTouchesInView = false   // don’t eat touches in superviews if not needed
+        tap.cancelsTouchesInView = false
         addGestureRecognizer(tap)
 
         tc.lineFragmentPadding = 0
@@ -74,18 +87,19 @@ public final class ExpandableLabel: UILabel {
 
     // MARK: Toggle
     @objc private func toggleTap() {
+        guard isExpandable else { return }      // NEW: əgər mətni expand eləmək lazım deyil, tap heç nə etmir
         setExpanded(!isExpanded, animated: true)
     }
 
     public func setExpanded(_ expanded: Bool, animated: Bool = true) {
+        guard isExpandable else { return }      // NEW: proqramdan da çağırsan, expand olmasın
         guard isExpanded != expanded else { return }
+
         isExpanded = expanded
         numberOfLines = expanded ? 0 : collapsedNumberOfLines
         tc.maximumNumberOfLines = expanded ? 0 : collapsedNumberOfLines
 
-       
-            rebuild()
-        
+        rebuild()
         onToggle?(isExpanded)
     }
 
@@ -95,13 +109,37 @@ public final class ExpandableLabel: UILabel {
 
         let f = font ?? .systemFont(ofSize: 15)
 
+        // Əvvəlcə: bu mətn ümumiyyətlə collapsedNumberOfLines-a sığır, yoxsa yox?
+        wire(source)
+        tc.maximumNumberOfLines = collapsedNumberOfLines
+        let visibleRange = lm.glyphRange(for: tc)
+        let allFit = NSMaxRange(visibleRange) >= lm.numberOfGlyphs
+
+        // Əgər hamısı sığırsa → expand edilməməlidir
+        if allFit || moreText.isEmpty {
+            isExpandable = false
+            isExpanded = false
+            numberOfLines = collapsedNumberOfLines
+            tc.maximumNumberOfLines = collapsedNumberOfLines
+            super.attributedText = source
+            wire(source)
+            invalidateIntrinsicContentSize()
+            return
+        }
+
+        // Burdan aşağı deməkdir ki, mətn truncation tələb edir → expand oluna bilər
+        isExpandable = true
+
         if isExpanded {
-            // full text + optional " less"
+            // full text + optional " ...less"
             if lessText.isEmpty {
                 super.attributedText = source
             } else {
                 let m = NSMutableAttributedString(attributedString: source)
-                m.append(NSAttributedString(string: lessText, attributes: [.font: f, .foregroundColor: tokenColor]))
+                m.append(NSAttributedString(
+                    string: lessText,
+                    attributes: [.font: f, .foregroundColor: tokenColor]
+                ))
                 super.attributedText = m
             }
             wire(super.attributedText!)
@@ -109,33 +147,37 @@ public final class ExpandableLabel: UILabel {
             return
         }
 
-        // Collapsed: see if we need “… more”
-        wire(source)
-        tc.maximumNumberOfLines = collapsedNumberOfLines
-        let vis = lm.glyphRange(for: tc)
-        let allFit = NSMaxRange(vis) >= lm.numberOfGlyphs
-        if allFit || moreText.isEmpty {
-            super.attributedText = source
-            wire(source)
-            invalidateIntrinsicContentSize()
-            return
-        }
-
-        // Need token → binary search prefix that fits with "… more"
-        let token = NSAttributedString(string: moreText, attributes: [.font: f, .foregroundColor: tokenColor])
+        // Collapsed: lazım olan qədər kəs + " ...more"
+        let token = NSAttributedString(
+            string: moreText,
+            attributes: [.font: f, .foregroundColor: tokenColor]
+        )
 
         var lo = 0, hi = source.length, best = 0
         while lo <= hi {
             let mid = (lo + hi) / 2
-            let candidate = NSMutableAttributedString(attributedString: source.attributedSubstring(from: NSRange(location: 0, length: max(0, mid))))
+            let candidate = NSMutableAttributedString(
+                attributedString: source.attributedSubstring(
+                    from: NSRange(location: 0, length: max(0, mid))
+                )
+            )
             candidate.append(token)
             wire(candidate)
             tc.maximumNumberOfLines = collapsedNumberOfLines
             let fits = NSMaxRange(lm.glyphRange(for: tc)) >= lm.numberOfGlyphs
-            if fits { best = mid; lo = mid + 1 } else { hi = mid - 1 }
+            if fits {
+                best = mid
+                lo = mid + 1
+            } else {
+                hi = mid - 1
+            }
         }
 
-        let final = NSMutableAttributedString(attributedString: source.attributedSubstring(from: NSRange(location: 0, length: max(0, best))))
+        let final = NSMutableAttributedString(
+            attributedString: source.attributedSubstring(
+                from: NSRange(location: 0, length: max(0, best))
+            )
+        )
         final.append(token)
         super.attributedText = final
         wire(final)

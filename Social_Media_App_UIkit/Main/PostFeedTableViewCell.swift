@@ -151,7 +151,8 @@ final class PostFeedTableViewCell: UITableViewCell {
         likeTextView.text = nil
         commentTextView.text = nil
         descriptionLabel.attributedText = nil
-       
+        likeButton.isToggled = false
+        saveButton.isToggled = false
     }
 
     // MARK: - Public configure
@@ -170,6 +171,10 @@ final class PostFeedTableViewCell: UITableViewCell {
         changeDescriptionAndUsername(post: post)
         
         locationView?.setLocation(post.location)
+        
+        likeButton.isToggled = post.isLiked
+        saveButton.isToggled = post.isSaved
+        
         
     }
 
@@ -340,8 +345,11 @@ final class PostFeedTableViewCell: UITableViewCell {
         label.text = "\(count.shortFormatted)"
     }
     @objc func doubleTapped() {
-        likeButton.isToggled.toggle()
-        self.didTapLike(isLiked:  likeButton.isToggled)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        if  !likeButton.isToggled{
+            likeButton.isToggled.toggle()
+            self.didTapLike(isLiked:  likeButton.isToggled)
+        }
     }
     @objc private func didTapMore() {
         delegate?.postCellDidTapMore(self)
@@ -358,7 +366,7 @@ final class PostFeedTableViewCell: UITableViewCell {
     private func didTapLike(isLiked: Bool) {
         delegate?.postCellDidTapLike(self)
     }
-
+   
     private func didTapSave(isSaved: Bool) {
         delegate?.postCellDidTapSave(self)
     }

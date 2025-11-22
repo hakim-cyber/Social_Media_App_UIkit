@@ -249,21 +249,24 @@ class PostFeedViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(posts, toSection: .main)
         DispatchQueue.main.async {
-            self.dataSource?.apply(snapshot, animatingDifferences: true)
+            self.dataSource?.apply(snapshot, animatingDifferences: false)
         }
     }
   
     
     func configureDataSource() {
-        dataSource = UITableViewDiffableDataSource<PostFeedSection, Post>(tableView: postFeedTableView, cellProvider: { (tableView: UITableView, indexPath: IndexPath, post: Post) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: PostFeedTableViewCell.reuseID, for: indexPath) as! PostFeedTableViewCell
-            cell.selectionStyle = .none
-            cell.userInteractionEnabledWhileDragging = true
-            cell.isUserInteractionEnabled = true
-            cell.backgroundColor = .clear
+        dataSource = UITableViewDiffableDataSource<PostFeedSection, Post>(
+            tableView: postFeedTableView
+        ) { [weak self] tableView, indexPath, post in
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: PostFeedTableViewCell.reuseID,
+                for: indexPath
+            ) as! PostFeedTableViewCell
+
+            cell.delegate = self
             cell.configure(with: post)
             return cell
-        })
+        }
         postFeedTableView.dataSource = dataSource
     }
     
@@ -284,6 +287,30 @@ extension PostFeedViewController: UITableViewDelegate {
     }
 }
 
+extension PostFeedViewController: PostCellDelegate {
+    func postCellDidTapLike(_ cell: PostFeedTableViewCell) {
+        guard let post = cell.post else { return }
+        Task {
+             vm.toggleLike(for: post.id, desiredState: !post.isLiked)
+        }
+    }
+
+    func postCellDidTapAvatar(_ cell: PostFeedTableViewCell) {
+        // push profile VC, using cell.post?.author
+    }
+
+    func postCellDidTapMore(_ cell: PostFeedTableViewCell) {
+        // action sheet etc.
+    }
+
+    func postCellDidTapComment(_ cell: PostFeedTableViewCell) {
+        // present comments screen
+    }
+
+    func postCellDidTapSave(_ cell: PostFeedTableViewCell) {
+        // later: toggle saved via RPC
+    }
+}
 
 #Preview {
     PostFeedViewController()

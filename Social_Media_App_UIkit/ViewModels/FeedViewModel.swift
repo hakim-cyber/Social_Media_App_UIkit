@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-
+@MainActor
 class FeedViewModel{
     // MARK: - Published to VC
        @Published private(set) var posts: [Post] = []
@@ -23,6 +23,7 @@ class FeedViewModel{
     private var state = FeedState()
     private let userService = UserService()
     private let authorCache = AuthorCache()
+    private let postService = PostService()
 
     
     
@@ -33,6 +34,8 @@ class FeedViewModel{
     private(set) var cancellables = Set<AnyCancellable>()
     private let pageSize = 2
     private let newerPageSize = 4
+    
+    private var likingPosts = Set<UUID>()
     
     // Call from VC.viewDidLoad in a Task
         func start() async {
@@ -109,7 +112,9 @@ class FeedViewModel{
                        likeCount: raw.like_count,
                        commentCount: raw.comment_count,
                        createdAt: raw.created_at,
-                       author: post.author
+                       author: post.author,
+                       isLiked: post.isLiked,
+                       isSaved: post.isSaved,
                    )
                    state.posts[index] = post
                    posts = state.posts
@@ -268,6 +273,51 @@ print("Loading more...")
         self.posts = state.posts
        }
     
+    
+    // button actions
+    
+    func toggleLike(for postId: UUID, desiredState: Bool) {
+           guard !likingPosts.contains(postId) else { return }
+           likingPosts.insert(postId)
+
+           guard let index = state.posts.firstIndex(where: { $0.id == postId }) else {
+               likingPosts.remove(postId)
+               return
+           }
+
+           let oldPost = state.posts[index]
+
+           var updated = oldPost
+           updated.isLiked = desiredState
+           updated.likeCount = desiredState
+               ? oldPost.likeCount + 1
+               : max(0, oldPost.likeCount - 1)
+
+           state.posts[index] = updated
+           posts = state.posts   // publish
+
+           Task { [weak self] in
+               guard let self else { return }
+               defer { self.likingPosts.remove(postId) }   // 🔹 always unlock at the end
+
+               do {
+                   let resp = try await self.postService.addLikeToPost(postId: postId)
+                   print(resp)
+                   if let idx = self.state.posts.firstIndex(where: { $0.id == postId }) {
+                       self.state.posts[idx].isLiked = resp.is_liked
+                       self.state.posts[idx].likeCount = resp.like_count
+                       self.posts = self.state.posts
+                   }
+               } catch {
+                   if let idx = self.state.posts.firstIndex(where: { $0.id == postId }) {
+                       self.state.posts[idx] = oldPost
+                       self.posts = self.state.posts
+                   }
+                   print(error)
+                   self.errorMessage = "Like failed, please try again."
+               }
+           }
+       }
 }
 
 // MARK: - UI-facing lightweight state

@@ -61,4 +61,15 @@ extension  PostService {
         print(post)
         return post
     }
+    func addLikeToPost(postId: UUID) async throws -> LikeResponse {
+        let response: LikeResponse = try await SupabaseManager.shared.client
+            .rpc("toggle_like", params: [
+                "post_id_param": AnyJSON(postId.uuidString)
+            ])
+            .execute()
+            .value
+
+        return response
+    }
+
 }
