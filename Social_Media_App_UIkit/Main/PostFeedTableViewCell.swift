@@ -362,8 +362,21 @@ final class PostFeedTableViewCell: UITableViewCell {
     @objc private func didTapAvatar() {
         delegate?.postCellDidTapAvatar(self)
     }
-
     private func didTapLike(isLiked: Bool) {
+        guard var post = post else {
+            delegate?.postCellDidTapLike(self)
+            return
+        }
+
+        // Optimistic like count change
+        if isLiked {
+            post.likeCount += 1
+        } else {
+            post.likeCount = max(0, post.likeCount - 1)
+        }
+        self.post = post
+        changeCountOnLabel(count: post.likeCount, label: likeTextView)
+
         delegate?.postCellDidTapLike(self)
     }
    
