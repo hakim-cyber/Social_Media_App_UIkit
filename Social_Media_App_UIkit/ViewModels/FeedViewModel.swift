@@ -32,8 +32,8 @@ class FeedViewModel{
             self.realtime = realtime
         }
     private(set) var cancellables = Set<AnyCancellable>()
-    private let pageSize = 2
-    private let newerPageSize = 4
+    private let pageSize = 5 // 20
+    private let newerPageSize = 10 // 40
     
     private var likingPosts = Set<UUID>()
     
