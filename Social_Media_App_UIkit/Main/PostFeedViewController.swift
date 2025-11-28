@@ -308,7 +308,10 @@ extension PostFeedViewController: PostCellDelegate {
     }
 
     func postCellDidTapSave(_ cell: PostFeedTableViewCell) {
-        // later: toggle saved via RPC
+        guard let post = cell.post else { return }
+        Task {
+             vm.toggleSave(for: post.id, desiredState: !post.isSaved)
+        }
     }
 }
 

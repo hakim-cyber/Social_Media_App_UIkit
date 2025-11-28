@@ -36,6 +36,7 @@ class FeedViewModel{
     private let newerPageSize = 10 // 40
     
     private var likingPosts = Set<UUID>()
+    private var savingPosts = Set<UUID>()
     
     // Call from VC.viewDidLoad in a Task
         func start() async {
@@ -315,6 +316,46 @@ print("Loading more...")
                    }
                    print(error)
                    self.errorMessage = "Like failed, please try again."
+               }
+           }
+       }
+    func toggleSave(for postId: UUID, desiredState: Bool) {
+           guard !savingPosts.contains(postId) else { return }
+        savingPosts.insert(postId)
+
+           guard let index = state.posts.firstIndex(where: { $0.id == postId }) else {
+               savingPosts.remove(postId)
+               return
+           }
+
+           let oldPost = state.posts[index]
+
+           var updated = oldPost
+           updated.isSaved = desiredState
+           
+
+           state.posts[index] = updated
+           posts = state.posts   // publish
+
+           Task { [weak self] in
+               guard let self else { return }
+               defer { self.savingPosts.remove(postId) }   // 🔹 always unlock at the end
+
+               do {
+                   let resp = try await self.postService.savePost(postId: postId)
+                   print(resp)
+                   if let idx = self.state.posts.firstIndex(where: { $0.id == postId }) {
+                       self.state.posts[idx].isSaved = resp.is_saved
+                     
+                       self.posts = self.state.posts
+                   }
+               } catch {
+                   if let idx = self.state.posts.firstIndex(where: { $0.id == postId }) {
+                       self.state.posts[idx] = oldPost
+                       self.posts = self.state.posts
+                   }
+                   print(error)
+                   self.errorMessage = "Save failed, please try again."
                }
            }
        }

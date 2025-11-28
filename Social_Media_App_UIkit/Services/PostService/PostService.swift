@@ -71,5 +71,15 @@ extension  PostService {
 
         return response
     }
+    func savePost(postId: UUID) async throws -> SavePostResponse {
+        let response: SavePostResponse = try await SupabaseManager.shared.client
+            .rpc("toggle_save", params: [
+                "post_id_param": AnyJSON(postId.uuidString)
+            ])
+            .execute()
+            .value
+
+        return response
+    }
 
 }
