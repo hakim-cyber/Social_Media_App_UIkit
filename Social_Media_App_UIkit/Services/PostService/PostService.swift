@@ -52,7 +52,7 @@ extension  PostService {
         }
 
         // Call the RPC and decode into your Post model
-        let post: Post = try await SupabaseManager.shared.client
+        let post: Post = try await supabase
             .rpc("create_post", params: params)
             .single()                // Expect a single JSON row/object back
             .execute()
@@ -62,7 +62,7 @@ extension  PostService {
         return post
     }
     func addLikeToPost(postId: UUID) async throws -> LikeResponse {
-        let response: LikeResponse = try await SupabaseManager.shared.client
+        let response: LikeResponse = try await supabase
             .rpc("toggle_like", params: [
                 "post_id_param": AnyJSON(postId.uuidString)
             ])
@@ -72,7 +72,7 @@ extension  PostService {
         return response
     }
     func savePost(postId: UUID) async throws -> SavePostResponse {
-        let response: SavePostResponse = try await SupabaseManager.shared.client
+        let response: SavePostResponse = try await supabase
             .rpc("toggle_save", params: [
                 "post_id_param": AnyJSON(postId.uuidString)
             ])
@@ -81,5 +81,16 @@ extension  PostService {
 
         return response
     }
+    func createComment(text: String, postID: UUID) async throws -> CommentResponse {
+            let response : CommentResponse = try await supabase
+                .rpc("create_comment", params: [
+                    "text_param":  AnyJSON(text),
+                    "post_id_param": AnyJSON(postID.uuidString)
+                ])
+                .execute()
+                .value
+
+            return response
+        }
 
 }
