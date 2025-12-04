@@ -97,7 +97,18 @@ final class PostFeedTableViewCell: UITableViewCell {
         l.textColor = .label
         return l
     }()
-
+    
+    let dateTextLabel:UILabel = {
+        let l = UILabel()
+        l.translatesAutoresizingMaskIntoConstraints = false
+        l.numberOfLines = 1
+        l.textColor = .secondaryLabel
+        l.font = .systemFont(ofSize:13)
+        return l
+    }()
+    let translateButton = ToggleTextButton()
+    
+    
     let topTextStackView: UIStackView = {
         let s = UIStackView()
         s.translatesAutoresizingMaskIntoConstraints = false
@@ -150,9 +161,11 @@ final class PostFeedTableViewCell: UITableViewCell {
         nameTextView.text = nil
         likeTextView.text = nil
         commentTextView.text = nil
+        dateTextLabel.text = nil
         descriptionLabel.attributedText = nil
         likeButton.isToggled = false
         saveButton.isToggled = false
+        translateButton.isToggled = false
     }
 
     // MARK: - Public configure
@@ -175,6 +188,8 @@ final class PostFeedTableViewCell: UITableViewCell {
         likeButton.isToggled = post.isLiked
         saveButton.isToggled = post.isSaved
         
+        dateTextLabel.text = post.createdAt.timeAgoDisplay() + " ∘"
+        translateButton.isToggled = false
         
     }
 
@@ -282,6 +297,16 @@ final class PostFeedTableViewCell: UITableViewCell {
             tableView.beginUpdates(); tableView.endUpdates()
         }
         bottomContainerView.addSubview(descriptionLabel)
+        
+        bottomContainerView.addSubview(dateTextLabel)
+        
+        translateButton.normalText = "See translation"
+        translateButton.toggledText =  "See original"
+        translateButton.normalColor = .label
+        translateButton.toggledColor = .label
+        translateButton.onToggle = { [weak self] translated in self?.didTapTranslate(isTransalated: translated) }
+        bottomContainerView.addSubview(translateButton)
+        
 
         NSLayoutConstraint.activate([
             // Container around buttons + description
@@ -320,8 +345,19 @@ final class PostFeedTableViewCell: UITableViewCell {
             descriptionLabel.trailingAnchor.constraint(equalTo: saveButton.leadingAnchor, constant: -9),
             descriptionLabel.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 14),
             
-            // In setupBottomContainerView(), add this to the constraints block:
-            descriptionLabel.bottomAnchor.constraint(equalTo: bottomContainerView.bottomAnchor, constant: -12),
+            // Description BETWEEN like & save buttons width-wise
+            dateTextLabel.leadingAnchor.constraint(equalTo: likeButton.leadingAnchor, constant: 7),
+            dateTextLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 5),
+            dateTextLabel.heightAnchor.constraint(equalToConstant:25),
+            
+            
+           
+            translateButton.leadingAnchor.constraint(equalTo: dateTextLabel.trailingAnchor, constant: 5),
+            translateButton.centerYAnchor.constraint(equalTo: dateTextLabel.centerYAnchor),
+          
+            translateButton.heightAnchor.constraint(equalToConstant:25),
+
+            dateTextLabel.bottomAnchor.constraint(equalTo: bottomContainerView.bottomAnchor, constant: -12),
             contentView.bottomAnchor.constraint(equalTo: bottomContainerView.bottomAnchor, constant: 12)
         ])
     }
@@ -382,6 +418,10 @@ final class PostFeedTableViewCell: UITableViewCell {
    
     private func didTapSave(isSaved: Bool) {
         delegate?.postCellDidTapSave(self)
+    }
+    
+    private func didTapTranslate(isTransalated: Bool) {
+      
     }
     func styleTopRoundedView(_ v: UIView) {
         // --- Adaptive background color (same behavior as UILabel) ---

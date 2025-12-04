@@ -15,6 +15,7 @@ import Combine
 @MainActor
 class CommentViewModel{
     @Published private(set) var comments: [PostComment] = []
+    @Published private(set) var commmentsCount = 0
     @Published private(set) var isLoadingMore = false
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String? = nil
@@ -25,9 +26,10 @@ class CommentViewModel{
     private var nextCursor:CommentCursor?
     private let pageSize = 20
     
-    init(postId:UUID,service:CommentService){
+    init(postId:UUID,service:CommentService,commentsCount:Int){
         self.postId = postId
         self.service = service
+        self.commmentsCount = commentsCount
     }
     
     
