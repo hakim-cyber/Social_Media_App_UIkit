@@ -6,7 +6,7 @@
 //
 import Foundation
 
-struct CommentResponse:Codable{
+struct CommentCreateResponse:Codable{
     let id:UUID
     let text:String
     let post_id:UUID
@@ -14,21 +14,10 @@ struct CommentResponse:Codable{
     let comment_count:Int
 }
 
-/*
- // MARK: - Domain
- struct UserSummary: Identifiable, Hashable, Codable, Sendable {
-     let id: UUID
-     let username: String
-     let fullName: String
-     let avatarURL: URL?
-     let isVerified: Bool
+struct PostComment:Codable{
+    let id:UUID
+    let text:String
+    let post_id:UUID
+    let author:UserSummary
+}
 
-     enum CodingKeys: String, CodingKey {
-         case id
-         case username
-         case fullName = "full_name"
-         case avatarURL = "avatar_url"
-         case isVerified = "is_verified"
-     }
- }
- */

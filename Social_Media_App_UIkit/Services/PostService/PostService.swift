@@ -61,6 +61,8 @@ extension  PostService {
         print(post)
         return post
     }
+    
+    // Button Actions on Post
     func addLikeToPost(postId: UUID) async throws -> LikeResponse {
         let response: LikeResponse = try await supabase
             .rpc("toggle_like", params: [
@@ -81,16 +83,6 @@ extension  PostService {
 
         return response
     }
-    func createComment(text: String, postID: UUID) async throws -> CommentResponse {
-            let response : CommentResponse = try await supabase
-                .rpc("create_comment", params: [
-                    "text_param":  AnyJSON(text),
-                    "post_id_param": AnyJSON(postID.uuidString)
-                ])
-                .execute()
-                .value
-
-            return response
-        }
+   
 
 }

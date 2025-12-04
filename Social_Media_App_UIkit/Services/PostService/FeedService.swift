@@ -42,28 +42,6 @@ final class FeedService {
     
 }
 
-// MARK: - Feed Response (matches RPC function structure exactly)
-struct FeedResponse: Codable {
-    let posts: [Post]
-    let hasMore: Bool
-    let nextCursor: FeedCursor?
-    
-    enum CodingKeys: String, CodingKey {
-        case posts
-        case hasMore = "has_more"
-        case nextCursor = "next_cursor"
-    }
-}
-// MARK: - Feed Cursor (for pagination)
-struct FeedCursor: Codable {
-    let createdAt: Date
-    let postId: UUID
-    
-    enum CodingKeys: String, CodingKey {
-        case createdAt = "created_at"
-        case postId = "post_id"
-    }
-}
 
 extension Date {
     var iso8601WithMilliseconds: String {

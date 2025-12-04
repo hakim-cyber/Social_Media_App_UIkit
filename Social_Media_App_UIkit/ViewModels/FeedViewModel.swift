@@ -32,8 +32,8 @@ class FeedViewModel{
             self.realtime = realtime
         }
     private(set) var cancellables = Set<AnyCancellable>()
-    private let pageSize = 5 // 20
-    private let newerPageSize = 10 // 40
+    private let pageSize =  20
+    private let newerPageSize = 40
     
     private var likingPosts = Set<UUID>()
     private var savingPosts = Set<UUID>()
@@ -371,6 +371,14 @@ struct FeedState {
     var isLoadingMore = false
     var isRefreshing = false
 }
+
+
+
+
+
+
+
+
 
 // MARK: - MOCK (for UI design & testing)
 //extension FeedViewModel {
