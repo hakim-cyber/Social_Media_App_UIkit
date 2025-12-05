@@ -62,3 +62,80 @@ class CommentViewModel{
     }
     
 }
+#if DEBUG
+extension CommentViewModel {
+    /// Populates mock comments for UI testing / previews.
+    func loadMockData() {
+        comments = [
+            PostComment(
+                id: UUID(),
+                text: "This is such a cool post! 🔥",
+                created_at: .now,
+                post_id: postId,
+                author: UserSummary(
+                    id: UUID(),
+                    username: "mock_anna",
+                    fullName: "Anna Green",
+                    avatarURL: nil,
+                    isVerified: true
+                )
+            ),
+            PostComment(
+                id: UUID(),
+                text: "Instagram-style sheet works perfectly!",
+                created_at: .now.addingTimeInterval(-200),
+                post_id: postId,
+                author: UserSummary(
+                    id: UUID(),
+                    username: "mock_john",
+                    fullName: "John Doe",
+                    avatarURL: nil,
+                    isVerified: false
+                )
+            ),
+            PostComment(
+                id: UUID(),
+                text: "Testing multiline comment layout to check cell resizing.",
+                created_at: .now.addingTimeInterval(-500),
+                post_id: postId,
+                author: UserSummary(
+                    id: UUID(),
+                    username: "mock_sue",
+                    fullName: "Sue Park",
+                    avatarURL: nil,
+                    isVerified: false
+                )
+            ),PostComment(
+                id: UUID(),
+                text: "This is such a cool post! 🔥,This is such a cool post! 🔥,This is such a cool post! 🔥,This is such a cool post! 🔥,This is such a cool post! 🔥,This is such a cool post! 🔥,,This is such a cool post! 🔥",
+                created_at: .now,
+                post_id: postId,
+                author: UserSummary(
+                    id: UUID(),
+                    username: "mock_anna",
+                    fullName: "Anna Green",
+                    avatarURL: nil,
+                    isVerified: true
+                )
+            ),
+            PostComment(
+                id: UUID(),
+                text: "Instagram-style sheet works perfectlyThis is such a cool post! 🔥This is such a cool post! 🔥This is such a cool post! 🔥This is such a cool post! 🔥!",
+                created_at: .now.addingTimeInterval(-200),
+                post_id: postId,
+                author: UserSummary(
+                    id: UUID(),
+                    username: "mock_john",
+                    fullName: "John Doe",
+                    avatarURL: nil,
+                    isVerified: false
+                )
+            ),
+        ]
+        
+        commmentsCount = comments.count
+        nextCursor = nil
+        errorMessage = nil
+    }
+}
+#endif

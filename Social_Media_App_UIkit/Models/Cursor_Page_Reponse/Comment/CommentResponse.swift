@@ -9,14 +9,16 @@ import Foundation
 struct CommentCreateResponse:Codable{
     let id:UUID
     let text:String
+    let created_at:Date
     let post_id:UUID
     let author:UserSummary
     let comment_count:Int
 }
-
-struct PostComment:Codable{
+nonisolated
+struct PostComment:Identifiable, Hashable, Codable, Sendable {
     let id:UUID
     let text:String
+    let created_at:Date
     let post_id:UUID
     let author:UserSummary
 }

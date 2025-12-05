@@ -305,6 +305,9 @@ extension PostFeedViewController: PostCellDelegate {
 
     func postCellDidTapComment(_ cell: PostFeedTableViewCell) {
         // present comments screen
+        guard let post = cell.post else { return }
+        let commentVC = PostCommentViewController(post: post)
+        self.present(commentVC, animated: true)
     }
 
     func postCellDidTapSave(_ cell: PostFeedTableViewCell) {
