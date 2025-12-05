@@ -152,7 +152,7 @@ final class PostCommentTableViewCell: UITableViewCell {
         NSLayoutConstraint.activate([
             commentTextView.leadingAnchor.constraint(equalTo: usernameTextView.leadingAnchor),
             commentTextView.trailingAnchor.constraint(equalTo: moreButton.trailingAnchor),
-            commentTextView.topAnchor.constraint(equalTo: usernameTextView.bottomAnchor,constant: 10),
+            commentTextView.topAnchor.constraint(equalTo: usernameTextView.bottomAnchor,constant: 5),
            
         ])
         
@@ -168,7 +168,7 @@ final class PostCommentTableViewCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             usernameTextView.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            usernameTextView.leadingAnchor.constraint(equalTo: self.avatarImageView.trailingAnchor,constant: 10),
+            usernameTextView.leadingAnchor.constraint(equalTo: self.avatarImageView.trailingAnchor,constant: 5),
             usernameTextView.heightAnchor.constraint(equalToConstant: 20),
            
             moreButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -26),
@@ -179,10 +179,10 @@ final class PostCommentTableViewCell: UITableViewCell {
         self.contentView.addSubview(avatarImageView)
         
         NSLayoutConstraint.activate([
-            avatarImageView.topAnchor.constraint(equalTo: self.contentView.topAnchor,constant: 5),
+            avatarImageView.topAnchor.constraint(equalTo: self.contentView.topAnchor,constant: 0),
             avatarImageView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor,constant: 16),
-            avatarImageView.heightAnchor.constraint(equalToConstant: 45),
-            avatarImageView.widthAnchor.constraint(equalToConstant: 45),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 40),
+            avatarImageView.widthAnchor.constraint(equalToConstant: 40),
             
            
 
