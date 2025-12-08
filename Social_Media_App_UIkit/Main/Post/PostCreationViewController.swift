@@ -4,7 +4,7 @@
 //
 //  Created by aplle on 10/5/25.
 //
-
+import Combine
 import UIKit
 
 
@@ -23,12 +23,13 @@ class PostCreationViewController: UIViewController {
     
     let locationButton:LocationPickerButton = .init()
     
+    let vm:CreatePostViewModel
     
-    var selectedImage:UIImage?
-    var creatingPost:Bool = false
     
-    init() {
-       
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(vm:CreatePostViewModel) {
+        self.vm = vm
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -53,7 +54,7 @@ class PostCreationViewController: UIViewController {
         self.view.backgroundColor = .systemBackground
      
         setupNavBar()
-       
+        bindViewModel()
        
         setImageSelectView()
         setTextField()
@@ -89,32 +90,40 @@ class PostCreationViewController: UIViewController {
     }
 
     @objc private func cancelTapped() {
-        self.navigationController?.popViewController(animated: true)
-        dismiss(animated: true)
+        vm.tappedCancel()
     }
 
     @objc private func postTapped() {
-        guard !creatingPost else{return}
-      
-        if let image = self.selectedImage{
-            creatingPost = true
-            // Handle post logic here
-            print("Post tapped with caption: \(captionTextField.textView.text ?? "") location: \(locationButton.locationText ?? "none")")
-            let (caption,location) = (captionTextField.textView.text,locationButton.locationText)
-            let sv = PostService()
-            Task{
-                self.showLoadingView()
-                do{
-                    try await   sv.createPost(caption: caption, image: image , location: location)
-                    self.dismissLoadingView()
-                }catch{
-                    print(error)
-                    print(error.localizedDescription)
-                    self.dismissLoadingView()
-                }
-                creatingPost = false
-            }
+        Task{
+          await  self.vm.createPost(caption: captionTextField.textView.text, location: locationButton.locationText)
         }
+       
+    }
+    func bindViewModel(){
+        vm.$isLoading
+            .receive(on: RunLoop.main)
+            .sink { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                if isLoading {
+                    self.showLoadingView()
+                  
+                } else {
+                    self.dismissLoadingView()
+                  
+                }
+            }
+            .store(in: &cancellables)
+      
+        
+                vm.$errorMessage
+                    .compactMap { $0 }
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] msg in
+                        self?.showToast(msg)
+                    }
+                    .store(in: &cancellables)
+
     }
     func setLocationButton(){
         self.view.addSubview(locationButton)
@@ -135,8 +144,6 @@ class PostCreationViewController: UIViewController {
         picker.onSelect = { [weak self] locationString in
             // Update UI + VM
             self?.locationButton.locationText = locationString
-            
-            // self?.viewModel.location = locationString
         }
         // Present modally with a nav (so there’s a search bar title area)
         let nav = UINavigationController(rootViewController: picker)
@@ -179,15 +186,15 @@ class PostCreationViewController: UIViewController {
     func presentImagePicker(){
         ImagePickerCropper.shared.present(from: self, aspectRatio: AppConstants.Media.defaultPostCropRatio) { [weak self] image in
             guard let self else{return}
-            self.selectedImage = image
-            self.selectImageView.setImage(image: selectedImage)
+            self.vm.selectedImage = image
+            self.selectImageView.setImage(image: self.vm.selectedImage)
         }
     }
     
 }
 
 #Preview(){
-    UINavigationController(rootViewController: PostCreationViewController())
+    UINavigationController(rootViewController: PostCreationViewController(vm: CreatePostViewModel()))
 }
 
 
@@ -196,12 +203,12 @@ extension PostCreationViewController:UIImagePickerControllerDelegate,UINavigatio
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
        
         if let editedImage = info[.editedImage] as? UIImage {
-            self.selectedImage = editedImage
+            self.vm.selectedImage = editedImage
         } else if let originalImage = info[.originalImage] as? UIImage {
-            self.selectedImage = originalImage
+            self.vm.selectedImage = originalImage
         }
        
-        selectImageView.setImage(image: selectedImage)
+        selectImageView.setImage(image: vm.selectedImage)
         picker.dismiss(animated: true)
     }
     

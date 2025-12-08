@@ -18,6 +18,7 @@ class PostFeedViewController: UIViewController {
     
     var dataSource: UITableViewDiffableDataSource<PostFeedSection, Post>?
     let vm:FeedViewModel
+    weak var coordinator: FeedCoordinating?
     
     private lazy var postFeedTableView: UITableView = {
         let tv = UITableView()
@@ -38,8 +39,8 @@ class PostFeedViewController: UIViewController {
     private let refreshControl = UIRefreshControl()
     private let bufferedBannerView = BufferedPostsBanner()
     private var isBannerVisible = false
-    init() {
-        vm = FeedViewModel(service: FeedService(),realtime: FeedRealtime())
+    init(vm:FeedViewModel) {
+        self.vm = vm
         super.init(nibName: nil, bundle: nil)
         
       
@@ -65,6 +66,7 @@ class PostFeedViewController: UIViewController {
 
         navigationItem.leftBarButtonItem = cancelButton
        
+       
     }
 
     override func viewDidLoad() {
@@ -82,8 +84,8 @@ class PostFeedViewController: UIViewController {
     }
     func setup() {
         self.view.backgroundColor = .systemBackground
-        self.postFeedTableView.contentInset = UIEdgeInsets(top: 50, left: 0, bottom: 35, right: 0)
-       
+//        self.postFeedTableView.contentInset = UIEdgeInsets(top: 50, left: 0, bottom: 35, right: 0)
+//       
         // Add refresh control
            refreshControl.addTarget(self, action: #selector(handlePullToRefresh), for: .valueChanged)
            postFeedTableView.refreshControl = refreshControl
@@ -179,7 +181,7 @@ class PostFeedViewController: UIViewController {
         
     }
     @objc private func showCreate() {
-        self.navigationController?.pushViewController(PostCreationViewController(), animated: true)
+        self.coordinator?.postFeedDidRequestCreatePost(self)
     }
     
     func returnToTopRow(){
@@ -306,8 +308,7 @@ extension PostFeedViewController: PostCellDelegate {
     func postCellDidTapComment(_ cell: PostFeedTableViewCell) {
         // present comments screen
         guard let post = cell.post else { return }
-        let commentVC = PostCommentViewController(post: post)
-        self.present(commentVC, animated: true)
+        self.coordinator?.postCellDidTapComment(post)
     }
 
     func postCellDidTapSave(_ cell: PostFeedTableViewCell) {
@@ -319,5 +320,5 @@ extension PostFeedViewController: PostCellDelegate {
 }
 
 #Preview {
-    PostFeedViewController()
+    PostFeedViewController(vm:FeedViewModel(service: .init(), realtime: .init()))
 }

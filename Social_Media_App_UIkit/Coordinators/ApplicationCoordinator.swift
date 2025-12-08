@@ -8,8 +8,9 @@
 import UIKit
 import Combine
 
-final class AppCoordinator: Coordinator {
+final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     var navigationController: UINavigationController
+    var childCoordinators: [Coordinator] = []
     private var window: UIWindow
     private var cancellables = Set<AnyCancellable>()
 
@@ -44,18 +45,39 @@ final class AppCoordinator: Coordinator {
 
     
     private func showAuthFlow() {
-        authCoordinator = AuthCoordinator(navigationController: navigationController,onboardingService: onboardingService)
-        authCoordinator?.start()
-        mainCoordinator = nil
-    }
+           // Root is our auth nav
+           window.rootViewController = navigationController
+           window.makeKeyAndVisible()
+
+           // Clean old main
+           mainCoordinator = nil
+
+           // Build auth
+           let auth = AuthCoordinator(
+               navigationController: navigationController,
+               onboardingService: onboardingService
+           )
+           authCoordinator = auth
+           addChild(auth)
+
+           auth.start()
+           navigationController.setNavigationBarHidden(false, animated: false)
+       }
     
-    
-    private func showMainFlow() {
-        mainCoordinator = MainCoordinator(navigationController: navigationController,onboardingService: onboardingService)
-        mainCoordinator?.start(animated: true)
-        authCoordinator = nil
-    }
-    
+    func showMainFlow() {
+           let main = MainCoordinator(onboardingService: onboardingService)
+           mainCoordinator = main
+           addChild(main)
+
+           // Make tab bar the root
+           main.start(animated: false)
+           window.rootViewController = main.tabBarController
+           window.makeKeyAndVisible()
+
+           // Clean auth
+           authCoordinator = nil
+       }
+
     func showChangePasswordViewController() {
         self.authCoordinator?.showForgotPasswordSetNewPasswordScreen()
     }

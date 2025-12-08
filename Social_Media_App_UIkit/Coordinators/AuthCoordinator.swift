@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class AuthCoordinator: Coordinator {
+final class AuthCoordinator: NavigationCoordinator {
     var navigationController: UINavigationController
     let onboardingService: OnboardingService
 

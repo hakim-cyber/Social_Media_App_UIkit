@@ -205,7 +205,3 @@ extension PostCommentViewController: PostCommentCellDelegate {
 
    
 }
-
-#Preview {
-    PostFeedViewController()
-}

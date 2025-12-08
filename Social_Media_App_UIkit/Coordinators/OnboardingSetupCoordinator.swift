@@ -8,7 +8,8 @@
 import UIKit
 
 
-final class OnboardingSetupCoordinator : Coordinator {
+final class OnboardingSetupCoordinator : NavigationCoordinator, ChildCoordinator {
+   
     weak var parentCoordinator: ParentCoordinator?
     var navigationController: UINavigationController
     let profileService: ProfileService
@@ -36,7 +37,10 @@ final class OnboardingSetupCoordinator : Coordinator {
         navigationController.setViewControllers([vc], animated: true)
     }
     
-    
+    // MARK: - ChildCoordinator
+       func coordinatorDidFinish() {
+           parentCoordinator?.childDidFinish(self)
+       }
     
 }
 
