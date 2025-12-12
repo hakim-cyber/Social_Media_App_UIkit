@@ -72,10 +72,37 @@ extension FeedCoordinator: FeedCoordinating {
 
         coord.start(animated: true)
     }
-    func postCellDidTapComment(_ post:Post) {
-        let commentVC = PostCommentViewController(post: post)
-        self.navigationController.present(commentVC, animated: true)
+    func postCellDidTapComment(_ post: Post) {
+        let viewModel = CommentViewModel(postId: post.id,
+                                        service: CommentService(),
+                                        commentsCount: post.commentCount)
+
+        let commentsVC = PostCommentViewController(vm: viewModel)
+        let navController = UINavigationController(rootViewController: commentsVC)
+        navController.modalPresentationStyle = .popover
+      
+
+        if let sheet = navController.sheetPresentationController {
+            sheet.detents = [
+                .custom(identifier: .medium) { ctx in
+                    ctx.maximumDetentValue * 0.6   // 👈 try 0.9–0.95
+                },
+                .large()
+            ]
+            sheet.selectedDetentIdentifier = .medium
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = true
+
+            // These two are basically iPad-ish behaviors; keep or remove, but they won't "remove bottom space" on iPhone.
+            sheet.prefersEdgeAttachedInCompactHeight = true
+            sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
+
+            sheet.largestUndimmedDetentIdentifier = .medium
+        }
+
+        navigationController.present(navController, animated: true)
     }
+    
     func postCellDidTapAvatar(_ post: Post) {
         
     }

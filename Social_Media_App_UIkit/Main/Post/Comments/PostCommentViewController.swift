@@ -38,8 +38,8 @@ class PostCommentViewController: UIViewController {
     
     // Pull-to-refresh
    
-    init(post:Post,) {
-        vm = CommentViewModel(postId: post.id, service: CommentService(), commentsCount: post.commentCount)
+    init(vm:CommentViewModel,) {
+        self.vm = vm
         super.init(nibName: nil, bundle: nil)
         
       
@@ -49,43 +49,14 @@ class PostCommentViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     private func setupNavBar() {
-        self.modalPresentationStyle = .automatic
-       
-      
-        if let sheet = sheetPresentationController {
-                // 1) Start at half-screen (medium)
-                // 2) Allow drag up to full-screen (large)
-            sheet.detents = [
-                    .custom(identifier: .medium) { context in
-                     
-                        return context.maximumDetentValue * 0.8   // medium height
-                    },
-                    .large()
-                ]
-
-                
-                // Start in half-screen
-                sheet.selectedDetentIdentifier = .medium
-                
-                // Show the top horizontal line ("grabber")
-                sheet.prefersGrabberVisible = true
-                
-                // Nice extras (optional)
-               
-                sheet.prefersScrollingExpandsWhenScrolledToEdge = true
-               
-            sheet.prefersEdgeAttachedInCompactHeight = true
-            sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
-            sheet.largestUndimmedDetentIdentifier = .medium
-            
-            
-            }
-        
         navigationItem.title = "Comments"
-        navigationController?.navigationBar.prefersLargeTitles = false
+             
        
     }
-
+    @objc private func closeTapped() {
+            dismiss(animated: true)
+        }
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -101,14 +72,14 @@ class PostCommentViewController: UIViewController {
     }
     func setup() {
         self.view.backgroundColor = .systemBackground
-        self.postCommentTableView.contentInset = UIEdgeInsets(top: 50, left: 0, bottom: 35, right: 0)
+        postCommentTableView.scrollIndicatorInsets = postCommentTableView.contentInset
         
         self.view.addSubview(postCommentTableView)
         NSLayoutConstraint.activate([
-            postCommentTableView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            postCommentTableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            postCommentTableView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-            postCommentTableView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor)
+            postCommentTableView.topAnchor.constraint(equalTo: view.topAnchor),
+            postCommentTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            postCommentTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            postCommentTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
         ])
         
     }
