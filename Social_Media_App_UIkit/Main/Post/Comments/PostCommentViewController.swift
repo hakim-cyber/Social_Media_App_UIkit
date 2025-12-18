@@ -35,7 +35,14 @@ class PostCommentViewController: UIViewController {
       
         return tv
     }()
+    let commentContainerView:UIView = {
+        let v = UIView()
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.backgroundColor = .systemBackground
     
+        return v
+    }()
+    let commentTextField = CommentTextField()
     // Pull-to-refresh
    
     init(vm:CommentViewModel,) {
@@ -70,20 +77,46 @@ class PostCommentViewController: UIViewController {
 //        Task { await vm.start() }
         vm.loadMockData()
     }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let h = commentContainerView.bounds.height
+        postCommentTableView.contentInset.bottom = h
+        postCommentTableView.verticalScrollIndicatorInsets.bottom = h
+    }
     func setup() {
-        self.view.backgroundColor = .systemBackground
-        postCommentTableView.scrollIndicatorInsets = postCommentTableView.contentInset
-        
-        self.view.addSubview(postCommentTableView)
+        view.backgroundColor = .systemBackground
+
+        view.addSubview(postCommentTableView)
+        view.addSubview(commentContainerView)
+        commentContainerView.addSubview(commentTextField)
+
+        // important (even if your view does it)
+        postCommentTableView.translatesAutoresizingMaskIntoConstraints = false
+        commentContainerView.translatesAutoresizingMaskIntoConstraints = false
+        commentTextField.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
+            // ✅ Container pinned to keyboard
+            commentContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            commentContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            commentContainerView.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+
+            // ✅ Give container a height (or top)
+            commentContainerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 70),
+
+            // ✅ CommentTextField fills container
+            commentTextField.leadingAnchor.constraint(equalTo: commentContainerView.leadingAnchor),
+            commentTextField.trailingAnchor.constraint(equalTo: commentContainerView.trailingAnchor),
+            commentTextField.topAnchor.constraint(equalTo: commentContainerView.topAnchor),
+            commentTextField.bottomAnchor.constraint(equalTo: commentContainerView.bottomAnchor),
+
+            // ✅ Table sits ABOVE container (no overlap)
             postCommentTableView.topAnchor.constraint(equalTo: view.topAnchor),
-            postCommentTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             postCommentTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             postCommentTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            postCommentTableView.bottomAnchor.constraint(equalTo: commentContainerView.topAnchor)
         ])
-        
     }
-    
     private func toggleFooterSpinner(visible: Bool) {
         if visible {
             let spinner = UIActivityIndicatorView(style: .medium)

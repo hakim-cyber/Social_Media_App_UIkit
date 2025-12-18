@@ -79,13 +79,13 @@ extension FeedCoordinator: FeedCoordinating {
 
         let commentsVC = PostCommentViewController(vm: viewModel)
         let navController = UINavigationController(rootViewController: commentsVC)
-        navController.modalPresentationStyle = .popover
+        navController.modalPresentationStyle = .formSheet
       
 
         if let sheet = navController.sheetPresentationController {
             sheet.detents = [
                 .custom(identifier: .medium) { ctx in
-                    ctx.maximumDetentValue * 0.6   // 👈 try 0.9–0.95
+                    ctx.maximumDetentValue * 0.7   // 👈 try 0.9–0.95
                 },
                 .large()
             ]
