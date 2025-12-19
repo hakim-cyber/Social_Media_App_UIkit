@@ -42,7 +42,6 @@ final class CommentTextField: UIView {
         tv.translatesAutoresizingMaskIntoConstraints = false
         return tv
     }()
-
     private let placeholderLabel: UILabel = {
         let l = UILabel()
         l.text = "What do you think?"
@@ -113,6 +112,8 @@ final class CommentTextField: UIView {
             textView.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -10),
             textView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 5.5),
             textView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -5.5),
+            
+           
 
             // placeholder inside textView
             placeholderLabel.leadingAnchor.constraint(equalTo: textView.leadingAnchor),
@@ -126,7 +127,9 @@ final class CommentTextField: UIView {
             self?.sendTapped()
         }
     }
-
+    func insertEmoji(_ emoji: String) {
+        textView.insertText(emoji)
+    }
     private func setupTapToFocus() {
         let tap = UITapGestureRecognizer(target: self, action: #selector(containerTapped))
         containerView.addGestureRecognizer(tap)

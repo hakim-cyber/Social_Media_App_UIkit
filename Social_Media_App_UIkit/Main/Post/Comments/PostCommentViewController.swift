@@ -42,8 +42,10 @@ class PostCommentViewController: UIViewController {
     
         return v
     }()
+    private let topBorder = CALayer()
     let commentTextField = CommentTextField()
     let avatarImageView = RoundedImageView(url: nil, isCircular: true)
+    let emojiOverlayView = EmojiOverlayView()
     // Pull-to-refresh
    
     init(vm:CommentViewModel,) {
@@ -83,14 +85,31 @@ class PostCommentViewController: UIViewController {
         let h = commentContainerView.bounds.height
         postCommentTableView.contentInset.bottom = h
         postCommentTableView.verticalScrollIndicatorInsets.bottom = h
+        
+        let thickness: CGFloat = 0.5
+           topBorder.frame = CGRect(
+               x: 0,
+               y: 0,
+               width: commentContainerView.bounds.width,
+               height: thickness
+           )
     }
     func setup() {
+        
+        topBorder.backgroundColor = UIColor.gray.withAlphaComponent(0.2).cgColor
+        commentContainerView.layer.addSublayer(topBorder)
+        
         view.backgroundColor = .systemBackground
 
         view.addSubview(postCommentTableView)
         view.addSubview(commentContainerView)
         commentContainerView.addSubview(avatarImageView)
         commentContainerView.addSubview(commentTextField)
+        commentContainerView.addSubview(emojiOverlayView)
+        
+        emojiOverlayView.onEmojiTap = { [weak self] emoji in
+            self?.commentTextField.insertEmoji(emoji)
+        }
 
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         commentTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -118,9 +137,16 @@ class PostCommentViewController: UIViewController {
             avatarImageView.widthAnchor.constraint(equalTo: avatarImageView.heightAnchor),
 
             // CommentTextField fills container vertically (THIS was missing)
+            
+            emojiOverlayView.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
+            emojiOverlayView.trailingAnchor.constraint(equalTo: commentTextField.trailingAnchor,constant: -12),
+            emojiOverlayView.topAnchor.constraint(equalTo: commentContainerView.topAnchor),
+            emojiOverlayView.heightAnchor.constraint(equalToConstant: 46),
+
+            // Table sits above container
             commentTextField.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor),
             commentTextField.trailingAnchor.constraint(equalTo: commentContainerView.trailingAnchor),
-            commentTextField.topAnchor.constraint(equalTo: commentContainerView.topAnchor),
+            commentTextField.topAnchor.constraint(equalTo: emojiOverlayView.bottomAnchor),
             commentTextField.bottomAnchor.constraint(equalTo: commentContainerView.bottomAnchor),
 
             // Table sits above container
