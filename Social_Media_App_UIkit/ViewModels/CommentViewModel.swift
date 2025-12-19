@@ -9,7 +9,7 @@
 import Foundation
 import Combine
 
-
+import Supabase
 
 
 @MainActor
@@ -19,19 +19,24 @@ class CommentViewModel{
     @Published private(set) var isLoadingMore = false
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String? = nil
-    
+    @Published  private(set) var currentUserSummary:UserSummary?
     
     private let postId:UUID
     private let service: CommentService
     private var nextCursor:CommentCursor?
     private let pageSize = 20
     
+    let userService:UserService = .init()
     init(postId:UUID,service:CommentService,commentsCount:Int){
         self.postId = postId
         self.service = service
         self.commmentsCount = commentsCount
     }
     
+    func start()async{
+        await loadMockData()
+        await loadUserProfileMain()
+    }
     
     func loadInitial() async{
         guard !isRefreshing else{return}
@@ -58,6 +63,21 @@ class CommentViewModel{
             nextCursor = page.nextCursor
         }catch{
             errorMessage = "Failed to load more comments \(error.localizedDescription)"
+        }
+    }
+    
+    func loadUserProfileMain()async{
+        if let userID = UserSessionService.shared.currentUser?.id{
+            do{
+                let userSummary:UserSummary = try await  userService.fetchUserSummary(id: userID)
+                currentUserSummary = userSummary
+            }catch{
+                print("Error fetching current users profile")
+                errorMessage = "Error fetching current users profile"
+            }
+        }else{
+            print("Error fetching current users profile ( cant find session)")
+            errorMessage = "Error fetching current users profile ( cant find session)"
         }
     }
     

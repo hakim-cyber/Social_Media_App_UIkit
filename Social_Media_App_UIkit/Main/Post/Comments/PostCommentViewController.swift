@@ -43,6 +43,7 @@ class PostCommentViewController: UIViewController {
         return v
     }()
     let commentTextField = CommentTextField()
+    let avatarImageView = RoundedImageView(url: nil, isCircular: true)
     // Pull-to-refresh
    
     init(vm:CommentViewModel,) {
@@ -74,8 +75,8 @@ class PostCommentViewController: UIViewController {
         configureDataSource()
         
         bindToViewModel()
-//        Task { await vm.start() }
-        vm.loadMockData()
+  Task { await vm.start() }
+      
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -88,29 +89,41 @@ class PostCommentViewController: UIViewController {
 
         view.addSubview(postCommentTableView)
         view.addSubview(commentContainerView)
+        commentContainerView.addSubview(avatarImageView)
         commentContainerView.addSubview(commentTextField)
 
-        // important (even if your view does it)
-        postCommentTableView.translatesAutoresizingMaskIntoConstraints = false
-        commentContainerView.translatesAutoresizingMaskIntoConstraints = false
+        avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         commentTextField.translatesAutoresizingMaskIntoConstraints = false
+        commentContainerView.translatesAutoresizingMaskIntoConstraints = false
+        postCommentTableView.translatesAutoresizingMaskIntoConstraints = false
+
+        // ✅ Make container prefer its content height
+        commentContainerView.setContentHuggingPriority(.required, for: .vertical)
+        commentContainerView.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        // ✅ Minimum height only (no max unless you want to clamp)
+        let minH = commentContainerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 50)
+        minH.isActive = true
 
         NSLayoutConstraint.activate([
-            // ✅ Container pinned to keyboard
+            // Container pinned to keyboard
             commentContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             commentContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             commentContainerView.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
 
-            // ✅ Give container a height (or top)
-            commentContainerView.heightAnchor.constraint(greaterThanOrEqualToConstant: 70),
+            // Avatar (fixed size, aligned)
+            avatarImageView.leadingAnchor.constraint(equalTo: commentContainerView.leadingAnchor, constant: 12),
+            avatarImageView.bottomAnchor.constraint(equalTo: commentTextField.bottomAnchor,constant: -8),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 46),
+            avatarImageView.widthAnchor.constraint(equalTo: avatarImageView.heightAnchor),
 
-            // ✅ CommentTextField fills container
-            commentTextField.leadingAnchor.constraint(equalTo: commentContainerView.leadingAnchor),
+            // CommentTextField fills container vertically (THIS was missing)
+            commentTextField.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor),
             commentTextField.trailingAnchor.constraint(equalTo: commentContainerView.trailingAnchor),
             commentTextField.topAnchor.constraint(equalTo: commentContainerView.topAnchor),
             commentTextField.bottomAnchor.constraint(equalTo: commentContainerView.bottomAnchor),
 
-            // ✅ Table sits ABOVE container (no overlap)
+            // Table sits above container
             postCommentTableView.topAnchor.constraint(equalTo: view.topAnchor),
             postCommentTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             postCommentTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
@@ -128,6 +141,9 @@ class PostCommentViewController: UIViewController {
         }
     }
 
+    func setProfileImage(summary:UserSummary){
+        if let avatarURL = summary.avatarURL { avatarImageView.setImage(url: avatarURL) }
+    }
     func bindToViewModel() {
         vm.$comments
                     .receive(on: DispatchQueue.main)
@@ -145,7 +161,16 @@ class PostCommentViewController: UIViewController {
             }
             .store(in: &cancellables)
         
-     
+        vm.$currentUserSummary
+            .removeDuplicates()
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] user in
+               
+                self?.setProfileImage(summary:user)
+            }
+            .store(in: &cancellables)
+        
         
         // 5) Errors → toast/alert
                 vm.$errorMessage
