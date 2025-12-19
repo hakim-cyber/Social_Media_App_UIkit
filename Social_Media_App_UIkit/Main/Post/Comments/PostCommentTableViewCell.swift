@@ -11,6 +11,7 @@ import Kingfisher
 protocol PostCommentCellDelegate: AnyObject {
    
     func commentCellDidTapMore(_ cell: PostCommentTableViewCell)
+    func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell)
    
 }
 
@@ -18,7 +19,7 @@ protocol PostCommentCellDelegate: AnyObject {
 final class PostCommentTableViewCell: UITableViewCell {
     
     // MARK: - Public
-
+    weak var delegate: PostCommentCellDelegate?
     var comment: PostComment?
     
     static let reuseID = "PostCommentTableViewCell"
@@ -177,7 +178,7 @@ final class PostCommentTableViewCell: UITableViewCell {
     }
     func setupAvatarView(){
         self.contentView.addSubview(avatarImageView)
-        
+        avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         NSLayoutConstraint.activate([
             avatarImageView.topAnchor.constraint(equalTo: self.contentView.topAnchor,constant: 0),
             avatarImageView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor,constant: 16),
@@ -193,6 +194,9 @@ final class PostCommentTableViewCell: UITableViewCell {
       
     }
      @objc private func didTapMore() {
-      
+         delegate?.commentCellDidTapMore(self)
     }
+    @objc private func didTapAvatar() {
+        delegate?.commentCellDidTapAvatar(self)
+   }
 }

@@ -239,7 +239,7 @@ class PostCommentViewController: UIViewController {
                 for: indexPath
             ) as! PostCommentTableViewCell
 
-//            cell.delegate = self
+           cell.delegate = self
             cell.configure(with: comment)
             return cell
         }
@@ -267,6 +267,9 @@ extension PostCommentViewController: PostCommentCellDelegate {
    
     func commentCellDidTapMore(_ cell: PostCommentTableViewCell) {
         // action sheet etc.
+    }
+    func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell) {
+        // go to profile
     }
 
    
