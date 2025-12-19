@@ -34,7 +34,9 @@ final class CommentService{
         beforeCursor:CommentCursor? = nil
     )async throws -> CommentPageResponse{
         var parameters: [String: AnyJSON] = [
-            "limit_param": try AnyJSON(limit)
+            "post_id_param": try AnyJSON(postId),
+            "limit_param": try AnyJSON(limit),
+            
         ]
         if let beforeCursor{
             // Add cursor parameters if available
@@ -50,7 +52,7 @@ final class CommentService{
             .rpc("get_post_comments_cursor", params: parameters)
             .execute()
             .value
-        
+
         return response
     }
 }

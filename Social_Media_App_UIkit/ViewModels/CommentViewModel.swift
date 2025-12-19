@@ -34,7 +34,7 @@ class CommentViewModel{
     }
     
     func start()async{
-        await loadMockData()
+        await loadInitial()
         await loadUserProfileMain()
     }
     
@@ -78,6 +78,20 @@ class CommentViewModel{
         }else{
             print("Error fetching current users profile ( cant find session)")
             errorMessage = "Error fetching current users profile ( cant find session)"
+        }
+    }
+    
+    
+    func createComment(_ text:String)async {
+        do{
+            let response:CommentCreateResponse = try await service.createComment(text: text, postID: postId)
+            let comment = PostComment(id: response.id, text: response.text, created_at: response.created_at, post_id: response.post_id, author: response.author)
+            self.commmentsCount = response.comment_count
+            self.comments.insert(comment, at: 0)
+           
+        }catch{
+            errorMessage = "Failed to create new comment. Please try again."
+           
         }
     }
     

@@ -75,7 +75,7 @@ class PostCommentViewController: UIViewController {
        setupNavBar()
       
         configureDataSource()
-        
+        configureActions()
         bindToViewModel()
   Task { await vm.start() }
       
@@ -107,9 +107,7 @@ class PostCommentViewController: UIViewController {
         commentContainerView.addSubview(commentTextField)
         commentContainerView.addSubview(emojiOverlayView)
         
-        emojiOverlayView.onEmojiTap = { [weak self] emoji in
-            self?.commentTextField.insertEmoji(emoji)
-        }
+       
 
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         commentTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -169,6 +167,19 @@ class PostCommentViewController: UIViewController {
 
     func setProfileImage(summary:UserSummary){
         if let avatarURL = summary.avatarURL { avatarImageView.setImage(url: avatarURL) }
+    }
+    func configureActions(){
+        emojiOverlayView.onEmojiTap = { [weak self] emoji in
+            self?.commentTextField.insertEmoji(emoji)
+        }
+        commentTextField.onSend = { [weak self] text in
+            self?.sendComment(text: text)
+        }
+    }
+    func sendComment(text:String){
+        Task{
+            await vm.createComment(text)
+        }
     }
     func bindToViewModel() {
         vm.$comments

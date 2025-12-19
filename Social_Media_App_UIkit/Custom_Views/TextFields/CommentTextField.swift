@@ -144,7 +144,7 @@ final class CommentTextField: UIView {
         let text = textView.text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         onSend?(text)
-        // call emptyText() from VC when your request succeeds
+        emptyText() 
     }
 
     private func updateSendState() {
