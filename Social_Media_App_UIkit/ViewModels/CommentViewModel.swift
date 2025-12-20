@@ -59,7 +59,7 @@ class CommentViewModel{
         
         do{
             let page:CommentPageResponse = try await service.fetchComments(postId: postId,limit: pageSize,beforeCursor: cursor)
-            comments.append(contentsOf: page.comments)
+            appendDedup(page.comments, to: &comments)
             nextCursor = page.nextCursor
         }catch{
             errorMessage = "Failed to load more comments \(error.localizedDescription)"
@@ -93,6 +93,12 @@ class CommentViewModel{
             errorMessage = "Failed to create new comment. Please try again."
            
         }
+    }
+    
+    private func appendDedup(_ new: [PostComment], to array: inout [PostComment]) {
+        let existing = Set(array.map(\.id))
+        let filtered = new.filter { !existing.contains($0.id) }
+        array.append(contentsOf: filtered)
     }
     
 }

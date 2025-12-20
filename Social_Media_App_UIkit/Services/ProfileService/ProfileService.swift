@@ -28,6 +28,15 @@ class ProfileService {
             .value
         return !rows.isEmpty
     }
+    func fetchUserProfile(id: UUID) async throws -> UserProfile {
+        try await supabase
+            .from("users")
+            .select()
+            .eq("id", value: id.uuidString)
+            .single()
+            .execute()
+            .value
+    }
 }
 
 extension ProfileService {

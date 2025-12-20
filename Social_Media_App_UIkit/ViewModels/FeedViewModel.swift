@@ -23,7 +23,7 @@ class FeedViewModel{
     private var state = FeedState()
     private let userService = UserService()
     private let authorCache = AuthorCache()
-    private let postService = PostService()
+    private let postService = PostActionService()
 
     
     

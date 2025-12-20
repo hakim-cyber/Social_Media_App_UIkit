@@ -14,7 +14,7 @@ class CreatePostViewModel:ObservableObject{
    @Published var isLoading:Bool = false
     @Published private(set) var errorMessage: String? = nil
     
-    let postService = PostService()
+    let postService = PostActionService()
     
     func createPost(caption:String,location:String?) async{
         guard !isLoading else{return}

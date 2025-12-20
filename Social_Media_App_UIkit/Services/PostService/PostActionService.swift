@@ -10,7 +10,7 @@ import Supabase
 
 
 
-final class PostService{
+final class PostActionService{
     private let supabase = SupabaseManager.shared.client
     
   
@@ -19,7 +19,7 @@ final class PostService{
 
 
 // PostService
-extension  PostService {
+extension  PostActionService {
    
     /// Upload a post image; typically immutable (upsert=false). Prefer unique filename.
     func uploadPostImage(_ image: UIImage, userId: UUID) async throws -> (path: String, url: String) {

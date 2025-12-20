@@ -115,3 +115,8 @@ enum AuthError: LocalizedError {
         return .custom(error.localizedDescription)
     }
 }
+
+
+struct SimpleError: Error {
+    let message: String
+}
