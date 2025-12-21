@@ -29,7 +29,7 @@ class LabelNumberView: UIView {
     func setData(number:Int) {
      
         self.number = number
-        self.numberLabel.text = "\(number)"
+        self.numberLabel.text = number.shortFormatted
     }
     
     func setupDesign() {

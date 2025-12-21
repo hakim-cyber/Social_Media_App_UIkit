@@ -44,6 +44,10 @@ class ProfileViewController: UIViewController {
         return l
     }()
     
+    let buttonsStackView:UIStackView = UIStackView()
+    
+    let button1:CustomStyledButton = .init(style: .primary, text: "Follow")
+    let button2:CustomStyledButton = .init(style: .secondary, text: "Message")
     
     init(vm:ProfileViewModel) {
         self.vm = vm
@@ -67,11 +71,163 @@ class ProfileViewController: UIViewController {
         setup()
         
     }
+    
+    func setup() {
+        setupBackground()
+        setupProfileContainerStackView()
+        bindToViewModel()
+        setData()
+      
+    }
+   
+    func setData(){
+        if let profile = vm.profile{
+            setProfileData(profile: profile)
+        }
+       
+            self.setFollowButtonState(isFollowing: vm.isFollowing)
+        
+    }
+    func setFollowButtonState(isFollowing:Bool){
+        if !self.vm.isCurrentUser{
+            if isFollowing{
+                self.button1.setTitle("Unfollow", for: .normal)
+                self.button1.applyStyle(style: .secondary)
+            }
+            else{
+                self.button1.setTitle("Follow", for: .normal)
+                self.button1.applyStyle(style: .primary)
+            }
+            
+        }
+    }
+    func setProfileData(profile:UserProfile){
+        if let string = profile.avatar_url,let url = URL(string:string){
+            avatarImageView.setImage(url:url )
+        }
+        self.postCountLabel.setData(number: profile.post_count ?? 0)
+        self.followersCountLabel.setData(number: profile.follower_count ?? 0)
+        self.followingCountLabel.setData(number: profile.following_count ?? 0)
+        
+        self.nameLabel.text = profile.full_name
+        
+        if profile.is_verified == true{
+                verifiedImage?.isHidden = false
+        }
+        
+        
+        self.changeBioLabel(text: profile.bio ?? "")
+    }
+    func bindToViewModel() {
+       
+        vm.$profile
+            .compactMap { $0 }
+            .removeDuplicates()
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] profile in
+                        self?.setProfileData(profile: profile)
+                    }
+                    .store(in: &cancellables)
+        
+        
+        vm.$isFollowing
+                .removeDuplicates()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] following in
+                    self?.setFollowButtonState(isFollowing: following)
+                }
+                .store(in: &cancellables)
+        
+        
+        // 4) Optional loading-more spinner (footer)
+//        vm.$isLoadingMore
+//            .removeDuplicates()
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] loading in
+//                self?.toggleFooterSpinner(visible: loading)
+//            }
+//            .store(in: &cancellables)
+        
+       
+                vm.$errorMessage
+                    .compactMap { $0 }
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] msg in
+                        self?.showToast(msg)
+                    }
+                    .store(in: &cancellables)
+
+    }
+    
+    private func changeBioLabel(text:String) {
+        // Match label font size for correct truncation behavior
+        let attr = NSAttributedString(
+            text.makeAttributedString(
+                mainColor: .label,
+                secondaryColor: .label,
+                secondaryWeight: .heavy,
+                size: 12
+            )
+        )
+        bioLabel.attributedText = attr
+    }
+    
+   
+   
+    @objc func followButtonTapped() {
+        print("followButtonTapped")
+    }
+    @objc func messageButtonTapped() {
+        print("messageButtonTapped")
+    }
+    @objc func editProfileButtonTapped() {
+        print("editProfileButtonTapped")
+    }
+    @objc func shareProfileButtonTapped() {
+        print("shareProfileButtonTapped")
+    }
+    
+    
+    func setupButtons(){
+        if self.vm.isCurrentUser{
+            
+            button1.addTarget(self, action: #selector(editProfileButtonTapped), for: .touchUpInside)
+            button2.addTarget(self, action: #selector(shareProfileButtonTapped), for: .touchUpInside)
+            
+            button1.setTitle("Edit Profile")
+            button2.setTitle("Share Profile")
+            
+            button1.applyStyle(style: .secondary)
+        }else{
+            button1.addTarget(self, action: #selector(followButtonTapped), for: .touchUpInside)
+            button2.addTarget(self, action: #selector(messageButtonTapped), for: .touchUpInside)
+        }
+        button1.translatesAutoresizingMaskIntoConstraints = false
+        button2.translatesAutoresizingMaskIntoConstraints = false
+        let hStack = buttonsStackView
+        
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.spacing = 12
+        hStack.distribution = .fillEqually
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        
+        hStack.addArrangedSubview(button1)
+        hStack.addArrangedSubview(button2)
+        
+        self.profileInfoContainerStackView.addArrangedSubview(hStack)
+        
+        NSLayoutConstraint.activate([
+            hStack.widthAnchor.constraint(equalTo: profileInfoContainerStackView.widthAnchor),
+            button1.heightAnchor.constraint(equalToConstant: 40),
+            button2.heightAnchor.constraint(equalToConstant: 40),
+        ])
+    }
     func setupBioLabel(){
         bioLabel.font = .systemFont(ofSize: 15)
         bioLabel.textAlignment = .left
         bioLabel.translatesAutoresizingMaskIntoConstraints = false
-        changeDescriptionAndUsername(text: "Player for Manchester United, currently on loan to Liverpool.")
+        changeBioLabel(text: "")
         
        
        
@@ -99,7 +255,7 @@ class ProfileViewController: UIViewController {
            nameLabel.adjustsFontSizeToFitWidth = false
            nameLabel.minimumScaleFactor = 1.0
 
-           nameLabel.text = "Erling Braut Haaland"
+           nameLabel.text = "Unknown"
            nameLabel.translatesAutoresizingMaskIntoConstraints = false
 
            profileInfoContainerStackView.addArrangedSubview(nameLabel)
@@ -111,25 +267,14 @@ class ProfileViewController: UIViewController {
 //            
 //        ).isActive = true
         
-        
         setupVerifiedIMageView()
     }
-    private func changeDescriptionAndUsername(text:String) {
-        // Match label font size for correct truncation behavior
-        let attr = NSAttributedString(
-            text.makeAttributedString(
-                mainColor: .label,
-                secondaryColor: .label,
-                secondaryWeight: .heavy,
-                size: 12
-            )
-        )
-        bioLabel.attributedText = attr
-    }
+    
 
     func setupVerifiedIMageView(){
         let image = UIImage(systemName: "checkmark.seal.fill")!
         verifiedImage = UIImageView(image: image)
+        
         guard let verifiedImage else{return}
         verifiedImage.tintColor = .electricPurple
         verifiedImage.translatesAutoresizingMaskIntoConstraints = false
@@ -142,6 +287,7 @@ class ProfileViewController: UIViewController {
             verifiedImage.widthAnchor.constraint(equalToConstant: 15),
             verifiedImage.heightAnchor.constraint(equalToConstant: 15)
         ])
+        verifiedImage.isHidden = true
        
     }
     func setupAvatarImageView(){
@@ -220,6 +366,7 @@ class ProfileViewController: UIViewController {
        setupProfileHeaderStackView()
        setupNameLabel()
        setupBioLabel()
+       setupButtons()
     }
     func setupBackground() {
         profileInfoContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -241,21 +388,10 @@ class ProfileViewController: UIViewController {
         super.viewDidLayoutSubviews()
        
     }
-    func setup() {
-        setupBackground()
-        setupProfileContainerStackView()
-    }
-   
-    
-    func bindToViewModel() {
-       
-
-    }
-   
-   
+  
     
 }
 
 #Preview {
-    ProfileViewController(vm: .init(target: .me))
+    ProfileViewController(vm: .init(target: .user(id: UUID())))
 }

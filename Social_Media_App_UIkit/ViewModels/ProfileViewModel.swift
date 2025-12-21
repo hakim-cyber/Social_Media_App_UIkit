@@ -62,6 +62,7 @@ class ProfileViewModel:ObservableObject{
            self.profileService = profileService
            self.followService = followService
       
+           
     }
     func start() async{
          await loadProfile()
