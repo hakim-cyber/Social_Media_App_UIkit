@@ -121,7 +121,7 @@ final class PostFeedTableViewCell: UITableViewCell {
     let topContainerView: UIView = {
         let v = UIView()
         v.translatesAutoresizingMaskIntoConstraints = false
-        v.backgroundColor = .quaternaryLabel
+        v.backgroundColor = .quaternarySystemFill
         v.layer.cornerRadius = AppConstants.UI.postCornerRadius
        
         v.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
