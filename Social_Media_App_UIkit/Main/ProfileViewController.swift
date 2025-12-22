@@ -49,6 +49,9 @@ class ProfileViewController: UIViewController {
     let button1:CustomStyledButton = .init(style: .primary, text: "Follow")
     let button2:CustomStyledButton = .init(style: .secondary, text: "Message")
     
+    let tabPicker = ProfileTabPickerView()
+    
+    
     init(vm:ProfileViewModel) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
@@ -90,33 +93,37 @@ class ProfileViewController: UIViewController {
     }
     func setFollowButtonState(isFollowing:Bool){
         if !self.vm.isCurrentUser{
-            if isFollowing{
-                self.button1.setTitle("Unfollow", for: .normal)
-                self.button1.applyStyle(style: .secondary)
-            }
-            else{
-                self.button1.setTitle("Follow", for: .normal)
-                self.button1.applyStyle(style: .primary)
+            UIView.animate(withDuration: 0.1){
+                if isFollowing{
+                    self.button1.setTitle("Unfollow", for: .normal)
+                    self.button1.applyStyle(style: .secondary)
+                }
+                else{
+                    self.button1.setTitle("Follow", for: .normal)
+                    self.button1.applyStyle(style: .primary)
+                }
             }
             
         }
     }
     func setProfileData(profile:UserProfile){
-        if let string = profile.avatar_url,let url = URL(string:string){
-            avatarImageView.setImage(url:url )
+        UIView.animate(withDuration: 0.1){
+            if let string = profile.avatar_url,let url = URL(string:string){
+                self.avatarImageView.setImage(url:url )
+            }
+            self.postCountLabel.setData(number: profile.post_count ?? 0)
+            self.followersCountLabel.setData(number: profile.follower_count ?? 0)
+            self.followingCountLabel.setData(number: profile.following_count ?? 0)
+            
+            self.nameLabel.text = profile.full_name
+            
+            if profile.is_verified == true{
+                self.verifiedImage?.isHidden = false
+            }
+            
+            
+            self.changeBioLabel(text: profile.bio ?? "")
         }
-        self.postCountLabel.setData(number: profile.post_count ?? 0)
-        self.followersCountLabel.setData(number: profile.follower_count ?? 0)
-        self.followingCountLabel.setData(number: profile.following_count ?? 0)
-        
-        self.nameLabel.text = profile.full_name
-        
-        if profile.is_verified == true{
-                verifiedImage?.isHidden = false
-        }
-        
-        
-        self.changeBioLabel(text: profile.bio ?? "")
     }
     func bindToViewModel() {
        
@@ -176,6 +183,7 @@ class ProfileViewController: UIViewController {
    
     @objc func followButtonTapped() {
         print("followButtonTapped")
+        self.vm.toggleFollow()
     }
     @objc func messageButtonTapped() {
         print("messageButtonTapped")
@@ -187,7 +195,11 @@ class ProfileViewController: UIViewController {
         print("shareProfileButtonTapped")
     }
     
-    
+    func setupTabPicker(){
+        tabPicker.translatesAutoresizingMaskIntoConstraints = false
+        
+      
+    }
     func setupButtons(){
         if self.vm.isCurrentUser{
             

@@ -24,6 +24,8 @@ class ProfileViewModel:ObservableObject{
     @Published private(set) var errorMessage: String? = nil
     
     
+    @Published private var tryingToFollow: Bool = false
+    
     @Published private(set) var userPosts: [Post] = []
     @Published private(set) var savedPosts: [Post] = []
     
@@ -144,6 +146,47 @@ class ProfileViewModel:ObservableObject{
             errorMessage = "Failed to load more saved posts \(error.localizedDescription)"
         }
     }
+    
+    
+    func toggleFollow() {
+        guard let targetUserID = userID else{return}
+           guard !tryingToFollow else { return }
+          
+        self.isFollowing.toggle()
+        
+           Task { [weak self] in
+               guard let self else { return }
+               self.tryingToFollow = true
+               defer { self.tryingToFollow = false }   // 🔹 always unlock at the end
+
+               do {
+                   let resp:FollowResponse = try await self.followService.toggleFollow(userId: targetUserID)
+                   print(resp)
+                  
+                   if resp.is_following == self.isFollowing {
+                       self.profile?.follower_count = resp.target_follower_count
+                   }else{
+                       // it failed
+                       self.isFollowing.toggle()
+                   }
+               } catch {
+                   self.isFollowing.toggle()
+                   print(error)
+                   self.errorMessage = "Follow failed, please try again."
+               }
+           }
+       }
+    /*
+     result := json_build_object(
+                 'action', 'followed',
+                 'is_following', TRUE,
+                 'target_user_id', target_user_id_param,
+                 'user_id', user_id_param,
+                 'target_follower_count', new_target_follower_count,
+                 'my_following_count', new_my_following_count
+             );
+     */
+    
     
     private func appendDedup(_ new: [Post], to array: inout [Post]) {
         let existing = Set(array.map(\.id))

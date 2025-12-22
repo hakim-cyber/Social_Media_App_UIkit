@@ -27,6 +27,16 @@ class FollowService{
 
         return count > 0
     }
+    func toggleFollow(userId: UUID) async throws -> FollowResponse{
+        let response: FollowResponse = try await supabase
+            .rpc("toggle_follow", params: [
+                "target_user_id_param": AnyJSON(userId.uuidString)
+            ])
+            .execute()
+            .value
+
+        return response
+    }
 }
 
 
