@@ -30,8 +30,8 @@ final class CustomStyledButton: UIButton {
             backgroundColor: .clear,
             titleColor: UIColor.label,
             cornerRadius: 20,
-            borderWidth: 0.7,
-            borderColor: .tertiaryLabel
+            borderWidth: 1,
+            borderColor: UIColor.gray.withAlphaComponent(0.4)
         )
     }
 

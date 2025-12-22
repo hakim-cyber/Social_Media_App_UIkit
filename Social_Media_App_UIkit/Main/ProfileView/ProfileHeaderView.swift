@@ -1,24 +1,22 @@
 //
-//  ProfileViewController.swift
+//  ProfileHeaderView.swift
 //  Social_Media_App_UIkit
 //
-//  Created by aplle on 12/20/25.
+//  Created by aplle on 12/22/25.
 //
 
 import UIKit
-import Foundation
-import Combine
 
+protocol ProfileHeaderViewDelegate:AnyObject{
+     func followButtonTapped()
+     func messageButtonTapped()
+     func editProfileButtonTapped()
+     func shareProfileButtonTapped()
+}
+final class ProfileHeaderView: UIView {
 
-class ProfileViewController: UIViewController {
-    
-    private var cancellables = Set<AnyCancellable>()
-    
-    
-    let vm:ProfileViewModel
-    
-    
-    
+    var isCurrentUser:Bool = false
+    weak var delegate:ProfileHeaderViewDelegate?
     // Views
     let profileInfoContainerView:UIView = UIView()
     let profileInfoContainerStackView:UIStackView = UIStackView()
@@ -49,50 +47,31 @@ class ProfileViewController: UIViewController {
     let button1:CustomStyledButton = .init(style: .primary, text: "Follow")
     let button2:CustomStyledButton = .init(style: .secondary, text: "Message")
     
-    let tabPicker = ProfileTabPickerView()
-    
-    
-    init(vm:ProfileViewModel) {
-        self.vm = vm
-        super.init(nibName: nil, bundle: nil)
-        
-        
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    //    private func setupNavBar() {
-    //        navigationItem.title = "Comments"
-    //
-    //
-    //    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        setup()
-        
-    }
+     init(frame: CGRect = .zero,isCurrentUser:Bool) {
+        self.isCurrentUser = isCurrentUser
+           super.init(frame: frame)
+          setup()
+       }
+
+       required init?(coder: NSCoder) { fatalError() }
     
     func setup() {
         setupBackground()
         setupProfileContainerStackView()
-        bindToViewModel()
-        setData()
-      
+   
     }
    
-    func setData(){
-        if let profile = vm.profile{
+    func setData(profile:UserProfile,following:Bool,isCurrentUser:Bool){
+      
             setProfileData(profile: profile)
-        }
+        
        
-            self.setFollowButtonState(isFollowing: vm.isFollowing)
+            self.setFollowButtonState(isFollowing: following)
         
     }
     func setFollowButtonState(isFollowing:Bool){
-        if !self.vm.isCurrentUser{
+     
+        if !isCurrentUser{
             UIView.animate(withDuration: 0.1){
                 if isFollowing{
                     self.button1.setTitle("Unfollow", for: .normal)
@@ -125,46 +104,7 @@ class ProfileViewController: UIViewController {
             self.changeBioLabel(text: profile.bio ?? "")
         }
     }
-    func bindToViewModel() {
-       
-        vm.$profile
-            .compactMap { $0 }
-            .removeDuplicates()
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] profile in
-                        self?.setProfileData(profile: profile)
-                    }
-                    .store(in: &cancellables)
-        
-        
-        vm.$isFollowing
-                .removeDuplicates()
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] following in
-                    self?.setFollowButtonState(isFollowing: following)
-                }
-                .store(in: &cancellables)
-        
-        
-        // 4) Optional loading-more spinner (footer)
-//        vm.$isLoadingMore
-//            .removeDuplicates()
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] loading in
-//                self?.toggleFooterSpinner(visible: loading)
-//            }
-//            .store(in: &cancellables)
-        
-       
-                vm.$errorMessage
-                    .compactMap { $0 }
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] msg in
-                        self?.showToast(msg)
-                    }
-                    .store(in: &cancellables)
-
-    }
+ 
     
     private func changeBioLabel(text:String) {
         // Match label font size for correct truncation behavior
@@ -182,26 +122,20 @@ class ProfileViewController: UIViewController {
    
    
     @objc func followButtonTapped() {
-        print("followButtonTapped")
-        self.vm.toggleFollow()
+        delegate?.followButtonTapped()
+       
     }
     @objc func messageButtonTapped() {
-        print("messageButtonTapped")
+        delegate?.messageButtonTapped()
     }
     @objc func editProfileButtonTapped() {
-        print("editProfileButtonTapped")
+        delegate?.editProfileButtonTapped()
     }
     @objc func shareProfileButtonTapped() {
-        print("shareProfileButtonTapped")
+        delegate?.shareProfileButtonTapped()
     }
-    
-    func setupTabPicker(){
-        tabPicker.translatesAutoresizingMaskIntoConstraints = false
-        
-      
-    }
-    func setupButtons(){
-        if self.vm.isCurrentUser{
+    func configureButtonsForTarget(){
+        if self.isCurrentUser{
             
             button1.addTarget(self, action: #selector(editProfileButtonTapped), for: .touchUpInside)
             button2.addTarget(self, action: #selector(shareProfileButtonTapped), for: .touchUpInside)
@@ -214,6 +148,9 @@ class ProfileViewController: UIViewController {
             button1.addTarget(self, action: #selector(followButtonTapped), for: .touchUpInside)
             button2.addTarget(self, action: #selector(messageButtonTapped), for: .touchUpInside)
         }
+    }
+    func setupButtons(){
+       configureButtonsForTarget()
         button1.translatesAutoresizingMaskIntoConstraints = false
         button2.translatesAutoresizingMaskIntoConstraints = false
         let hStack = buttonsStackView
@@ -276,7 +213,7 @@ class ProfileViewController: UIViewController {
 //        nameLabel.widthAnchor.constraint(
 //            lessThanOrEqualTo: profileInfoContainerView.widthAnchor,
 //            multiplier: 0.60
-//            
+//
 //        ).isActive = true
         
         setupVerifiedIMageView()
@@ -384,26 +321,18 @@ class ProfileViewController: UIViewController {
         profileInfoContainerView.translatesAutoresizingMaskIntoConstraints = false
         profileInfoContainerView.backgroundColor = .systemBackground
         profileInfoContainerView.layer.cornerRadius = 20
-        
-        view.backgroundColor = .quaternarySystemFill
-        
-        self.view.addSubview(profileInfoContainerView)
+        profileInfoContainerView.layer.borderColor = UIColor.gray.withAlphaComponent(0.4).cgColor
+        profileInfoContainerView.layer.borderWidth = 1
+      
+        self.addSubview(profileInfoContainerView)
         
         NSLayoutConstraint.activate([
-            profileInfoContainerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            profileInfoContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
-            profileInfoContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            profileInfoContainerView.topAnchor.constraint(equalTo: self.topAnchor, constant: 12),
+            profileInfoContainerView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 12),
+            profileInfoContainerView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 12),
+            profileInfoContainerView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -12),
             
     ])
     }
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-       
-    }
-  
     
-}
-
-#Preview {
-    ProfileViewController(vm: .init(target: .user(id: UUID())))
 }

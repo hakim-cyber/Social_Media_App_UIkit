@@ -30,6 +30,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Main/ProfileView/test.swift,
 			);
 			target = 084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */;
 		};

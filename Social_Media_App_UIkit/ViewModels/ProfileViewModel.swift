@@ -64,6 +64,11 @@ class ProfileViewModel:ObservableObject{
            self.profileService = profileService
            self.followService = followService
       
+          
+               self.profile = .mock
+               self.isFollowing = true
+              
+           
            
     }
     func start() async{
