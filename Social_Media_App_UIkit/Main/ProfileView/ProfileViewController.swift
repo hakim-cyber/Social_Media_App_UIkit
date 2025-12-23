@@ -58,6 +58,11 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         // itemSize will be set in viewDidLayoutSubviews (to respect safe area width)
         return layout
     }
+    private func setupNavBar() {
+      
+        navigationItem.title = vm.profile?.username ?? ""
+        
+    }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -67,6 +72,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
+        setupNavBar()
         configureDataSource()
         postsCollectionView.delegate = self
         bindToViewModel()
@@ -272,6 +278,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     .sink { [weak self] profile in
                         self?.profileHeaderView.setProfileData(profile: profile)
                         self?.tabsView.tabPicker.setCounts(grid: profile.post_count)
+                        self?.navigationItem.title = profile.username
                     }
                     .store(in: &cancellables)
         
