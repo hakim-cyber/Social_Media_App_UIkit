@@ -17,6 +17,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     
     
     let vm:ProfileViewModel
+    weak var coordinator: ProfileCoordinating?
     
     private let outerScroll = UIScrollView()
     private let contentView = UIView()
