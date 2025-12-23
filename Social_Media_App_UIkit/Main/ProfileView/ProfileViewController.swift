@@ -71,9 +71,9 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         postsCollectionView.delegate = self
         bindToViewModel()
         
-        Task{
-          await  vm.start()
-        }
+//        Task{
+//          await  vm.start()
+//        }
     }
     private func configureDataSource() {
            dataSource = UICollectionViewDiffableDataSource<Section, UUID>(
@@ -210,6 +210,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
 
         if visibleBottom >= contentHeight - threshold {
             vm.loadMoreIfNeeded()
+            print("Load more")
             
         }
     }
@@ -275,20 +276,20 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     self?.profileHeaderView.setFollowButtonState(isFollowing: following)
                 }
                 .store(in: &cancellables)
-//       
-//                vm.$errorMessage
-//                    .compactMap { $0 }
-//                    .receive(on: DispatchQueue.main)
-//                    .sink { [weak self] msg in
-//                        self?.showToast(msg)
-//                    }
-//                    .store(in: &cancellables)
+       
+                vm.$errorMessage
+                    .compactMap { $0 }
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] msg in
+                        self?.showToast(msg)
+                    }
+                    .store(in: &cancellables)
         vm.$profileCount
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newCount in
                 guard let self else { return }
-               
+               print("change counts")
                 self.tabsView.tabPicker.setCounts(like: newCount.liked,saved: newCount.saved )
             }
             .store(in: &cancellables)

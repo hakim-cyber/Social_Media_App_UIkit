@@ -22,12 +22,14 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
 
     // Nav controllers per tab
     private let feedNav = UINavigationController()
+    private let profileNav = UINavigationController()
     // later: private let searchNav = UINavigationController()
     // later: private let notifNav = UINavigationController()
     // later: private let profileNav = UINavigationController()
 
     // Child coordinators
     private var feedCoordinator: FeedCoordinator?
+    private var profileCoordinator: ProfileCoordinator?
     private var onboardingCoordinator: OnboardingSetupCoordinator?
     private var onboardingNav: UINavigationController?
 
@@ -85,11 +87,26 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
             selectedImage: UIImage(systemName: "house.fill")
         )
 
+       
+        
+        
+        let profileCoordinator = ProfileCoordinator(navigationController: profileNav, target: .me)
+        profileCoordinator.parentCoordinator = self
+        addChild(profileCoordinator)
+        profileCoordinator.start(animated: false)
+        self.profileCoordinator = profileCoordinator
+
+        profileNav.tabBarItem = UITabBarItem(
+            title: "Profile",
+            image: UIImage(systemName: "person"),
+            selectedImage: UIImage(systemName: "person.fill")
+        )
+
         // Add more tabs later: searchNav, notifNav, profileNav...
         tabBarController.viewControllers = [
-            feedNav
+            feedNav,profileNav
         ]
-        tabBarController.selectedIndex = 0
+     
     }
 
     func showMainView(animated: Bool = true) {

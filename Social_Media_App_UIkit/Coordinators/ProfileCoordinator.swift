@@ -54,7 +54,9 @@ final class ProfileCoordinator: NavigationCoordinator,ParentCoordinator, ChildCo
     func start(animated: Bool) {
         let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
         self.viewModel = vm
-
+        Task{
+          await  vm.start()
+        }
         let vc = ProfileViewController(vm: vm)
         vc.coordinator = self   // via protocol
 
