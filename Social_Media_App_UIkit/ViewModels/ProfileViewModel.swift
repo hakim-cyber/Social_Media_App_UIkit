@@ -79,6 +79,7 @@ class ProfileViewModel:ObservableObject{
           
                self.profile = .mock
                self.isFollowing = true
+           self.posts = loadMockData()
               
            
            
@@ -92,19 +93,27 @@ class ProfileViewModel:ObservableObject{
            switch tab {
            case .posts:
                if posts.isEmpty {
-                   Task{
-                       await loadInitialPosts()
-                   }
+//                   Task{
+//                       await loadInitialPosts()
+//                   }
+                   self.posts = loadMockData()
                    
                }
            case .liked:
-               if likedPosts.isEmpty {  Task{
-                   await loadInitialLikedPosts()
-               } }
+               if likedPosts.isEmpty {
+//               Task{
+//                   await loadInitialLikedPosts()
+//               }
+                   self.likedPosts = loadMockData()
+                   
+               }
            case .saved:
-               if savedPosts.isEmpty {  Task{
-                   await loadInitialSavedPosts()
-               }}
+        if savedPosts.isEmpty {
+//            Task{
+//            await loadInitialSavedPosts()
+//        }
+            self.savedPosts = loadMockData()
+        }
            }
        }
     func loadMoreIfNeeded() {
@@ -301,7 +310,7 @@ extension ProfileViewModel{
                let post = Post(
                    id: UUID(),
                    caption: "Mock caption #\(i). Designing UI without backend.",
-                   imageURL: URL(string: "https://www.gettyimages.com/photos/white-color")!  ,
+                   imageURL: URL(string: "https://i.pinimg.com/736x/c4/e8/d0/c4e8d07cfa77ecce2ad5c84041d8643f.jpg")!  ,
                    location: i % 3 == 0 ? "Istanbul" : nil,
                    likeCount: Int.random(in: 30...999),
                    commentCount: Int.random(in: 0...100),

@@ -46,7 +46,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         
     }
     
-    private func makeTwoColumnLayout(spacing: CGFloat = 2) -> UICollectionViewFlowLayout {
+    private func makeTwoColumnLayout(spacing: CGFloat = 12) -> UICollectionViewFlowLayout {
         let layout = UICollectionViewFlowLayout()
         layout.minimumInteritemSpacing = spacing
         layout.minimumLineSpacing = spacing
@@ -88,6 +88,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
            }
        }
     private func apply(items: [Post], animating: Bool = true) {
+        print("Applying \(items.count) ")
         postById = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
 
         var snapshot = NSDiffableDataSourceSnapshot<Section, UUID>()
@@ -113,12 +114,15 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             outerScroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
             
-            contentView.topAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.bottomAnchor),
+            // contentView defines scroll content size (vertical)
+               contentView.topAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.topAnchor),
+               contentView.bottomAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.bottomAnchor),
+
+               // ✅ THIS is the key fix: pin contentView horizontally to the *frameLayoutGuide*
+               contentView.leadingAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.leadingAnchor),
+               contentView.trailingAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.trailingAnchor),
             
-            contentView.widthAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.widthAnchor),
+            contentView.widthAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.widthAnchor)
             ])
         setupHeaderView()
         setupTabPicker()
@@ -129,7 +133,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         profileHeaderView.translatesAutoresizingMaskIntoConstraints = false
         self.contentView.addSubview(profileHeaderView)
         NSLayoutConstraint.activate([
-            self.profileHeaderView.topAnchor.constraint(equalTo: self.contentView.safeAreaLayoutGuide.topAnchor),
+            self.profileHeaderView.topAnchor.constraint(equalTo: self.contentView.topAnchor),
             self.profileHeaderView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
             self.profileHeaderView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
         ])
@@ -163,12 +167,13 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             tabsView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,constant: -12),
             tabsView.heightAnchor.constraint(equalToConstant: 48),
 
-            postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor),
-            postsCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            postsCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor,constant:20),
+            postsCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,constant:12),
+            postsCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,constant:-12),
             postsCollectionView.heightAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.heightAnchor),
-            postsCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-            
+          
+            postsCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+        
             ])
         
         // ALSO: make inner collection view drive outer when it reaches top again
@@ -215,6 +220,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                .receive(on: DispatchQueue.main)
                .sink { [weak self] _ in
                    guard let self else { return }
+                   print("chang selected tab")
                    self.apply(items: self.vm.activePosts, animating: true)
                }
                .store(in: &cancellables)
@@ -278,6 +284,12 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
        updateItemSizeIfNeeded()
+        print("outerScroll:", outerScroll.frame)
+           print("contentView:", contentView.frame)
+           print("header:", profileHeaderView.frame)
+           print("tabs:", tabsView.frame)
+           print("collection:", postsCollectionView.frame)
+       
        
     }
   

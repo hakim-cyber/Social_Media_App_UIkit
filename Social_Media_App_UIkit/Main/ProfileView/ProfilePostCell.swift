@@ -11,12 +11,16 @@ class ProfilePostCell:UICollectionViewCell{
     static let reuseID = "ProfilePostCell"
     var post: Post?
 
-    private let imageView = RoundedImageView(url: nil, cornerRadius: 20)
+    private let imageView = RoundedImageView(
+        url: nil,
+        isCircular: false,
+        cornerRadius: AppConstants.UI.postCornerRadius,
+        )
 
        override init(frame: CGRect) {
            super.init(frame: frame)
            contentView.clipsToBounds = true
-
+           contentView.backgroundColor = .systemYellow.withAlphaComponent(0.2)
            imageView.translatesAutoresizingMaskIntoConstraints = false
          
            contentView.addSubview(imageView)
