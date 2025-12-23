@@ -77,11 +77,6 @@ class ProfileViewModel:ObservableObject{
            self.followService = followService
       
           
-               self.profile = .mock
-               self.isFollowing = true
-           self.posts = loadMockData()
-              
-           
            
     }
     
@@ -93,26 +88,26 @@ class ProfileViewModel:ObservableObject{
            switch tab {
            case .posts:
                if posts.isEmpty {
-//                   Task{
-//                       await loadInitialPosts()
-//                   }
-                   self.posts = loadMockData()
+                   Task{
+                       await loadInitialPosts()
+                   }
+                 
                    
                }
            case .liked:
                if likedPosts.isEmpty {
-//               Task{
-//                   await loadInitialLikedPosts()
-//               }
-                   self.likedPosts = loadMockData()
+               Task{
+                   await loadInitialLikedPosts()
+               }
+             
                    
                }
            case .saved:
         if savedPosts.isEmpty {
-//            Task{
-//            await loadInitialSavedPosts()
-//        }
-            self.savedPosts = loadMockData()
+            Task{
+            await loadInitialSavedPosts()
+        }
+         
         }
            }
        }
@@ -281,48 +276,48 @@ class ProfileViewModel:ObservableObject{
         array.append(contentsOf: filtered)
     }
 }
-extension ProfileViewModel{
-    func loadMockData() ->[Post]{
-           var items: [Post] = []
-   
-           let authors: [UserSummary] = [
-               UserSummary(id: UUID(),
-                           username: "hakim_cyber",
-                           fullName: "Hakim Aliyev",
-                           avatarURL: URL(string: "https://picsum.photos/60"),
-                           isVerified: true),
-               UserSummary(id: UUID(),
-                           username: "zarina",
-                           fullName: "Zarina Aliyeva",
-                           avatarURL: URL(string: "https://picsum.photos/61"),
-                           isVerified: true),
-               UserSummary(id: UUID(),
-                           username: "swift_dev",
-                           fullName: "Swift Developer",
-                           avatarURL: URL(string: "https://picsum.photos/62"),
-                           isVerified: false),
-           ]
-   
-           // Generate 20 mock posts
-           for i in 0..<20 {
-               let author = authors[i % authors.count]
-   
-               let post = Post(
-                   id: UUID(),
-                   caption: "Mock caption #\(i). Designing UI without backend.",
-                   imageURL: URL(string: "https://i.pinimg.com/736x/c4/e8/d0/c4e8d07cfa77ecce2ad5c84041d8643f.jpg")!  ,
-                   location: i % 3 == 0 ? "Istanbul" : nil,
-                   likeCount: Int.random(in: 30...999),
-                   commentCount: Int.random(in: 0...100),
-                   createdAt: Date().addingTimeInterval(-Double(i * 300)), // spaced by 5min
-                   author: author,
-                   isLiked: false,
-                   isSaved: false
-               )
-   
-               items.append(post)
-           }
-   
-           return items
-       }
-}
+//extension ProfileViewModel{
+//    func loadMockData() ->[Post]{
+//           var items: [Post] = []
+//   
+//           let authors: [UserSummary] = [
+//               UserSummary(id: UUID(),
+//                           username: "hakim_cyber",
+//                           fullName: "Hakim Aliyev",
+//                           avatarURL: URL(string: "https://picsum.photos/60"),
+//                           isVerified: true),
+//               UserSummary(id: UUID(),
+//                           username: "zarina",
+//                           fullName: "Zarina Aliyeva",
+//                           avatarURL: URL(string: "https://picsum.photos/61"),
+//                           isVerified: true),
+//               UserSummary(id: UUID(),
+//                           username: "swift_dev",
+//                           fullName: "Swift Developer",
+//                           avatarURL: URL(string: "https://picsum.photos/62"),
+//                           isVerified: false),
+//           ]
+//   
+//           // Generate 20 mock posts
+//           for i in 0..<20 {
+//               let author = authors[i % authors.count]
+//   
+//               let post = Post(
+//                   id: UUID(),
+//                   caption: "Mock caption #\(i). Designing UI without backend.",
+//                   imageURL: URL(string: "https://i.pinimg.com/736x/c4/e8/d0/c4e8d07cfa77ecce2ad5c84041d8643f.jpg")!  ,
+//                   location: i % 3 == 0 ? "Istanbul" : nil,
+//                   likeCount: Int.random(in: 30...999),
+//                   commentCount: Int.random(in: 0...100),
+//                   createdAt: Date().addingTimeInterval(-Double(i * 300)), // spaced by 5min
+//                   author: author,
+//                   isLiked: false,
+//                   isSaved: false
+//               )
+//   
+//               items.append(post)
+//           }
+//   
+//           return items
+//       }
+//}

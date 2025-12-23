@@ -108,7 +108,11 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     func setup() {
         
         outerScroll.delegate = self
-        view.backgroundColor = .quaternarySystemFill
+        view.backgroundColor = .systemBackground
+        outerScroll.backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        outerScroll.showsVerticalScrollIndicator = false
+        
       
         outerScroll.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -178,12 +182,12 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         collectionHeightConstraint = postsCollectionView.heightAnchor.constraint(equalToConstant: 1)
 
         NSLayoutConstraint.activate([
-            tabsView.topAnchor.constraint(equalTo: profileHeaderView.bottomAnchor, constant: 20),
+            tabsView.topAnchor.constraint(equalTo: profileHeaderView.bottomAnchor, constant: 35),
             tabsView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             tabsView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             tabsView.heightAnchor.constraint(equalToConstant: 48),
 
-            postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor, constant: 20),
+            postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor, constant: 12),
             postsCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             postsCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
 
@@ -202,6 +206,12 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             vm.loadMoreIfNeeded()
             
         }
+    }
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
+        print("Profile theme:", traitCollection.userInterfaceStyle == .dark ? "dark" : "light")
     }
     func bindToViewModel() {
         vm.$selectedTab

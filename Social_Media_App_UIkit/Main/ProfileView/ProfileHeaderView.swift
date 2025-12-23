@@ -323,7 +323,15 @@ final class ProfileHeaderView: UIView {
         profileInfoContainerView.layer.cornerRadius = 20
         profileInfoContainerView.layer.borderColor = UIColor.gray.withAlphaComponent(0.4).cgColor
         profileInfoContainerView.layer.borderWidth = 1
-      
+        // ✅ Shadow (PROFILE HEADER ONLY)
+        profileInfoContainerView.layer.shadowColor = UIColor.gray.withAlphaComponent(0.4).cgColor
+        profileInfoContainerView.layer.shadowOpacity = 0.7
+          profileInfoContainerView.layer.shadowRadius = 9
+          profileInfoContainerView.layer.shadowOffset = CGSize(width: 0, height: 6)
+
+          // IMPORTANT: shadow must not be clipped
+          profileInfoContainerView.clipsToBounds = false
+
         self.addSubview(profileInfoContainerView)
         
         NSLayoutConstraint.activate([
@@ -334,5 +342,6 @@ final class ProfileHeaderView: UIView {
             
     ])
     }
+   
     
 }
