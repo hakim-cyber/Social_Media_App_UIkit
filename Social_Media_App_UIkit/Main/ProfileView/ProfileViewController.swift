@@ -68,6 +68,10 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         configureDataSource()
         postsCollectionView.delegate = self
         bindToViewModel()
+        
+        Task{
+          await  vm.start()
+        }
     }
     private func configureDataSource() {
            dataSource = UICollectionViewDiffableDataSource<Section, UUID>(
@@ -257,6 +261,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] profile in
                         self?.profileHeaderView.setProfileData(profile: profile)
+                        self?.tabsView.tabPicker.setCounts(grid: profile.post_count)
                     }
                     .store(in: &cancellables)
         
@@ -276,7 +281,15 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                         self?.showToast(msg)
                     }
                     .store(in: &cancellables)
-
+        vm.$profileCount
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newCount in
+                guard let self else { return }
+               
+                self.tabsView.tabPicker.setCounts(like: newCount.liked,saved: newCount.saved )
+            }
+            .store(in: &cancellables)
     }
     
    

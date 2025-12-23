@@ -103,12 +103,15 @@ final class ProfileTabPickerView: UIView {
         return b
     }
 
-    func setCounts(grid: Int, like: Int, saved: Int) {
+    func setCounts(grid: Int? = nil, like: Int? = nil, saved: Int? = nil) {
         let counts = [grid, like, saved]
         for (i, b) in buttons.enumerated() {
-            var cfg = b.configuration
-            cfg?.title = counts[i].shortFormatted
-            b.configuration = cfg
+           
+            if let count = counts[i]{
+                var cfg = b.configuration
+                cfg?.title = count.shortFormatted
+                b.configuration = cfg
+            }
         }
     }
 

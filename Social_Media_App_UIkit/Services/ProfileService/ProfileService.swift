@@ -37,6 +37,14 @@ class ProfileService {
             .execute()
             .value
     }
+    func fetchProfileCounts(userId: UUID) async throws -> ProfileCounts {
+            // call RPC or query view
+            let res: ProfileCounts = try await supabase
+                .rpc("get_profile_counts", params: ["user_id_param": userId.uuidString])
+                .execute()
+                .value
+            return res
+        }
 }
 
 extension ProfileService {

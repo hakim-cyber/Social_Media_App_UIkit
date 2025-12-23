@@ -41,6 +41,8 @@ class ProfileViewModel:ObservableObject{
     @Published private(set) var isLoadingLikedPosts = false
     @Published private(set) var isLoadingSavedPosts = false
     
+   
+    @Published private(set) var profileCount: ProfileCounts = .init(liked: 0, saved: 0)
     
     var activePosts: [Post] {
             switch selectedTab {
@@ -79,7 +81,15 @@ class ProfileViewModel:ObservableObject{
           
            
     }
-    
+    func getProfileCounts() async  {
+        guard let userID else{return}
+        do{
+            let counts = try await profileService.fetchProfileCounts(userId: userID)
+            self.profileCount = counts
+        }catch{
+            self.errorMessage = error.localizedDescription
+        }
+    }
     func selectTab(_ tab: ProfileTab) {
            guard selectedTab != tab else { return }
            selectedTab = tab
@@ -133,7 +143,7 @@ class ProfileViewModel:ObservableObject{
     func start() async{
          await loadProfile()
          await loadInitialPosts()
-        if self.isCurrentUser {await loadInitialSavedPosts()}
+       await getProfileCounts()
          
     }
     func loadProfile() async  {
