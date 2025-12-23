@@ -75,6 +75,13 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
 //          await  vm.start()
 //        }
     }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        Task{
+        await    self.vm.start()
+        }
+    }
+        
     private func configureDataSource() {
            dataSource = UICollectionViewDiffableDataSource<Section, UUID>(
                collectionView: postsCollectionView
