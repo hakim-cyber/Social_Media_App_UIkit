@@ -25,8 +25,9 @@ final class ProfileTabPickerView: UIView {
     private var indicatorWidth: NSLayoutConstraint!
 
     private(set) var selected: Tab = .grid
-
-    override init(frame: CGRect) {
+    private var isCurrentUser: Bool = false 
+    init(frame: CGRect = .zero,isCurrentUser: Bool ) {
+        self.isCurrentUser = isCurrentUser
         super.init(frame: frame)
         setup()
     }
@@ -35,6 +36,9 @@ final class ProfileTabPickerView: UIView {
         setup()
     }
 
+    private var isSavedDisabled: Bool {
+        return !isCurrentUser
+    }
     private func setup() {
         backgroundColor = .clear
 
@@ -54,11 +58,20 @@ final class ProfileTabPickerView: UIView {
         addSubview(indicator)
 
         Tab.allCases.forEach { tab in
-            let b = makeButton(tab: tab)
-            b.tag = tab.rawValue
-            b.addTarget(self, action: #selector(didTap(_:)), for: .touchUpInside)
-            buttons.append(b)
-            stack.addArrangedSubview(b)
+            if tab == .saved, isSavedDisabled {
+                let b = makeButton(tab: tab)
+                b.tag = tab.rawValue
+                b.isUserInteractionEnabled = false
+                buttons.append(b)
+                stack.addArrangedSubview(b)
+               
+            }else{
+                let b = makeButton(tab: tab)
+                b.tag = tab.rawValue
+                b.addTarget(self, action: #selector(didTap(_:)), for: .touchUpInside)
+                buttons.append(b)
+                stack.addArrangedSubview(b)
+            }
         }
 
         NSLayoutConstraint.activate([
@@ -92,7 +105,11 @@ final class ProfileTabPickerView: UIView {
 
     private func makeButton(tab: Tab) -> UIButton {
         var cfg = UIButton.Configuration.plain()
-        cfg.image = tab.icon(selected: tab == selected)
+        if tab == .saved, isSavedDisabled {
+            cfg.image =  UIImage(systemName:"bookmark.slash")
+        }else{
+            cfg.image = tab.icon(selected: tab == selected)
+        }
         cfg.imagePadding = 8
         cfg.title = "0"
         cfg.baseForegroundColor = (tab == selected) ? .label : .secondaryLabel
@@ -137,11 +154,18 @@ final class ProfileTabPickerView: UIView {
             let isSelected = (t == tab)
 
             var cfg = b.configuration
-            cfg?.baseForegroundColor = isSelected ? .label : .secondaryLabel
-            cfg?.image = t.icon(selected: isSelected)
-            b.configuration = cfg
-
-            b.tintColor = isSelected ? .label : .secondaryLabel
+            if t == .saved, isSavedDisabled {
+                        cfg?.image = UIImage(systemName: "bookmark.slash")
+                        // optionally dim it
+                        cfg?.baseForegroundColor = .tertiaryLabel
+                        b.isUserInteractionEnabled = false
+                        b.tintColor = .tertiaryLabel
+                    } else {
+                        cfg?.baseForegroundColor = isSelected ? .label : .secondaryLabel
+                        cfg?.image = t.icon(selected: isSelected)
+                        b.configuration = cfg
+                        b.tintColor = isSelected ? .label : .secondaryLabel
+                    }
         }
     }
 
@@ -174,5 +198,5 @@ final class ProfileTabPickerView: UIView {
     }
 }
 #Preview(){
-    ProfileTabPickerView()
+    ProfileTabPickerView(frame: .zero, isCurrentUser: true)
 }

@@ -25,7 +25,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     // Views
    
     let profileHeaderView:ProfileHeaderView
-    private let tabsView = ProfileTabsReusableView()
+    private let tabsView :ProfileTabsReusableView
     private lazy var postsCollectionView: UICollectionView = {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: makeTwoColumnLayout())
         cv.translatesAutoresizingMaskIntoConstraints = false
@@ -43,6 +43,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         
         self.vm = vm
         self.profileHeaderView = ProfileHeaderView(isCurrentUser: vm.isCurrentUser)
+        self.tabsView = ProfileTabsReusableView(frame: .zero, isCurrentUser: vm.isCurrentUser)
         super.init(nibName: nil, bundle: nil)
         
         
@@ -273,14 +274,14 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     self?.profileHeaderView.setFollowButtonState(isFollowing: following)
                 }
                 .store(in: &cancellables)
-       
-                vm.$errorMessage
-                    .compactMap { $0 }
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] msg in
-                        self?.showToast(msg)
-                    }
-                    .store(in: &cancellables)
+//       
+//                vm.$errorMessage
+//                    .compactMap { $0 }
+//                    .receive(on: DispatchQueue.main)
+//                    .sink { [weak self] msg in
+//                        self?.showToast(msg)
+//                    }
+//                    .store(in: &cancellables)
         vm.$profileCount
             .removeDuplicates()
             .receive(on: DispatchQueue.main)

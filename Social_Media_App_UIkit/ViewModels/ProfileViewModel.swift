@@ -113,11 +113,12 @@ class ProfileViewModel:ObservableObject{
                    
                }
            case .saved:
-        if savedPosts.isEmpty {
-            Task{
-            await loadInitialSavedPosts()
-        }
-         
+               if self.isCurrentUser{
+                   if savedPosts.isEmpty {
+                       Task{
+                           await loadInitialSavedPosts()
+                       }
+                   }
         }
            }
        }
@@ -133,8 +134,10 @@ class ProfileViewModel:ObservableObject{
                   await  loadMoreLikedPosts()
                 }
             case .saved:
-                Task{
-                  await  loadMoreSavedPosts()
+                if self.isCurrentUser{
+                    Task{
+                        await  loadMoreSavedPosts()
+                    }
                 }
             }
         }
@@ -194,6 +197,7 @@ class ProfileViewModel:ObservableObject{
         }
     }
     func loadInitialSavedPosts() async{
+        guard isCurrentUser else{return}
         guard !isLoadingSavedPosts else{return}
         isLoadingSavedPosts = true
         defer{isLoadingSavedPosts = false}
@@ -208,6 +212,7 @@ class ProfileViewModel:ObservableObject{
     }
     
     func loadMoreSavedPosts()async{
+        guard isCurrentUser else{return}
         guard !isLoadingSavedPosts,let cursor = savedPostsCursor else{return}
         isLoadingSavedPosts = true
         defer{isLoadingSavedPosts = false}

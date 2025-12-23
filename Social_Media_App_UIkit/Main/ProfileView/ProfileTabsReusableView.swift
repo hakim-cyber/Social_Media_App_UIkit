@@ -18,9 +18,10 @@ final class ProfileTabsReusableView: UICollectionReusableView {
     static let reuseID = "ProfileTabsReusableView"
     static let kind = "profile-tabs-kind"
 
-    let tabPicker = ProfileTabPickerView()
+    let tabPicker:ProfileTabPickerView
 
-    override init(frame: CGRect) {
+     init(frame: CGRect,isCurrentUser:Bool) {
+        self.tabPicker = ProfileTabPickerView(frame: frame, isCurrentUser: isCurrentUser)
         super.init(frame: frame)
 
         tabPicker.translatesAutoresizingMaskIntoConstraints = false
