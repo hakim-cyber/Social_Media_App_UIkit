@@ -10,7 +10,8 @@ import Foundation
 import Combine
 
 
-class ProfileViewController: UIViewController,UIScrollViewDelegate {
+class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionViewDelegate {
+    nonisolated enum Section: Hashable { case grid }
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -25,23 +26,33 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate {
    
     let profileHeaderView:ProfileHeaderView
     private let tabsView = ProfileTabsReusableView()
-    private let postsCollectionView: UICollectionView
+    private lazy var postsCollectionView: UICollectionView = {
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: makeTwoColumnLayout())
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.backgroundColor = .clear
+        cv.register(ProfilePostCell.self, forCellWithReuseIdentifier: ProfilePostCell.reuseID)
+        return cv
+    }()
+    
+    private var dataSource: UICollectionViewDiffableDataSource<Section, UUID>?
+    private var postById: [UUID: Post] = [:]
     
     init(vm:ProfileViewModel) {
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 2
-        layout.minimumLineSpacing = 2
-        let w = UIScreen.main.bounds.width
-        let itemW = (w - 4) / 3
-        layout.itemSize = CGSize(width: itemW, height: itemW)
-        postsCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        
         
         self.vm = vm
         self.profileHeaderView = ProfileHeaderView(isCurrentUser: vm.isCurrentUser)
         super.init(nibName: nil, bundle: nil)
         
         
+    }
+    
+    private func makeTwoColumnLayout(spacing: CGFloat = 2) -> UICollectionViewFlowLayout {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = spacing
+        layout.minimumLineSpacing = spacing
+
+        // itemSize will be set in viewDidLayoutSubviews (to respect safe area width)
+        return layout
     }
     
     required init?(coder: NSCoder) {
@@ -52,7 +63,38 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
+        configureDataSource()
+        postsCollectionView.delegate = self
         bindToViewModel()
+    }
+    private func configureDataSource() {
+           dataSource = UICollectionViewDiffableDataSource<Section, UUID>(
+               collectionView: postsCollectionView
+           ) { [weak self] collectionView, indexPath, id in
+               guard let self else { return nil }
+
+              let cell = collectionView.dequeueReusableCell(
+                   withReuseIdentifier: ProfilePostCell.reuseID,
+                   for: indexPath
+               ) as! ProfilePostCell
+               if  let post = self.postById[id]{
+                   
+                   cell.configure(post: post)
+               }else{
+                   cell.configure(post: .mockPost)
+               }
+
+               return cell
+           }
+       }
+    private func apply(items: [Post], animating: Bool = true) {
+        postById = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+
+        var snapshot = NSDiffableDataSourceSnapshot<Section, UUID>()
+        snapshot.appendSections([.grid])
+        snapshot.appendItems(items.map(\.id), toSection: .grid)
+
+        dataSource?.apply(snapshot, animatingDifferences: animating)
     }
     func setup() {
         
@@ -93,6 +135,14 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate {
         ])
     }
     func setupTabPicker(){
+        tabsView.tabPicker.onSelect = { [weak self] tab in
+            guard let self else { return }
+            switch tab {
+            case .grid:  self.vm.selectTab(.posts)
+            case .like:  self.vm.selectTab(.liked)
+            case .saved: self.vm.selectTab(.saved)
+            }
+        }
         tabsView.translatesAutoresizingMaskIntoConstraints = false
         postsCollectionView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -116,7 +166,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate {
             postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor),
             postsCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             postsCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            postsCollectionView.heightAnchor.constraint(equalTo: view.heightAnchor), // important
+            postsCollectionView.heightAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.heightAnchor),
             postsCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
             
             ])
@@ -144,20 +194,58 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate {
         }
     }
     private func stickyOffset() -> CGFloat {
-        // tabs top position in scroll content coordinates
+        view.layoutIfNeeded()
+        contentView.layoutIfNeeded()
         let tabsY = tabsView.frame.minY
         let safeTop = view.safeAreaInsets.top
-        return max(0, tabsY - safeTop )
+        return max(0, tabsY - safeTop)
     }
 
     @objc private func handleInnerPan() {
-        // If inner is at top and user scrolls downward, give control back to outer scroll
-        if postsCollectionView.contentOffset.y <= 0 {
+        let velocity = postsCollectionView.panGestureRecognizer.velocity(in: postsCollectionView)
+        let isPanningDown = velocity.y > 0
+
+        if isPanningDown, postsCollectionView.contentOffset.y <= 0 {
             postsCollectionView.isScrollEnabled = false
         }
     }
     func bindToViewModel() {
-       
+        vm.$selectedTab
+               .removeDuplicates()
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] _ in
+                   guard let self else { return }
+                   self.apply(items: self.vm.activePosts, animating: true)
+               }
+               .store(in: &cancellables)
+        vm.$posts
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] _ in
+                   guard let self else { return }
+                   if self.vm.selectedTab == .posts {
+                       self.apply(items: self.vm.posts, animating: true)
+                   }
+               }
+               .store(in: &cancellables)
+        vm.$likedPosts
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] _ in
+                   guard let self else { return }
+                   if self.vm.selectedTab == .liked {
+                       self.apply(items: self.vm.likedPosts, animating: true)
+                   }
+               }
+               .store(in: &cancellables)
+
+           vm.$savedPosts
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] _ in
+                   guard let self else { return }
+                   if self.vm.selectedTab == .saved {
+                       self.apply(items: self.vm.savedPosts, animating: true)
+                   }
+               }
+               .store(in: &cancellables)
         vm.$profile
             .compactMap { $0 }
             .removeDuplicates()
@@ -189,10 +277,35 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate {
    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+       updateItemSizeIfNeeded()
        
     }
   
     
+    private func updateItemSizeIfNeeded() {
+            guard let layout = postsCollectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
+
+            let spacing = layout.minimumInteritemSpacing
+            let totalSpacing = spacing * 1 // 2 columns -> 1 gap
+            let width = postsCollectionView.bounds.width - totalSpacing
+            let item = floor(width / 2)
+
+            if layout.itemSize.width != item {
+                layout.itemSize = CGSize(width: item, height: item)
+                layout.invalidateLayout()
+            }
+        }
+    func collectionView(_ collectionView: UICollectionView,
+                        willDisplay cell: UICollectionViewCell,
+                        forItemAt indexPath: IndexPath) {
+
+        let count = vm.activePosts.count
+        let threshold = max(0, count - 9)
+
+        if indexPath.item == threshold {
+            vm.loadMoreIfNeeded()
+        }
+    }
 }
 
 #Preview {

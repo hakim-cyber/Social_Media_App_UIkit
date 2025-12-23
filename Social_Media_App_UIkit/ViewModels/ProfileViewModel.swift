@@ -13,12 +13,15 @@ enum ProfileTarget: Equatable {
     case me
     case user(id: UUID)
 }
-enum ProfileTab: Equatable {
-    case savedPosts
+enum ProfileTab: Hashable {
     case posts
+    case liked
+    case saved
 }
 
 class ProfileViewModel:ObservableObject{
+    @Published private(set) var selectedTab: ProfileTab = .posts
+    
     @Published private(set) var profile: UserProfile?
     @Published private(set) var isFollowing: Bool = false
     @Published private(set) var errorMessage: String? = nil
@@ -26,17 +29,26 @@ class ProfileViewModel:ObservableObject{
     
     @Published private var tryingToFollow: Bool = false
     
-    @Published private(set) var userPosts: [Post] = []
+    @Published private(set) var posts: [Post] = []
+    @Published private(set) var likedPosts: [Post] = []
     @Published private(set) var savedPosts: [Post] = []
     
     private var userPostsCursor: FeedCursor?
+    private var likedPostsCursor: FeedCursor?
     private var savedPostsCursor: FeedCursor?
 
     @Published private(set) var isLoadingUserPosts = false
+    @Published private(set) var isLoadingLikedPosts = false
     @Published private(set) var isLoadingSavedPosts = false
     
     
-    @Published private(set) var selectedTab: ProfileTab = .posts
+    var activePosts: [Post] {
+            switch selectedTab {
+            case .posts: return posts
+            case .liked: return likedPosts
+            case .saved: return savedPosts
+            }
+        }
     
     private let pageSize =  20
     
@@ -71,6 +83,49 @@ class ProfileViewModel:ObservableObject{
            
            
     }
+    
+    func selectTab(_ tab: ProfileTab) {
+           guard selectedTab != tab else { return }
+           selectedTab = tab
+
+           // lazy load the first page for that tab
+           switch tab {
+           case .posts:
+               if posts.isEmpty {
+                   Task{
+                       await loadInitialPosts()
+                   }
+                   
+               }
+           case .liked:
+               if likedPosts.isEmpty {  Task{
+                   await loadInitialLikedPosts()
+               } }
+           case .saved:
+               if savedPosts.isEmpty {  Task{
+                   await loadInitialSavedPosts()
+               }}
+           }
+       }
+    func loadMoreIfNeeded() {
+            switch selectedTab {
+            case .posts:
+                Task{
+                  await  loadMorePosts()
+                }
+            case .liked:
+              
+                Task{
+                  await  loadMoreLikedPosts()
+                }
+            case .saved:
+                Task{
+                  await  loadMoreSavedPosts()
+                }
+            }
+        }
+
+    
     func start() async{
          await loadProfile()
          await loadInitialPosts()
@@ -103,7 +158,7 @@ class ProfileViewModel:ObservableObject{
         
         do{
             let page:FeedResponse = try await postQueryService.fetchPostsForUser(userID:userID, limit: pageSize )
-            self.userPosts = page.posts
+            self.posts = page.posts
             userPostsCursor = page.nextCursor
         }catch{
             errorMessage = "Failed to load user posts \(error.localizedDescription)"
@@ -118,7 +173,7 @@ class ProfileViewModel:ObservableObject{
         
         do{
             let page:FeedResponse = try await  postQueryService.fetchPostsForUser(userID:userID, limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
-            appendDedup(page.posts, to: &userPosts)
+            appendDedup(page.posts, to: &posts)
             userPostsCursor = page.nextCursor
         }catch{
             errorMessage = "Failed to load more user posts \(error.localizedDescription)"
@@ -151,6 +206,33 @@ class ProfileViewModel:ObservableObject{
             errorMessage = "Failed to load more saved posts \(error.localizedDescription)"
         }
     }
+    func loadInitialLikedPosts() async{
+        guard !isLoadingLikedPosts else{return}
+        isLoadingLikedPosts = true
+        defer{isLoadingLikedPosts = false}
+        
+        do{
+            let page:FeedResponse = try await postQueryService.fetchLikedPosts(limit: pageSize)
+            likedPosts = page.posts
+            likedPostsCursor = page.nextCursor
+        }catch{
+            errorMessage = "Failed to load liked posts \(error.localizedDescription)"
+        }
+    }
+    
+    func loadMoreLikedPosts()async{
+        guard !isLoadingLikedPosts,let cursor = likedPostsCursor else{return}
+        isLoadingLikedPosts = true
+        defer{isLoadingLikedPosts = false}
+        
+        do{
+            let page:FeedResponse = try await postQueryService.fetchLikedPosts(limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
+            appendDedup(page.posts, to: &likedPosts)
+            likedPostsCursor = page.nextCursor
+        }catch{
+            errorMessage = "Failed to load more liked posts \(error.localizedDescription)"
+        }
+    }
     
     
     func toggleFollow() {
@@ -181,16 +263,7 @@ class ProfileViewModel:ObservableObject{
                }
            }
        }
-    /*
-     result := json_build_object(
-                 'action', 'followed',
-                 'is_following', TRUE,
-                 'target_user_id', target_user_id_param,
-                 'user_id', user_id_param,
-                 'target_follower_count', new_target_follower_count,
-                 'my_following_count', new_my_following_count
-             );
-     */
+   
     
     
     private func appendDedup(_ new: [Post], to array: inout [Post]) {
@@ -198,4 +271,49 @@ class ProfileViewModel:ObservableObject{
         let filtered = new.filter { !existing.contains($0.id) }
         array.append(contentsOf: filtered)
     }
+}
+extension ProfileViewModel{
+    func loadMockData() ->[Post]{
+           var items: [Post] = []
+   
+           let authors: [UserSummary] = [
+               UserSummary(id: UUID(),
+                           username: "hakim_cyber",
+                           fullName: "Hakim Aliyev",
+                           avatarURL: URL(string: "https://picsum.photos/60"),
+                           isVerified: true),
+               UserSummary(id: UUID(),
+                           username: "zarina",
+                           fullName: "Zarina Aliyeva",
+                           avatarURL: URL(string: "https://picsum.photos/61"),
+                           isVerified: true),
+               UserSummary(id: UUID(),
+                           username: "swift_dev",
+                           fullName: "Swift Developer",
+                           avatarURL: URL(string: "https://picsum.photos/62"),
+                           isVerified: false),
+           ]
+   
+           // Generate 20 mock posts
+           for i in 0..<20 {
+               let author = authors[i % authors.count]
+   
+               let post = Post(
+                   id: UUID(),
+                   caption: "Mock caption #\(i). Designing UI without backend.",
+                   imageURL: URL(string: "https://www.gettyimages.com/photos/white-color")!  ,
+                   location: i % 3 == 0 ? "Istanbul" : nil,
+                   likeCount: Int.random(in: 30...999),
+                   commentCount: Int.random(in: 0...100),
+                   createdAt: Date().addingTimeInterval(-Double(i * 300)), // spaced by 5min
+                   author: author,
+                   isLiked: false,
+                   isSaved: false
+               )
+   
+               items.append(post)
+           }
+   
+           return items
+       }
 }
