@@ -18,19 +18,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-               // Setup window
-               let window = UIWindow(windowScene: windowScene)
+        let window = UIWindow(windowScene: windowScene)
         window.tintColor = .electricPurple
-               self.window = window
-               window.makeKeyAndVisible()
-        
-        let appCoordinator = AppCoordinator(window: window)
-               self.appCoordinator = appCoordinator
+        self.window = window
 
-               // Start coordinator
-               appCoordinator.start(animated: false)
+        let vm = ProfileViewModel(target: .user(id: UUID()))
+        let vc = ProfileViewController(vm: vm)
+        vc.title = "Profile"   // ✅ THIS is what matters
+
+        let nav = UINavigationController(rootViewController: vc)
+      
+
+        window.rootViewController = nav
+        window.makeKeyAndVisible()
     }
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         for context in URLContexts {

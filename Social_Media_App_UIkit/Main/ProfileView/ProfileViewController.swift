@@ -37,6 +37,8 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     private var dataSource: UICollectionViewDiffableDataSource<Section, UUID>?
     private var postById: [UUID: Post] = [:]
     
+    private var collectionHeightConstraint: NSLayoutConstraint!
+    
     init(vm:ProfileViewModel) {
         
         self.vm = vm
@@ -96,10 +98,16 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         snapshot.appendItems(items.map(\.id), toSection: .grid)
 
         dataSource?.apply(snapshot, animatingDifferences: animating)
+        self.updateCollectionHeight()
+    }
+    private func updateCollectionHeight() {
+        postsCollectionView.layoutIfNeeded()
+        collectionHeightConstraint.constant = postsCollectionView.collectionViewLayout.collectionViewContentSize.height
+        view.layoutIfNeeded()
     }
     func setup() {
         
-       
+        outerScroll.delegate = self
         view.backgroundColor = .quaternarySystemFill
       
         outerScroll.translatesAutoresizingMaskIntoConstraints = false
@@ -119,8 +127,8 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                contentView.bottomAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.bottomAnchor),
 
                // ✅ THIS is the key fix: pin contentView horizontally to the *frameLayoutGuide*
-               contentView.leadingAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.leadingAnchor),
-               contentView.trailingAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.trailingAnchor),
+               contentView.leadingAnchor.constraint(equalTo: outerScroll.leadingAnchor),
+               contentView.trailingAnchor.constraint(equalTo: outerScroll.trailingAnchor),
             
             contentView.widthAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.widthAnchor)
             ])
@@ -133,9 +141,10 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         profileHeaderView.translatesAutoresizingMaskIntoConstraints = false
         self.contentView.addSubview(profileHeaderView)
         NSLayoutConstraint.activate([
-            self.profileHeaderView.topAnchor.constraint(equalTo: self.contentView.topAnchor),
+            self.profileHeaderView.topAnchor.constraint(equalTo: self.contentView.safeAreaLayoutGuide.topAnchor),
             self.profileHeaderView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
             self.profileHeaderView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
+          
         ])
     }
     func setupTabPicker(){
@@ -157,61 +166,41 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         postsCollectionView.alwaysBounceVertical = true
 
         outerScroll.delegate = self
+       
+     
+      
+       
+      
         contentView.addSubview(tabsView)
         contentView.addSubview(postsCollectionView)
         
         
+        collectionHeightConstraint = postsCollectionView.heightAnchor.constraint(equalToConstant: 1)
+
         NSLayoutConstraint.activate([
-            tabsView.topAnchor.constraint(equalTo: profileHeaderView.bottomAnchor,constant: 20),
-            tabsView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,constant: 12),
-            tabsView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,constant: -12),
+            tabsView.topAnchor.constraint(equalTo: profileHeaderView.bottomAnchor, constant: 20),
+            tabsView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            tabsView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             tabsView.heightAnchor.constraint(equalToConstant: 48),
 
-            postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor,constant:20),
-            postsCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,constant:12),
-            postsCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,constant:-12),
-            postsCollectionView.heightAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.heightAnchor),
-          
-            postsCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
-        
-            ])
-        
-        // ALSO: make inner collection view drive outer when it reaches top again
-        postsCollectionView.panGestureRecognizer.addTarget(self, action: #selector(handleInnerPan))
-      
+            postsCollectionView.topAnchor.constraint(equalTo: tabsView.bottomAnchor, constant: 20),
+            postsCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            postsCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+
+            collectionHeightConstraint,
+            postsCollectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
     }
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView === outerScroll else { return }
 
-        let stickOffset = stickyOffset()
+        let threshold: CGFloat = 300  // how close to bottom before loading
+        let visibleBottom = scrollView.contentOffset.y + scrollView.bounds.height
+        let contentHeight = scrollView.contentSize.height
 
-        if outerScroll.contentOffset.y >= stickOffset {
-            outerScroll.contentOffset.y = stickOffset
-            if !postsCollectionView.isScrollEnabled {
-                postsCollectionView.isScrollEnabled = true
-            }
-        } else {
-            // header still visible => inner should not scroll
-            if postsCollectionView.isScrollEnabled {
-                postsCollectionView.isScrollEnabled = false
-                postsCollectionView.contentOffset.y = 0
-            }
-        }
-    }
-    private func stickyOffset() -> CGFloat {
-        view.layoutIfNeeded()
-        contentView.layoutIfNeeded()
-        let tabsY = tabsView.frame.minY
-        let safeTop = view.safeAreaInsets.top
-        return max(0, tabsY - safeTop)
-    }
-
-    @objc private func handleInnerPan() {
-        let velocity = postsCollectionView.panGestureRecognizer.velocity(in: postsCollectionView)
-        let isPanningDown = velocity.y > 0
-
-        if isPanningDown, postsCollectionView.contentOffset.y <= 0 {
-            postsCollectionView.isScrollEnabled = false
+        if visibleBottom >= contentHeight - threshold {
+            vm.loadMoreIfNeeded()
+            
         }
     }
     func bindToViewModel() {
@@ -284,13 +273,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
        updateItemSizeIfNeeded()
-        print("outerScroll:", outerScroll.frame)
-           print("contentView:", contentView.frame)
-           print("header:", profileHeaderView.frame)
-           print("tabs:", tabsView.frame)
-           print("collection:", postsCollectionView.frame)
-       
-       
+        updateCollectionHeight()
     }
   
     
@@ -307,17 +290,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                 layout.invalidateLayout()
             }
         }
-    func collectionView(_ collectionView: UICollectionView,
-                        willDisplay cell: UICollectionViewCell,
-                        forItemAt indexPath: IndexPath) {
-
-        let count = vm.activePosts.count
-        let threshold = max(0, count - 9)
-
-        if indexPath.item == threshold {
-            vm.loadMoreIfNeeded()
-        }
-    }
+    
 }
 
 #Preview {

@@ -20,7 +20,6 @@ class ProfilePostCell:UICollectionViewCell{
        override init(frame: CGRect) {
            super.init(frame: frame)
            contentView.clipsToBounds = true
-           contentView.backgroundColor = .systemYellow.withAlphaComponent(0.2)
            imageView.translatesAutoresizingMaskIntoConstraints = false
          
            contentView.addSubview(imageView)
