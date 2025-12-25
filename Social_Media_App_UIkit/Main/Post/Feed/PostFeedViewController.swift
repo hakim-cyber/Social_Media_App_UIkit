@@ -299,6 +299,9 @@ extension PostFeedViewController: PostCellDelegate {
 
     func postCellDidTapAvatar(_ cell: PostFeedTableViewCell) {
         // push profile VC, using cell.post?.author
+        guard let post = cell.post else { return }
+        self.coordinator?.postCellDidTapAvatar(post)
+        print("postCellDidTapAvatar")
     }
 
     func postCellDidTapMore(_ cell: PostFeedTableViewCell) {

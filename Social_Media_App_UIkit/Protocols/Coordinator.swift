@@ -63,6 +63,14 @@ extension ParentCoordinator {
     }
 }
 
+
+extension ParentCoordinator {
+
+    func removeChild(_ child: Coordinator) {
+        childCoordinators.removeAll { $0 === child }
+    }
+}
+
 /// All child coordinators should conform to this
 protocol ChildCoordinator: Coordinator {
     var parentCoordinator: ParentCoordinator? { get set }

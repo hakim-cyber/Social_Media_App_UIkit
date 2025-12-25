@@ -208,7 +208,7 @@ final class PostFeedTableViewCell: UITableViewCell {
         topContainerView.addSubview(avatarImageView)
         avatarImageView.isUserInteractionEnabled = true
         avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
-
+        nameTextView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         // more
         moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
         topContainerView.addSubview(moreButton)

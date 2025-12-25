@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Supabase
 final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -43,6 +44,22 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
         navigationController.setViewControllers([vc], animated: animated)
     }
 
+    func showProfile(author:UserSummary){
+     
+        if let currentUserId = UserSessionService.shared.currentUser?.id, currentUserId == author.id {
+            print("My profile")
+            if let parentCoordinator = parentCoordinator as? MainCoordinator{
+                parentCoordinator.switchToMyProfile()
+            }
+       }else{
+           let profileCoordinator = ProfileCoordinator(navigationController: navigationController, target: .user(id: author.id))
+           profileCoordinator.parentCoordinator = self
+           addChild(profileCoordinator)
+           profileCoordinator.startPush(animated: true)
+       }
+     
+            
+    }
     deinit {
         print("FeedCoordinator deinit")
     }
@@ -104,15 +121,17 @@ extension FeedCoordinator: FeedCoordinating {
     }
     
     func postCellDidTapAvatar(_ post: Post) {
-        
+        showProfile(author: post.author)
     }
     
 }
 
 extension FeedCoordinator {
     func childDidFinish(_ child: Coordinator?) {
+        guard let child else{return}
         if child === createPostCoordinator {
             createPostCoordinator = nil
         }
+        removeChild(child)
     }
 }

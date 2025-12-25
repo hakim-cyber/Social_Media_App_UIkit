@@ -32,6 +32,8 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
     private var profileCoordinator: ProfileCoordinator?
     private var onboardingCoordinator: OnboardingSetupCoordinator?
     private var onboardingNav: UINavigationController?
+    let feedTabIndex: Int = 0
+    let profileTabIndex: Int = 1
 
     // MARK: - Init
 
@@ -114,6 +116,10 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
       
     }
 
+    func switchToMyProfile() {
+        tabBarController.selectedIndex = profileTabIndex
+        (profileNav).popToRootViewController(animated: false)
+    }
     // MARK: - Onboarding flow
 
     private func showOnboardingSetup() {
