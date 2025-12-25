@@ -20,7 +20,8 @@ class PostCommentViewController: UIViewController {
     
     var dataSource: UITableViewDiffableDataSource<CommentSection, PostComment>?
     let vm:CommentViewModel
-
+    weak var coordinator: CommentCoordinating?
+    
     private lazy var postCommentTableView: UITableView = {
         let tv = UITableView()
         tv.showsVerticalScrollIndicator = false
@@ -267,9 +268,16 @@ extension PostCommentViewController: PostCommentCellDelegate {
    
     func commentCellDidTapMore(_ cell: PostCommentTableViewCell) {
         // action sheet etc.
+        print("tapped more")
+        guard let comment = cell.comment else{return}
+        coordinator?.commentCellDidTapMore(comment: comment)
     }
     func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell) {
+        print("tapped avatar")
+        guard let comment = cell.comment else{return}
         // go to profile
+    
+        coordinator?.commentCellDidTapAvatar(comment: comment)
     }
 
    

@@ -165,6 +165,9 @@ final class PostCommentTableViewCell: UITableViewCell {
        
         
         moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
+        usernameTextView.isUserInteractionEnabled = true   // ✅ REQUIRED
+        usernameTextView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
+        
         self.contentView.addSubview(moreButton)
         
         NSLayoutConstraint.activate([
@@ -178,6 +181,7 @@ final class PostCommentTableViewCell: UITableViewCell {
     }
     func setupAvatarView(){
         self.contentView.addSubview(avatarImageView)
+        avatarImageView.isUserInteractionEnabled = true   // ✅ REQUIRED
         avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         NSLayoutConstraint.activate([
             avatarImageView.topAnchor.constraint(equalTo: self.contentView.topAnchor,constant: 0),
@@ -197,6 +201,7 @@ final class PostCommentTableViewCell: UITableViewCell {
          delegate?.commentCellDidTapMore(self)
     }
     @objc private func didTapAvatar() {
+        print("didTapAvatar")
         delegate?.commentCellDidTapAvatar(self)
    }
 }

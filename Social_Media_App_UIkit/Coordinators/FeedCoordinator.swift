@@ -23,7 +23,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
 
     private var viewModel: FeedViewModel?
     private var createPostCoordinator: CreatePostCoordinator?
-
+    private weak var commentsNavController: UINavigationController?
     init(
         navigationController: UINavigationController,
         feedService: FeedService = .init(),
@@ -44,21 +44,26 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
         navigationController.setViewControllers([vc], animated: animated)
     }
 
-    func showProfile(author:UserSummary){
-     
-        if let currentUserId = UserSessionService.shared.currentUser?.id, currentUserId == author.id {
-            print("My profile")
-            if let parentCoordinator = parentCoordinator as? MainCoordinator{
-                parentCoordinator.switchToMyProfile()
+    func showProfile(author: UserSummary) {
+        dismissPresentedIfNeeded { [weak self] in
+            guard let self else { return }
+
+            let currentId = UserSessionService.shared.currentUser?.id
+
+            if currentId == author.id,
+               let main = self.parentCoordinator as? MainCoordinator {
+                main.switchToMyProfile()
+                return
             }
-       }else{
-           let profileCoordinator = ProfileCoordinator(navigationController: navigationController, target: .user(id: author.id))
-           profileCoordinator.parentCoordinator = self
-           addChild(profileCoordinator)
-           profileCoordinator.startPush(animated: true)
-       }
-     
-            
+
+            let coord = ProfileCoordinator(
+                navigationController: self.navigationController,
+                target: .user(id: author.id)
+            )
+            coord.parentCoordinator = self
+            self.addChild(coord)
+            coord.startPush(animated: true)
+        }
     }
     deinit {
         print("FeedCoordinator deinit")
@@ -95,10 +100,11 @@ extension FeedCoordinator: FeedCoordinating {
                                         commentsCount: post.commentCount)
 
         let commentsVC = PostCommentViewController(vm: viewModel)
+        commentsVC.coordinator = self
         let navController = UINavigationController(rootViewController: commentsVC)
         navController.modalPresentationStyle = .formSheet
       
-
+        commentsNavController = navController
         if let sheet = navController.sheetPresentationController {
             sheet.detents = [
                 .custom(identifier: .medium) { ctx in
@@ -133,5 +139,41 @@ extension FeedCoordinator {
             createPostCoordinator = nil
         }
         removeChild(child)
+    }
+}
+
+
+protocol CommentCoordinating: AnyObject {
+    func commentCellDidTapMore(comment: PostComment)
+    func commentCellDidTapAvatar(comment: PostComment)
+}
+
+extension FeedCoordinator: CommentCoordinating {
+    func commentCellDidTapMore(comment: PostComment) {
+       
+    }
+    func commentCellDidTapAvatar(comment: PostComment) {
+        // go to profile
+        showProfile(author: comment.author)
+        print("Show Profile")
+    }
+}
+
+extension FeedCoordinator{
+    private func dismissPresentedIfNeeded(animated: Bool = true, completion: @escaping () -> Void) {
+        // If you keep an explicit ref (recommended)
+        if let nav = commentsNavController {
+            commentsNavController = nil
+            nav.dismiss(animated: animated, completion: completion)
+            return
+        }
+
+        // Fallback: dismiss whatever is presented from the feed nav
+        if let presented = navigationController.presentedViewController {
+            presented.dismiss(animated: animated, completion: completion)
+            return
+        }
+
+        completion()
     }
 }
