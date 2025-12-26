@@ -1,13 +1,13 @@
 //
-//  ProfileImageSelectView.swift
+//  EditProfileView.swift
 //  Social_Media_App_UIkit
 //
-//  Created by aplle on 9/29/25.
+//  Created by aplle on 12/26/25.
 //
 
 import UIKit
 
-class ProfileImageSelectView: UIViewController {
+class ProfileEditViewController: UIViewController {
     
     
     let label1: UILabel = {
@@ -94,26 +94,29 @@ class ProfileImageSelectView: UIViewController {
     private var imagePicker: ImagePickerCropper?
     func presentImagePicker(){
         let picker = ImagePickerCropper()
-              self.imagePicker = picker
+            self.imagePicker = picker
 
         picker.presentMenu(from: self) {[weak self] result in
             guard let self else{return}
            
-                       switch result {
-                       case .picked(let image):
-                           self.selectedImage = image
-                           self.profileImageView.setImage(self.selectedImage, animated: true)
-                       case .deleted:
-                           self.selectedImage = nil
-                           self.profileImageView.setImage(self.selectedImage, animated: true)
-                       case .cancelled:
-                           break
-                       }
+           
+            switch result {
+                      case .picked(let image):
+                self.selectedImage = image
+                self.profileImageView.setImage(self.selectedImage, animated: true)
 
-                       // release after use
-                       self.imagePicker = nil
+                      case .deleted:
+                self.selectedImage = nil
+                self.profileImageView.setImage(self.selectedImage, animated: true)
+                      case .cancelled:
+                          break
+                      }
+
+                      // release after use
+                      self.imagePicker = nil
         }
     }
+    
     func setProfileImageView() {
         
         self.view.addSubview(profileImageView)

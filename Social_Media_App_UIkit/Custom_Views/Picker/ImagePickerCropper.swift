@@ -10,80 +10,135 @@ import UIKit
 import TOCropViewController
 import CropViewController
 
+enum ImagePickerResult {
+    case picked(UIImage)
+    case deleted
+    case cancelled
+}
 final class ImagePickerCropper: NSObject {
-    // MARK: - Singleton
-    static let shared = ImagePickerCropper()
-
-    private override init() {}
-
-    // MARK: - Stored callback
-    private var completion: ((UIImage) -> Void)?
-    private var aspectRatio: CGSize = CGSize(width: 1, height: 1)
-    private var croppingStyle: CropViewCroppingStyle = .default
 
     private weak var presentingVC: UIViewController?
+    private var onResult: ((ImagePickerResult) -> Void)?
 
-    // MARK: - Present picker
-    func present(from viewController: UIViewController,
-                 aspectRatio: CGSize = CGSize(width: 1, height: 1),
-                 croppingStyle:CropViewCroppingStyle = .default
-                 ,
-                 sourceType: UIImagePickerController.SourceType = .photoLibrary,
-                 
-                 completion: @escaping (UIImage) -> Void) {
+    private var aspectRatio: CGSize = .init(width: 1, height: 1)
+    private var croppingStyle: CropViewCroppingStyle = .default
+    private var allowsDelete: Bool = true
 
+    // MARK: - Public API
+
+    func presentMenu(
+        from viewController: UIViewController,
+        sourceView: UIView? = nil,
+        aspectRatio: CGSize = .init(width: 1, height: 1),
+        croppingStyle: CropViewCroppingStyle = .default,
+        allowsDelete: Bool = true,
+        onResult: @escaping (ImagePickerResult) -> Void
+    ) {
         self.presentingVC = viewController
         self.aspectRatio = aspectRatio
-        self.completion = completion
         self.croppingStyle = croppingStyle
+        self.allowsDelete = allowsDelete
+        self.onResult = onResult
+
+        let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+        sheet.addAction(UIAlertAction(title: "Choose from Library", style: .default) { [weak self] _ in
+            self?.presentPicker(.photoLibrary)
+        })
+
+        sheet.addAction(UIAlertAction(title: "Take Photo", style: .default) { [weak self] _ in
+            self?.presentPicker(.camera)
+        })
+
+        if allowsDelete {
+            sheet.addAction(UIAlertAction(title: "Delete Image", style: .destructive) { [weak self] _ in
+                self?.finish(.deleted)
+            })
+        }
+
+        sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
+            self?.finish(.cancelled)
+        })
+
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = sourceView ?? viewController.view
+            pop.sourceRect = (sourceView ?? viewController.view).bounds
+        }
+
+        viewController.present(sheet, animated: true)
+    }
+
+    // MARK: - Picker
+
+    private func presentPicker(_ sourceType: UIImagePickerController.SourceType) {
+        guard let vc = presentingVC,
+              UIImagePickerController.isSourceTypeAvailable(sourceType)
+        else {
+            finish(.cancelled)
+            return
+        }
 
         let picker = UIImagePickerController()
         picker.delegate = self
         picker.sourceType = sourceType
         picker.allowsEditing = false
+        vc.present(picker, animated: true)
+    }
 
-        viewController.present(picker, animated: true)
+    private func presentCropper(image: UIImage) {
+        guard let vc = presentingVC else { return }
+
+        let cropVC = CropViewController(croppingStyle: croppingStyle, image: image)
+        cropVC.delegate = self
+
+        cropVC.aspectRatioLockEnabled = true
+        cropVC.aspectRatioPickerButtonHidden = true
+        cropVC.resetButtonHidden = true
+        
+        cropVC.aspectRatioPreset = aspectRatio
+
+        vc.present(cropVC, animated: true)
+    }
+
+    private func finish(_ result: ImagePickerResult) {
+        onResult?(result)
+        onResult = nil
     }
 }
 
-// MARK: - UIImagePickerControllerDelegate
 extension ImagePickerCropper: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+
     func imagePickerController(_ picker: UIImagePickerController,
                                didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-
         picker.dismiss(animated: true)
 
-        guard let image = info[.originalImage] as? UIImage else { return }
+        guard let image = info[.originalImage] as? UIImage else {
+            finish(.cancelled)
+            return
+        }
 
-        // Present crop controller
-        let vc = CropViewController(croppingStyle: croppingStyle, image: image)
-        vc.delegate = self
-        
-        vc.aspectRatioLockEnabled = true
-        
-        vc.aspectRatioPickerButtonHidden = true
-        vc.resetButtonHidden = true
-        vc.aspectRatioPreset  = aspectRatio
-        vc.toolbarPosition = .bottom
-        presentingVC?.present(vc, animated: true)
+        presentCropper(image: image)
     }
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true)
+        finish(.cancelled)
     }
 }
 
-// MARK: - TOCropViewControllerDelegate
 extension ImagePickerCropper: CropViewControllerDelegate {
-    func cropViewController(_ cropViewController: CropViewController, didCropToImage image: UIImage, withRect cropRect: CGRect, angle: Int) {
-        cropViewController.dismiss(animated: true)
-        completion?(image)
-        completion = nil
-    }
 
+    func cropViewController(_ cropViewController: CropViewController,
+                            didCropToImage image: UIImage,
+                            withRect cropRect: CGRect,
+                            angle: Int) {
+        cropViewController.dismiss(animated: true)
+        finish(.picked(image))
+    }
 
     func cropViewController(_ cropViewController: CropViewController,
                             didFinishCancelled cancelled: Bool) {
         cropViewController.dismiss(animated: true)
+        finish(.cancelled)
     }
 }

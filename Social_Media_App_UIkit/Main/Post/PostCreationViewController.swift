@@ -24,7 +24,7 @@ class PostCreationViewController: UIViewController {
     let locationButton:LocationPickerButton = .init()
     
     let vm:CreatePostViewModel
-    
+    private var imagePicker: ImagePickerCropper?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -184,9 +184,25 @@ class PostCreationViewController: UIViewController {
   
     
     func presentImagePicker(){
-        ImagePickerCropper.shared.present(from: self, aspectRatio: AppConstants.Media.defaultPostCropRatio) { [weak self] image in
-            guard let self else{return}
-            self.vm.selectedImage = image
+        let picker = ImagePickerCropper()
+               self.imagePicker = picker
+
+        picker.presentMenu(from: self, aspectRatio: AppConstants.Media.defaultPostCropRatio) { [weak self] result in
+            guard let self else { return }
+
+                        switch result {
+                        case .picked(let image):
+                            self.vm.selectedImage = image
+
+                        case .deleted:
+                            self.vm.selectedImage = nil
+
+                        case .cancelled:
+                            break
+                        }
+
+                        // release after use
+            self.imagePicker = nil
             self.selectImageView.setImage(image: self.vm.selectedImage)
         }
     }

@@ -203,7 +203,10 @@
 				DEVELOPMENT_TEAM = 4NLRT8KSZR;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Social_Media_App_UIkit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Give permission to use library";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Give permission to use camera";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -236,7 +239,10 @@
 				DEVELOPMENT_TEAM = 4NLRT8KSZR;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Social_Media_App_UIkit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Give permission to use library";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Give permission to use camera";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
