@@ -347,6 +347,7 @@ extension ProfileViewController:ProfileHeaderViewDelegate{
     }
     
     func editProfileButtonTapped() {
+        self.coordinator?.didTapEditProfile()
         print("editProfileButtonTapped")
     }
     

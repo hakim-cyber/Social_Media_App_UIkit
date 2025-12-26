@@ -93,10 +93,21 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
 
 
 protocol ProfileCoordinating: AnyObject {
-    
+    func didTapEditProfile()
     
 }
 
 extension ProfileCoordinator:ProfileCoordinating{
-    
+    func didTapEditProfile() {
+        guard let profile = viewModel?.profile else { return }
+        let vm = EditProfileViewModel(profileService: profileService)
+       
+        vm.configure(with: profile)
+        vm.onProfileUpdated = { [weak self] newUser in
+            self?.navigationController.popViewController(animated: true)
+            self?.viewModel?.updateProfile(profile: newUser)
+        }
+        let vc = ProfileEditViewController(viewModel: vm)
+        self.navigationController.pushViewController(vc, animated: true)
+    }
 }

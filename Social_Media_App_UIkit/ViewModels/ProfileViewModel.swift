@@ -149,6 +149,9 @@ class ProfileViewModel:ObservableObject{
        await getProfileCounts()
          
     }
+    func updateProfile(profile:UserProfile){
+        self.profile = profile
+    }
     func loadProfile() async  {
         guard let userID else {
             self.errorMessage = "User not found"

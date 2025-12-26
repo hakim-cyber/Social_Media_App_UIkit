@@ -122,17 +122,124 @@ extension ProfileService {
     /// Upload profile avatar image
     func uploadProfileAvatar(_ image: UIImage, userId: UUID) async throws -> (path: String, publicUrl: String) {
         let svc = SupabaseStorageService()
-           // Keep filename fixed if you want "avatar.jpg" (browser may cache; changing path busts cache)
-           let res = try await svc.uploadImage(
-               image,
-               userId: userId,
-               bucket: .avatars,
-               fileName: "avatar.jpg",        // fixed name, same path
-               jpegQuality: 0.7,
-               upsert: true,                  // allow replace
-               publicBucket: true             // typical for avatars; set false if you want private + signed
-           )
-           return (res.path, res.url.absoluteString)
-      
+
+        let uniqueName = "\(UUID().uuidString).jpg"
+        // unikaldır => upsert false
+        let res = try await svc.uploadImage(
+            image,
+            userId: userId,
+            bucket: .avatars,
+            fileName: "avatars/\(uniqueName)",
+            jpegQuality: 0.7,
+            upsert: false,
+            publicBucket: true
+        )
+
+        return (res.path, res.url.absoluteString)
+    }
+}
+
+
+extension ProfileService{
+    func updateProfile(
+        username: String,
+        fullName: String,
+        bio: String?,
+        avatarImage: UIImage?
+    ) async throws -> UserProfile {
+
+        let session = try await supabase.auth.session
+        let user = session.user
+
+       
+        let current: UserProfile = try await supabase
+            .from("users")
+            .select()
+            .eq("id", value: user.id.uuidString)
+            .single()
+            .execute()
+            .value
+
+        let oldAvatarUrl = current.avatar_url
+        let oldPath = oldAvatarUrl.flatMap { extractStoragePath(from: $0, bucket: "avatars") }
+
+       
+        var newAvatarUrl: String? = current.avatar_url
+        var newUploadedPath: String? = nil
+
+        if let avatarImage {
+            let (path, url) = try await uploadProfileAvatar(avatarImage, userId: user.id)
+            newUploadedPath = path
+            newAvatarUrl = url
+        } else {
+          
+            newAvatarUrl = nil
+        }
+
+        struct UserProfileUpdate: Encodable {
+            let username: String
+            let full_name: String
+            let bio: String?
+            let avatar_url: String?
+        }
+
+        let payload = UserProfileUpdate(
+            username: username,
+            full_name: fullName,
+            bio: bio,
+            avatar_url: newAvatarUrl
+        )
+
+        do {
+           
+            let updated: UserProfile = try await supabase
+                .from("users")
+                .update(payload, returning: .representation)
+                .eq("id", value: user.id.uuidString)
+                .select()
+                .single()
+                .execute()
+                .value
+
+           
+            if let oldPath {
+                // əgər yeni upload etdinsə, köhnə ilə eyni olma ehtimalı çox azdır (unikal)
+                _ = try? await supabase.storage.from("avatars").remove(paths: [oldPath])
+            }
+
+            return updated
+
+        } catch {
+            if let newUploadedPath {
+                _ = try? await supabase.storage.from("avatars").remove(paths: [newUploadedPath])
+            }
+
+            let ns = error as NSError
+            if ns.code == 409 { throw ProfileCreateError.usernameTaken }
+            throw ProfileCreateError.unknown(ns.localizedDescription)
+        }
+    }
+}
+
+extension ProfileService{
+    private func extractStoragePath(from avatarUrl: String, bucket: String) -> String? {
+        guard let url = URL(string: avatarUrl) else { return nil }
+
+       
+        let s = url.absoluteString
+
+        let publicKey = "/storage/v1/object/public/\(bucket)/"
+        if let range = s.range(of: publicKey) {
+            let after = s[range.upperBound...]
+            return String(after.split(separator: "?").first ?? "")
+        }
+
+        let signedKey = "/storage/v1/object/sign/\(bucket)/"
+        if let range = s.range(of: signedKey) {
+            let after = s[range.upperBound...]
+            return String(after.split(separator: "?").first ?? "")
+        }
+
+        return nil
     }
 }
