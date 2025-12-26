@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import TOCropViewController
 
 class ProfileEditViewController: UIViewController {
     
@@ -96,7 +97,13 @@ class ProfileEditViewController: UIViewController {
         let picker = ImagePickerCropper()
             self.imagePicker = picker
 
-        picker.presentMenu(from: self) {[weak self] result in
+        picker.presentMenu(
+                    from: self,
+                    sourceView: profileImageView,
+                    aspectRatio: CGSize(width: 1, height: 1),
+                    croppingStyle: .circular,
+                    allowsDelete: self.selectedImage != nil
+                ) {[weak self] result in
             guard let self else{return}
            
            
