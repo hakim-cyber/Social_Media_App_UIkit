@@ -22,6 +22,22 @@ struct UserSummary: Identifiable, Hashable, Codable, Sendable {
         case avatarURL = "avatar_url"
         case isVerified = "is_verified"
     }
+    static let mockUser = UserSummary(
+        id: UUID(),
+        username: "hakim.aliyev",
+        fullName: "Hakim Aliyev",
+        avatarURL: URL(string: "https://i.pinimg.com/736x/17/9c/52/179c526f10c256d0dcb2ab46e726f6b6.jpg"),
+        isVerified: true
+    )
+    static func mock(id:UUID)->Self{
+        UserSummary(
+           id: id,
+           username: "hakim.aliyev",
+           fullName: "Hakim Aliyev",
+           avatarURL: URL(string: "https://i.pinimg.com/736x/17/9c/52/179c526f10c256d0dcb2ab46e726f6b6.jpg"),
+           isVerified: true
+       )
+    }
 }
 nonisolated
 struct Post: Identifiable, Hashable, Codable, Sendable {

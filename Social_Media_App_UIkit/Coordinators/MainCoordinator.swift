@@ -23,17 +23,19 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
     // Nav controllers per tab
     private let feedNav = UINavigationController()
     private let profileNav = UINavigationController()
-    // later: private let searchNav = UINavigationController()
+    private let searchNav = UINavigationController()
     // later: private let notifNav = UINavigationController()
     // later: private let profileNav = UINavigationController()
 
     // Child coordinators
     private var feedCoordinator: FeedCoordinator?
     private var profileCoordinator: ProfileCoordinator?
+    private var searchCoordinator: SearchProfileCoordinator?
     private var onboardingCoordinator: OnboardingSetupCoordinator?
     private var onboardingNav: UINavigationController?
     let feedTabIndex: Int = 0
-    let profileTabIndex: Int = 1
+    let searchTabIndex: Int = 1
+    let profileTabIndex: Int = 2
 
     // MARK: - Init
 
@@ -92,6 +94,20 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
        
         
         
+        
+
+        let searchCoordinator = SearchProfileCoordinator(navigationController: searchNav)
+        searchCoordinator.parentCoordinator = self
+        addChild(searchCoordinator)
+        searchCoordinator.start(animated: false)
+        self.searchCoordinator = searchCoordinator
+
+        searchNav.tabBarItem = UITabBarItem(
+            title: "Search",
+            image: UIImage(systemName: "magnifyingglass"),
+            selectedImage: UIImage(systemName: "magnifyingglass")
+        )
+        
         let profileCoordinator = ProfileCoordinator(navigationController: profileNav, target: .me)
         profileCoordinator.parentCoordinator = self
         addChild(profileCoordinator)
@@ -103,10 +119,9 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
             image: UIImage(systemName: "person"),
             selectedImage: UIImage(systemName: "person.fill")
         )
-
         // Add more tabs later: searchNav, notifNav, profileNav...
         tabBarController.viewControllers = [
-            feedNav,profileNav
+            feedNav,searchNav,profileNav
         ]
      
     }
