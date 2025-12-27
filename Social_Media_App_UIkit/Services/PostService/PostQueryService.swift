@@ -72,6 +72,7 @@ final class PostQueryService{
         return response
     }
     func fetchLikedPosts(
+        userID: UUID,
         limit: Int = 20,
         
         beforeCreatedAt: Date? = nil,
@@ -79,6 +80,7 @@ final class PostQueryService{
     ) async throws -> FeedResponse {
         // Build parameters
         var parameters: [String: AnyJSON] = [
+            "target_user_id" :try AnyJSON(userID),
             "limit_param": try AnyJSON(limit)
         ]
         

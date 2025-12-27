@@ -284,7 +284,7 @@ class ProfileEditViewController: UIViewController {
             // Post button
             let saveButton = UIBarButtonItem(
                 title: "Save",
-                style: .prominent,
+                style: .plain,
                 target: self,
                 action: #selector(handleSave)
             )

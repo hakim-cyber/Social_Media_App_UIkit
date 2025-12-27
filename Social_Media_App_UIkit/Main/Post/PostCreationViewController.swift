@@ -75,7 +75,7 @@ class PostCreationViewController: UIViewController {
         // Post button
         let postButton = UIBarButtonItem(
             title: "Post",
-            style: .prominent,
+            style: .plain,
             target: self,
             action: #selector(postTapped)
         )

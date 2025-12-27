@@ -229,12 +229,13 @@ class ProfileViewModel:ObservableObject{
         }
     }
     func loadInitialLikedPosts() async{
+        guard let userID else{return}
         guard !isLoadingLikedPosts else{return}
         isLoadingLikedPosts = true
         defer{isLoadingLikedPosts = false}
         
         do{
-            let page:FeedResponse = try await postQueryService.fetchLikedPosts(limit: pageSize)
+            let page:FeedResponse = try await postQueryService.fetchLikedPosts(userID: userID, limit: pageSize)
             likedPosts = page.posts
             likedPostsCursor = page.nextCursor
         }catch{
@@ -243,12 +244,13 @@ class ProfileViewModel:ObservableObject{
     }
     
     func loadMoreLikedPosts()async{
+        guard let userID else{return}
         guard !isLoadingLikedPosts,let cursor = likedPostsCursor else{return}
         isLoadingLikedPosts = true
         defer{isLoadingLikedPosts = false}
         
         do{
-            let page:FeedResponse = try await postQueryService.fetchLikedPosts(limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
+            let page:FeedResponse = try await postQueryService.fetchLikedPosts(userID: userID, limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
             appendDedup(page.posts, to: &likedPosts)
             likedPostsCursor = page.nextCursor
         }catch{

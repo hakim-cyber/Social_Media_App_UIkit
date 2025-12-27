@@ -20,7 +20,7 @@ extension UIResponder {
         let flexible = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let doneButton = UIBarButtonItem(
             title: title,
-            style: UIBarButtonItem.Style.prominent, // .done is correct style
+            style: UIBarButtonItem.Style.plain, // .done is correct style
             target: target,
             action: selector
         )
