@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import Kingfisher
 struct SearchProfileButton: View {
     let user:UserSummary
     var onTap: () -> Void
@@ -15,22 +15,19 @@ struct SearchProfileButton: View {
             onTap()
         }label: {
             HStack {
-                AsyncImage(url: user.avatarURL) { image in
-                    image
-                        
-                        .resizable()
-                        .frame(width: 50,height: 50)
-                        .clipShape(Circle())
-                        .overlay(content: {
-                            Circle()
-                                .stroke(Color.secondary, lineWidth: 1)
-                        })
-                } placeholder: {
-                    Circle().fill(Color.secondary)
-                       
-                        .frame(width: 50,height: 50)
-                        .opacity(0.4)
-                }
+               
+                KFImage(user.avatarURL)
+                    .placeholder {
+                                    ProgressView()
+                                }
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                                .overlay(content: {
+                                    Circle()
+                                        .stroke(Color.secondary, lineWidth: 1)
+                                })
                 VStack(alignment: .leading){
                     HStack( spacing: 2){
                         Text(user.fullName)
