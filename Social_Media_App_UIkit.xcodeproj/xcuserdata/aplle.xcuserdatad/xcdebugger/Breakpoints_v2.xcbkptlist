@@ -14,9 +14,9 @@
             filePath = "Social_Media_App_UIkit/ViewModels/ProfileViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "183"
-            endingLineNumber = "183"
-            landmarkName = "loadInitialPosts()"
+            startingLineNumber = "207"
+            endingLineNumber = "207"
+            landmarkName = "loadMorePosts()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

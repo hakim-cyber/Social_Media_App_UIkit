@@ -40,6 +40,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     
     private var collectionHeightConstraint: NSLayoutConstraint!
     
+    private let refreshControl = UIRefreshControl()
     init(vm:ProfileViewModel) {
         
         self.vm = vm
@@ -76,10 +77,27 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         configureDataSource()
         postsCollectionView.delegate = self
         bindToViewModel()
-        
+        setupRefreshControl()
 //        Task{
 //          await  vm.start()
 //        }
+    }
+    private func setupRefreshControl() {
+        outerScroll.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(didPullToRefresh), for: .valueChanged)
+    }
+    @objc private func didPullToRefresh() {
+        Task { [weak self] in
+            guard let self else { return }
+
+            // refresh (re-fetch)
+            await self.vm.start()
+
+            // stop spinner on main
+            await MainActor.run {
+                self.refreshControl.endRefreshing()
+            }
+        }
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -187,6 +205,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         // inner starts disabled until tabs stick
         postsCollectionView.isScrollEnabled = false
         postsCollectionView.alwaysBounceVertical = true
+        postsCollectionView.delegate = self
 
         outerScroll.delegate = self
        
@@ -226,12 +245,6 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             print("Load more")
             
         }
-    }
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-
-        guard previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) == true else { return }
-        print("Profile theme:", traitCollection.userInterfaceStyle == .dark ? "dark" : "light")
     }
     func bindToViewModel() {
         vm.$selectedTab
@@ -343,6 +356,7 @@ extension ProfileViewController:ProfileHeaderViewDelegate{
     }
     
     func messageButtonTapped() {
+        self.coordinator?.didTapMessage()
         print("messageButtonTapped")
     }
     
@@ -352,8 +366,18 @@ extension ProfileViewController:ProfileHeaderViewDelegate{
     }
     
     func shareProfileButtonTapped() {
+        self.coordinator?.didTapShareProfile()
         print("shareProfileButtonTapped")
     }
     
     
+}
+extension ProfileViewController{
+    func collectionView(_ collectionView: UICollectionView,
+                        didSelectItemAt indexPath: IndexPath) {
+        if let selectedPost = vm.activePosts[safe: indexPath.item]{
+            self.coordinator?.didSelectPostCell(post: selectedPost)
+        }
+       
+    }
 }

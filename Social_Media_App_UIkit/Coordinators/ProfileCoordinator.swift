@@ -94,6 +94,9 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
 
 protocol ProfileCoordinating: AnyObject {
     func didTapEditProfile()
+    func didTapMessage()
+    func didTapShareProfile()
+    func didSelectPostCell(post: Post)
     
 }
 
@@ -109,5 +112,19 @@ extension ProfileCoordinator:ProfileCoordinating{
         }
         let vc = ProfileEditViewController(viewModel: vm)
         self.navigationController.pushViewController(vc, animated: true)
+    }
+    func didTapMessage() {
+        
+    }
+    func didSelectPostCell(post: Post) {
+        guard let viewModel else{return}
+       let coord = ProfilePostFeedCordinator(navigationController: navigationController, viewModel: viewModel, selectedPost: post)
+        
+        coord.parentCoordinator = self
+        self.addChild(coord)
+        coord.start(animated: true)
+    }
+    func didTapShareProfile() {
+        
     }
 }

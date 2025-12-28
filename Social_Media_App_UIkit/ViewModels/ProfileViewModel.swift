@@ -54,6 +54,10 @@ class ProfileViewModel:ObservableObject{
     
     private let pageSize =  20
     
+    
+    private var likingPosts = Set<UUID>()
+    private var savingPosts = Set<UUID>()
+    
     let target: ProfileTarget
     var userID:UUID?
     let isCurrentUser:Bool
@@ -61,6 +65,7 @@ class ProfileViewModel:ObservableObject{
     let profileService: ProfileService
     let followService: FollowService
     let postQueryService:PostQueryService = .init()
+    private let postService = PostActionService()
     init(
            target: ProfileTarget,
            profileService: ProfileService = .init(),
@@ -145,9 +150,28 @@ class ProfileViewModel:ObservableObject{
     
     func start() async{
          await loadProfile()
-         await loadInitialPosts()
+         await loadSelectedInitial()
        await getProfileCounts()
          
+    }
+    func loadSelectedInitial()async{
+        switch selectedTab {
+        case .posts:
+            Task{
+              await  loadInitialPosts()
+            }
+        case .liked:
+          
+            Task{
+              await  loadInitialLikedPosts()
+            }
+        case .saved:
+            if self.isCurrentUser{
+                Task{
+                    await  loadInitialSavedPosts()
+                }
+            }
+        }
     }
     func updateProfile(profile:UserProfile){
         self.profile = profile
@@ -294,6 +318,71 @@ class ProfileViewModel:ObservableObject{
         let existing = Set(array.map(\.id))
         let filtered = new.filter { !existing.contains($0.id) }
         array.append(contentsOf: filtered)
+    }
+    
+    // button actions
+    private func updatePost(_ postId: UUID, _ update: (inout Post) -> Void) {
+        if let i = posts.firstIndex(where: { $0.id == postId }) {
+            update(&posts[i])
+        }
+        if let i = likedPosts.firstIndex(where: { $0.id == postId }) {
+            update(&likedPosts[i])
+        }
+        if let i = savedPosts.firstIndex(where: { $0.id == postId }) {
+            update(&savedPosts[i])
+        }
+    }
+    func toggleLike(for postId: UUID, desiredState: Bool) {
+        guard !likingPosts.contains(postId) else { return }
+        likingPosts.insert(postId)
+
+        // 🔹 Save old values (for rollback)
+        let old = posts.first { $0.id == postId }
+
+        // 🔹 Optimistic UI update
+        updatePost(postId) { post in
+            post.isLiked = desiredState
+            post.likeCount += desiredState ? 1 : -1
+        }
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.likingPosts.remove(postId) }
+
+            do {
+                _ = try await self.postService.addLikeToPost(postId: postId)
+            } catch {
+                // 🔴 Rollback on failure
+                if let old {
+                    self.updatePost(postId) { $0 = old }
+                }
+                self.errorMessage = "Like failed"
+            }
+        }
+    }
+    func toggleSave(for postId: UUID, desiredState: Bool) {
+        guard !savingPosts.contains(postId) else { return }
+        savingPosts.insert(postId)
+
+        let old = posts.first { $0.id == postId }
+
+        updatePost(postId) { post in
+            post.isSaved = desiredState
+        }
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.savingPosts.remove(postId) }
+
+            do {
+                _ = try await self.postService.savePost(postId: postId)
+            } catch {
+                if let old {
+                    self.updatePost(postId) { $0 = old }
+                }
+                self.errorMessage = "Save failed"
+            }
+        }
     }
 }
 //extension ProfileViewModel{
