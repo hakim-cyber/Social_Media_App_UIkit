@@ -53,3 +53,57 @@ extension UserProfile {
     )
 }
 
+
+
+// MARK: - Domain
+struct UserSummary: Identifiable, Hashable, Codable, Sendable {
+    let id: UUID
+    let username: String
+    let fullName: String
+    let avatarURL: URL?
+    let isVerified: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case username
+        case fullName = "full_name"
+        case avatarURL = "avatar_url"
+        case isVerified = "is_verified"
+    }
+    static let mockUser = UserSummary(
+        id: UUID(),
+        username: "hakim.aliyev",
+        fullName: "Hakim Aliyev",
+        avatarURL: URL(string: "https://i.pinimg.com/736x/17/9c/52/179c526f10c256d0dcb2ab46e726f6b6.jpg"),
+        isVerified: true
+    )
+    static func mock(id:UUID)->Self{
+        UserSummary(
+           id: id,
+           username: "hakim.aliyev",
+           fullName: "Hakim Aliyev",
+           avatarURL: URL(string: "https://i.pinimg.com/736x/17/9c/52/179c526f10c256d0dcb2ab46e726f6b6.jpg"),
+           isVerified: true
+       )
+    }
+}
+
+struct UserFollowItem: Identifiable, Hashable, Codable, Sendable {
+    let id:UUID
+    let username: String
+    let fullName: String
+    let avatarURL: URL?
+    let isVerified: Bool
+    let isFollowing: Bool // do i follow them
+    let isFollower: Bool // do they follow me
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case username
+        case fullName = "full_name"
+        case avatarURL = "avatar_url"
+        case isVerified = "is_verified"
+        case isFollowing = "is_following"
+        case isFollower = "is_follower"
+    }
+}
