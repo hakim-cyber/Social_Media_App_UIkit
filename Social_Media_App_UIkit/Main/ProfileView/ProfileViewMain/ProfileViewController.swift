@@ -191,11 +191,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     func setupTabPicker(){
         tabsView.tabPicker.onSelect = { [weak self] tab in
             guard let self else { return }
-            switch tab {
-            case .grid:  self.vm.selectTab(.posts)
-            case .like:  self.vm.selectTab(.liked)
-            case .saved: self.vm.selectTab(.saved)
-            }
+            self.vm.selectTab(tab)
         }
         tabsView.translatesAutoresizingMaskIntoConstraints = false
         postsCollectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -290,7 +286,8 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] profile in
                         self?.profileHeaderView.setProfileData(profile: profile)
-                        self?.tabsView.tabPicker.setCounts(grid: profile.post_count)
+                        self?.tabsView.tabPicker.setTitle(profile.post_count?.shortFormatted ?? "0", for: .posts)
+                       
                         self?.navigationItem.title = profile.username
                     }
                     .store(in: &cancellables)
@@ -317,7 +314,8 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             .sink { [weak self] newCount in
                 guard let self else { return }
                print("change counts")
-                self.tabsView.tabPicker.setCounts(like: newCount.liked,saved: newCount.saved )
+                self.tabsView.tabPicker.setTitle(newCount.liked.shortFormatted, for: .liked)
+                self.tabsView.tabPicker.setTitle(newCount.saved.shortFormatted, for: .saved)
             }
             .store(in: &cancellables)
     }
