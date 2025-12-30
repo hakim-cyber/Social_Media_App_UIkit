@@ -12,6 +12,8 @@ protocol ProfileHeaderViewDelegate:AnyObject{
      func messageButtonTapped()
      func editProfileButtonTapped()
      func shareProfileButtonTapped()
+    func didTapFollowerCount()
+    func didTapFollowingCount()
 }
 final class ProfileHeaderView: UIView {
 
@@ -133,6 +135,12 @@ final class ProfileHeaderView: UIView {
     }
     @objc func shareProfileButtonTapped() {
         delegate?.shareProfileButtonTapped()
+    }
+    @objc func didTapFollower() {
+        delegate?.didTapFollowerCount()
+    }
+    @objc func didTapFollowing() {
+        delegate?.didTapFollowingCount()
     }
     func configureButtonsForTarget(){
         if self.isCurrentUser{
@@ -263,6 +271,9 @@ final class ProfileHeaderView: UIView {
         hStack.addArrangedSubview(postCountLabel)
         hStack.addArrangedSubview(followersCountLabel)
         hStack.addArrangedSubview(followingCountLabel)
+        
+        followersCountLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapFollower)))
+        followingCountLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapFollowing)))
         
         profileHeaderStackView.addArrangedSubview(hStack)
         

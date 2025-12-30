@@ -89,6 +89,7 @@ struct UserSummary: Identifiable, Hashable, Codable, Sendable {
     }
 }
 
+nonisolated
 struct UserFollowItem: Identifiable, Hashable, Codable, Sendable {
     let id:UUID
     let username: String

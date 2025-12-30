@@ -349,6 +349,14 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
 }
 
 extension ProfileViewController:ProfileHeaderViewDelegate{
+    func didTapFollowerCount() {
+        self.coordinator?.didTapFollowers()
+    }
+    
+    func didTapFollowingCount() {
+        self.coordinator?.didTapFollowing()
+    }
+    
     func followButtonTapped() {
         self.vm.toggleFollow()
     }

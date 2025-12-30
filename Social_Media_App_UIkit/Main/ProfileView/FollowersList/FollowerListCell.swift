@@ -158,6 +158,7 @@ final class FollowerListCell: UITableViewCell {
         self.buttonStackView.addArrangedSubview(followButton)
         self.buttonStackView.addArrangedSubview(moreButton)
         
+        self.contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
         followButton.addTarget(self, action: #selector(didTapFollow), for: .touchUpInside)
         

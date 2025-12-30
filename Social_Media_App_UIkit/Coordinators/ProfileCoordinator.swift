@@ -97,10 +97,27 @@ protocol ProfileCoordinating: AnyObject {
     func didTapMessage()
     func didTapShareProfile()
     func didSelectPostCell(post: Post)
-    
+    func didTapFollowers()
+    func didTapFollowing()
 }
 
 extension ProfileCoordinator:ProfileCoordinating{
+    func didTapFollowers() {
+        guard let profile = viewModel?.profile else { return }
+        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, target: .followers)
+        coord.parentCoordinator = self
+        self.addChild(coord)
+        coord.start(animated: true)
+    }
+    
+    func didTapFollowing() {
+        guard let profile = viewModel?.profile else { return }
+        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, target: .following)
+        coord.parentCoordinator = self
+        self.addChild(coord)
+        coord.start(animated: true)
+    }
+    
     func didTapEditProfile() {
         guard let profile = viewModel?.profile else { return }
         let vm = EditProfileViewModel(profileService: profileService)
