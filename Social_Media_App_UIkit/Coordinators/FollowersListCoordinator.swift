@@ -40,7 +40,7 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
         
     }
 
-    func showProfile(author: UserSummary) {
+    func showProfile(author: UserFollowItem) {
             let currentId = UserSessionService.shared.currentUser?.id
         let coord:ProfileCoordinator
             if currentId == author.id{
@@ -72,10 +72,10 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
 }
 
 protocol FollowerListCoordinating: AnyObject {
-    func didTapProfile(user: UserSummary)
+    func didTapProfile(user: UserFollowItem)
 }
 extension FollowersListCoordinator:FollowerListCoordinating{
-    func didTapProfile(user: UserSummary) {
+    func didTapProfile(user: UserFollowItem) {
         self.showProfile(author: user)
     }
 }

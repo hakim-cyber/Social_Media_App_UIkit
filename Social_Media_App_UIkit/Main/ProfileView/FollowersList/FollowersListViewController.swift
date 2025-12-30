@@ -246,7 +246,7 @@ extension FollowersListViewController: UITableViewDelegate {
 extension FollowersListViewController:FollowerListCellDelegate{
     func didTapProfile(cell: FollowerListCell) {
         guard let user = cell.user else {return}
-       
+        coordinator?.didTapProfile(user: user)
     }
     
     func didTapFollow(cell: FollowerListCell) {
