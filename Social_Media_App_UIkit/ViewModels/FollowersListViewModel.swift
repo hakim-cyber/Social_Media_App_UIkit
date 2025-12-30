@@ -12,7 +12,7 @@ enum FollowerListTarget{
     case followers
 }
 class FollowersListViewModel{
-    @Published private(set) var target: FollowerListTarget = .following
+    @Published  var target: FollowerListTarget = .following
     
     @Published private(set) var followerCount:Int = 0
     @Published private(set) var followingCount:Int = 0

@@ -108,4 +108,15 @@ struct UserFollowItem: Identifiable, Hashable, Codable, Sendable {
         case isFollowing = "is_following"
         case isFollower = "is_follower"
     }
+    static func mock(id:UUID)->Self{
+        UserFollowItem(
+           id: id,
+           username: "hakim.aliyev",
+           fullName: "Hakim Aliyev",
+           avatarURL: URL(string: "https://i.pinimg.com/736x/17/9c/52/179c526f10c256d0dcb2ab46e726f6b6.jpg"),
+           isVerified: .random(),
+           isFollowing: .random(),
+           isFollower: .random()
+       )
+    }
 }

@@ -37,33 +37,39 @@ class FollowButton: UIButton {
             configure()
         }
         private func configure(){
-            self.layer.cornerRadius = self.frame.width / 2
+            self.layer.cornerRadius = 16
             
             
             configuration?.imagePadding = 0
             setTitleColor(.white, for: .normal)
             
-            titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+            titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+            titleLabel?.minimumScaleFactor = 0.7
+            titleLabel?.adjustsFontSizeToFitWidth = true
             translatesAutoresizingMaskIntoConstraints = false
         }
     func configureDesign(){
         if !isFollowing && !isFollower{
             self.setTitle("Follow", for: .normal)
             self.setTitleColor(.white, for: .normal)
+            
             self.backgroundColor = .electricPurple
             
         }else if isFollowing && !isFollower{
             self.setTitle("Following", for: .normal)
             self.setTitleColor(.label, for: .normal)
+           
             self.backgroundColor = UIColor.tertiarySystemFill
             
         }else if !isFollowing && isFollower{
             self.setTitle("Follow back", for: .normal)
             self.setTitleColor(.white, for: .normal)
+           
             self.backgroundColor = .electricPurple
         }else{
             self.setTitle("Friends", for: .normal)
             self.setTitleColor(.label, for: .normal)
+           
             self.backgroundColor = UIColor.tertiarySystemFill
         }
     }

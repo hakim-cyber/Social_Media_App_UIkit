@@ -49,6 +49,7 @@ class FollowersListViewController: UIViewController {
         tv.register(FollowerListCell.self, forCellReuseIdentifier: FollowerListCell.reuseID)
         tv.allowsSelection = true
         tv.delegate = self
+        tv.contentInset.top = 12
         
         return tv
     }()
@@ -91,10 +92,25 @@ class FollowersListViewController: UIViewController {
    
     func setup() {
         setupTabView()
+        setupTableView()
+    }
+    func setupTableView(){
+        self.view.backgroundColor = .systemBackground
+        self.view.addSubview(tableView)
+
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: self.tabView.bottomAnchor),
+            tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+        ])
     }
     func setupTabView(){
         self.view.addSubview(tabView)
         tabView.translatesAutoresizingMaskIntoConstraints = false
+        tabView.onSelect = { [weak self] selected in
+            self?.vm.target = selected
+        }
         NSLayoutConstraint.activate([
             tabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -189,7 +205,7 @@ class FollowersListViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(follows, toSection: .main)
         DispatchQueue.main.async {
-            self.dataSource?.apply(snapshot, animatingDifferences: true)
+            self.dataSource?.apply(snapshot, animatingDifferences: false)
         
         }
     }

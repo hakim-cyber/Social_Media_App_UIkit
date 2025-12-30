@@ -40,7 +40,7 @@ final class FollowerListCell: UITableViewCell {
         let l = UILabel()
         l.translatesAutoresizingMaskIntoConstraints = false
         l.numberOfLines = 1
-        l.font = .systemFont(ofSize: 11,weight: .light)
+        l.font = .systemFont(ofSize: 13,weight: .regular)
         l.minimumScaleFactor = 0.9
         l.adjustsFontSizeToFitWidth = true
         l.textColor = .label
@@ -140,9 +140,11 @@ final class FollowerListCell: UITableViewCell {
     
     let padding:CGFloat = 12
     private func setupTextViews(){
+        
         self.stackView.translatesAutoresizingMaskIntoConstraints = false
         fullNameTextView.translatesAutoresizingMaskIntoConstraints = false
         usernameTextView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(stackView)
         self.stackView.addArrangedSubview(fullNameTextView)
         self.stackView.addArrangedSubview(usernameTextView)
         
@@ -171,8 +173,8 @@ final class FollowerListCell: UITableViewCell {
             moreButton.heightAnchor.constraint(equalToConstant: 30),
             
             followButton.widthAnchor.constraint(equalToConstant: 100),
-            followButton.topAnchor.constraint(equalTo: contentView.topAnchor,constant: padding),
-            followButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,constant: -padding),
+            followButton.topAnchor.constraint(equalTo: contentView.topAnchor,constant: padding + 7),
+            followButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,constant: -padding - 7),
         ])
     }
     private func setupAvatarView(){
@@ -181,8 +183,10 @@ final class FollowerListCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: padding),
+            avatarImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            avatarImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
             avatarImageView.heightAnchor.constraint(equalToConstant: 50),
-            avatarImageView.heightAnchor.constraint(equalToConstant: 50),
+            avatarImageView.widthAnchor.constraint(equalToConstant: 50),
         ])
     }
     
