@@ -167,7 +167,8 @@ class FollowersListViewController: UIViewController {
             .sink { [weak self] newCount in
                 guard let self else { return }
               
-//                self.tabsView.tabPicker.setTitle(newCount, for: .liked)
+                self.tabView.setTitle("Followers \(newCount.shortFormatted)", for: .followers)
+                
             
             }
             .store(in: &cancellables)
@@ -177,7 +178,7 @@ class FollowersListViewController: UIViewController {
             .sink { [weak self] newCount in
                 guard let self else { return }
               
-//                self.tabsView.tabPicker.setTitle(newCount, for: .liked)
+                self.tabView.setTitle("Following \(newCount.shortFormatted)", for: .following)
             
             }
             .store(in: &cancellables)

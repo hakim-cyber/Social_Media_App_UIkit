@@ -190,18 +190,46 @@ final class TabPickerView<ID: Hashable>: UIView {
 
     private func applyConfig(to button: UIButton, item: Item, isSelected: Bool) {
         var cfg = UIButton.Configuration.plain()
-        cfg.imagePadding = 8
-        cfg.title = item.title
 
+        // ---------- TITLE ----------
+        if let title = item.title {
+            let font = UIFont.systemFont(
+                ofSize: 16,               // 👈 smaller
+                weight: .semibold         // 👈 bold
+            )
+
+            let color: UIColor
+            if !item.isEnabled {
+                color = disabledColor
+            } else {
+                color = isSelected ? selectedColor : unselectedColor
+            }
+
+            cfg.attributedTitle = AttributedString(
+                title,
+                attributes: AttributeContainer([
+                    .font: font,
+                    .foregroundColor: color
+                ])
+            )
+
+            cfg.imagePadding = 6
+        } else {
+            cfg.attributedTitle = nil
+            cfg.imagePadding = 0
+        }
+
+        // ---------- IMAGE ----------
+        let image: UIImage?
         if !item.isEnabled {
-            cfg.image = item.disabledIcon ?? item.unselectedIcon
-            cfg.baseForegroundColor = disabledColor
+            image = item.disabledIcon ?? item.unselectedIcon
             button.tintColor = disabledColor
         } else {
-            cfg.image = isSelected ? item.selectedIcon : item.unselectedIcon
-            cfg.baseForegroundColor = isSelected ? selectedColor : unselectedColor
+            image = isSelected ? item.selectedIcon : item.unselectedIcon
             button.tintColor = isSelected ? selectedColor : unselectedColor
         }
+
+        cfg.image = image
 
         button.configuration = cfg
     }
