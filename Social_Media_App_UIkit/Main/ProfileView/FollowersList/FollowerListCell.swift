@@ -14,6 +14,11 @@ final class FollowerListCell: UITableViewCell {
     // MARK: - Public
     weak var delegate: FollowerListCellDelegate?
     var user: UserFollowItem?
+    var isCurrentUser:Bool = false{
+        didSet{
+            
+        }
+    }
     var target:FollowerListTarget?{
         didSet{
             
@@ -115,9 +120,10 @@ final class FollowerListCell: UITableViewCell {
     }
 
     // MARK: - Public configure
-    func configure(with user: UserFollowItem,target:FollowerListTarget) {
+    func configure(with user: UserFollowItem,target:FollowerListTarget,isCurrentUser:Bool ) {
         self.target = target
         self.user = user
+        self.isCurrentUser = isCurrentUser
       
         if let avatarURL = user.avatarURL { avatarImageView.setImage(url: avatarURL) }
         usernameTextView.text = user.username
@@ -127,7 +133,8 @@ final class FollowerListCell: UITableViewCell {
         followButton.isFollower = user.isFollower
         followButton.isFollowing = user.isFollowing
        
-        moreButton.isHidden = (target == .following)
+        moreButton.isHidden = !(target == .followers && self.isCurrentUser)
+        print("isCurrentUser: \(isCurrentUser), target: \(target)")
     }
 
     // MARK: - Layout & setup

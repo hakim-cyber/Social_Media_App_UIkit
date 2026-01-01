@@ -86,7 +86,7 @@ class FollowersListViewController: UIViewController {
         configureDataSource()
        
         bindToViewModel()
-//        Task { await vm.start() }
+       Task { await vm.start() }
      
     }
    
@@ -147,6 +147,7 @@ class FollowersListViewController: UIViewController {
                    guard let self else { return }
                    print("chang selected tab")
                    self.apply(follows: self.vm.activeFollow)
+                   self.reconfigureData()
                   
                }
                .store(in: &cancellables)
@@ -221,10 +222,17 @@ class FollowersListViewController: UIViewController {
             ) as! FollowerListCell
 
             cell.delegate = self
-            cell.configure(with: follow, target: self?.vm.target ?? .following)
+            cell.configure(with: follow, target: self?.vm.target ?? .following,isCurrentUser: self?.vm.isCurrentUser ?? false)
             return cell
         }
         tableView.dataSource = dataSource
+    }
+    func reconfigureData() {
+        var snapshot = self.dataSource?.snapshot()
+                    snapshot?.reconfigureItems(self.vm.activeFollow)
+                    if let snapshot {
+                        self.dataSource?.apply(snapshot, animatingDifferences: false)
+                    }
     }
     
     

@@ -104,7 +104,7 @@ protocol ProfileCoordinating: AnyObject {
 extension ProfileCoordinator:ProfileCoordinating{
     func didTapFollowers() {
         guard let profile = viewModel?.profile else { return }
-        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, target: .followers)
+        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false, target: .followers)
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)
@@ -112,7 +112,7 @@ extension ProfileCoordinator:ProfileCoordinating{
     
     func didTapFollowing() {
         guard let profile = viewModel?.profile else { return }
-        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, target: .following)
+        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false,target: .following)
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)

@@ -20,20 +20,22 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
 
     private var viewModel: FollowersListViewModel?
     private let user: UserProfile
+    private let isCurrentUser: Bool
     private let target: FollowerListTarget
     init(
         navigationController: UINavigationController,
         user:UserProfile,
+        isCurrentUser:Bool,
         target:FollowerListTarget
     ) {
         self.navigationController = navigationController
-      
+        self.isCurrentUser = isCurrentUser
         self.user = user
         self.target = target
     }
 
     func start(animated: Bool) {
-        let vm = FollowersListViewModel(target: target, selectedUser: user)
+        let vm = FollowersListViewModel(target: target, selectedUser: user,isCurrentUser: isCurrentUser)
        let vc = FollowersListViewController(vm: vm)
         vc.coordinator = self
         self.navigationController.pushViewController(vc, animated: true)
