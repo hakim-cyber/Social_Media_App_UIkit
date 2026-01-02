@@ -337,12 +337,12 @@ class ProfileViewModel:ObservableObject{
         likingPosts.insert(postId)
 
         // 🔹 Save old values (for rollback)
-        let old = posts.first { $0.id == postId }
+        let old = activePosts.first { $0.id == postId }
 
         // 🔹 Optimistic UI update
         updatePost(postId) { post in
             post.isLiked = desiredState
-            post.likeCount += desiredState ? 1 : -1
+            post.likeCount = desiredState ? post.likeCount + 1 : max(0, post.likeCount - 1)
         }
 
         Task { [weak self] in
@@ -354,7 +354,9 @@ class ProfileViewModel:ObservableObject{
             } catch {
                 // 🔴 Rollback on failure
                 if let old {
-                    self.updatePost(postId) { $0 = old }
+                    self.updatePost(postId) { post in
+                        post = old
+                    }
                 }
                 self.errorMessage = "Like failed"
             }

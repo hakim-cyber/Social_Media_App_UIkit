@@ -53,6 +53,7 @@ class FollowersListViewController: UIViewController {
         
         return tv
     }()
+    private let refreshControl = UIRefreshControl()
     private  let tabView :TabPickerView<FollowerListTarget>
     init(vm:FollowersListViewModel) {
         self.vm = vm
@@ -95,6 +96,8 @@ class FollowersListViewController: UIViewController {
         setupTableView()
     }
     func setupTableView(){
+        refreshControl.addTarget(self, action: #selector(handlePullToRefresh), for: .valueChanged)
+        tableView.refreshControl = refreshControl
         self.view.backgroundColor = .systemBackground
         self.view.addSubview(tableView)
 
@@ -104,6 +107,14 @@ class FollowersListViewController: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
+    }
+    @objc private func handlePullToRefresh() {
+        Task {
+            await vm.loadSelectedInitialData()
+            returnToTopRow()
+            self.refreshControl.endRefreshing()
+        }
+        
     }
     func setupTabView(){
         self.view.addSubview(tabView)
@@ -147,7 +158,11 @@ class FollowersListViewController: UIViewController {
                    guard let self else { return }
                    print("chang selected tab")
                    self.apply(follows: self.vm.activeFollow)
-                   self.reconfigureData()
+                   Task{
+                     await  self.vm.loadSelectedInitialData()
+                   }
+               
+//                   self.reconfigureDataSafely()
                   
                }
                .store(in: &cancellables)
@@ -206,6 +221,7 @@ class FollowersListViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(follows, toSection: .main)
         DispatchQueue.main.async {
+            snapshot.reloadItems(follows)
             self.dataSource?.apply(snapshot, animatingDifferences: false)
         
         }
@@ -227,14 +243,26 @@ class FollowersListViewController: UIViewController {
         }
         tableView.dataSource = dataSource
     }
-    func reconfigureData() {
-        var snapshot = self.dataSource?.snapshot()
-                    snapshot?.reconfigureItems(self.vm.activeFollow)
-                    if let snapshot {
-                        self.dataSource?.apply(snapshot, animatingDifferences: false)
-                    }
-    }
-    
+//    func reconfigureDataSafely() {
+//      
+//            // iOS < 15 fallback: update visible cells
+//            for case let cell as FollowerListCell in tableView.visibleCells {
+//                cell.applyTarget(target:  vm.target)
+//            }
+//            return
+//        
+//
+//        guard var snapshot = dataSource?.snapshot() else { return }
+//
+//        // only reconfigure identifiers that exist in this snapshot
+//        let existing = Set(snapshot.itemIdentifiers)
+//        let idsToReconfigure = vm.activeFollow.filter { existing.contains($0) }
+//
+//        snapshot.reconfigureItems(idsToReconfigure)
+//        dataSource?.apply(snapshot, animatingDifferences: false)
+//    }
+//
+//    
     
     
     
@@ -259,11 +287,13 @@ extension FollowersListViewController:FollowerListCellDelegate{
     
     func didTapFollow(cell: FollowerListCell) {
         guard let user = cell.user else {return}
+        self.vm.toggleFollow(for: user.id, desiredState: !user.isFollowing)
         
     }
     
     func didTapMore(cell: FollowerListCell) {
         guard let user = cell.user else {return}
+        self.vm.removeFollower(userId: user.id)
     }
     
     

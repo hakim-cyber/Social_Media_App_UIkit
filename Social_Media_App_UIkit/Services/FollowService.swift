@@ -92,6 +92,21 @@ class FollowService{
 
         return response
     }
+    func deleteFollower(targetUserID:UUID) async throws->RemoveFollowResponse {
+        var parameters: [String: AnyJSON] = [
+            "target_user_id": try AnyJSON(targetUserID),
+          
+            
+        ]
+      
+        // Call RPC function
+        let response: RemoveFollowResponse = try await supabase
+            .rpc("remove_follower", params: parameters)
+            .execute()
+            .value
+
+        return response
+    }
 }
 
 

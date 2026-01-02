@@ -96,8 +96,8 @@ struct UserFollowItem: Identifiable, Hashable, Codable, Sendable {
     let fullName: String
     let avatarURL: URL?
     let isVerified: Bool
-    let isFollowing: Bool // do i follow them
-    let isFollower: Bool // do they follow me
+    var isFollowing: Bool // do i follow them
+    var isFollower: Bool // do they follow me
     
     enum CodingKeys: String, CodingKey {
         case id

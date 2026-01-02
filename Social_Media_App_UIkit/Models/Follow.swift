@@ -28,3 +28,10 @@ struct FollowResponse:Codable{
              'my_following_count', new_my_following_count
          );
  */
+
+struct RemoveFollowResponse:Codable{
+    let removed:Bool
+    let my_follower_count:Int
+    let target_following_count:Int
+}
+

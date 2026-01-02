@@ -60,7 +60,87 @@ class FollowersListViewModel{
            self.isCurrentUser = isCurrentUser
            self.followService = followService
     }
-    
+    // button actions
+    private func updateList(_ userID: UUID, _ update: (inout UserFollowItem) -> Void) {
+        if let i = followings.firstIndex(where: { $0.id == userID }) {
+            update(&followings[i])
+        }
+        if let i = followers.firstIndex(where: { $0.id == userID }) {
+            update(&followers[i])
+        }
+    }
+    func toggleFollow(for userId: UUID, desiredState: Bool) {
+        guard !followingUsers.contains(userId) else { return }
+        followingUsers.insert(userId)
+
+        // 🔹 Save old values (for rollback)
+        let old = activeFollow.first { $0.id == userId }
+
+        // 🔹 Optimistic UI update
+        updateList(userId) { user in
+            user.isFollowing = desiredState
+        }
+        self.followingCount += !desiredState ? -1 : 1
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.followingUsers.remove(userId) }
+
+            do {
+                let resp:FollowResponse = try await self.followService.toggleFollow(userId: userId)
+            } catch {
+                // 🔴 Rollback on failure
+                if let old {
+                    self.updateList(userId) { user in
+                        user = old
+                    }
+                    
+                }
+                self.followingCount -= !desiredState ? -1 : 1
+                self.errorMessage = "Follow failed"
+            }
+        }
+    }
+    func removeFollower(userId:UUID){
+        guard let old = followers.first (where:{ $0.id == userId } )else{return}
+        guard !followingUsers.contains(userId) else { return }
+        followingUsers.insert(userId)
+
+        // 🔹 Save old values (for rollback)
+      
+
+        // 🔹 Optimistic UI update
+        updateList(userId) { user in
+            user.isFollower = false
+        }
+        self.followerCount -= 1
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { self.followingUsers.remove(userId) }
+
+            do {
+                let resp:RemoveFollowResponse = try await self.followService.deleteFollower(targetUserID: userId)
+                if !resp.removed{
+                 
+                        self.updateList(userId) { user in
+                            user = old
+                        }
+                    self.followerCount += 1
+                }
+            } catch {
+                // 🔴 Rollback on failure
+              
+                    self.updateList(userId) { user in
+                        user = old
+                    }
+                self.followerCount += 1
+                
+                self.errorMessage = "Remove Follower failed"
+            }
+        }
+    }
+   
     func loadMoreIfNeeded() {
         switch target {
         case .following:
@@ -73,11 +153,22 @@ class FollowersListViewModel{
             }
         }
     }
+    func loadSelectedInitialData() async{
+        switch target {
+        case .following:
+            Task{
+                await  loadInitialFollowings()
+            }
+        case .followers:
+            Task{
+                await  loadInitiaFollowers()
+            }
+        }
+    }
     func start() async{
         self.followerCount = selectedUser.follower_count ?? 0
         self.followingCount = selectedUser.following_count ?? 0
-        await loadInitiaFollowers()
-        await loadInitialFollowings()
+        await loadSelectedInitialData()
          
     }
     func loadInitiaFollowers() async{

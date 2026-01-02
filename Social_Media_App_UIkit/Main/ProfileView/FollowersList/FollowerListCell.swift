@@ -8,7 +8,7 @@
 import UIKit
 import Kingfisher
 
-
+import Supabase
 final class FollowerListCell: UITableViewCell {
     
     // MARK: - Public
@@ -126,6 +126,11 @@ final class FollowerListCell: UITableViewCell {
         self.isCurrentUser = isCurrentUser
       
         if let avatarURL = user.avatarURL { avatarImageView.setImage(url: avatarURL) }
+        if user.id  == UserSessionService.shared.currentUser?.id{
+            followButton.isHidden = true
+        }else{
+            followButton.isHidden = false
+        }
         usernameTextView.text = user.username
 
         fullNameTextView.text = user.fullName
@@ -137,6 +142,11 @@ final class FollowerListCell: UITableViewCell {
         print("isCurrentUser: \(isCurrentUser), target: \(target)")
     }
 
+    func applyTarget(target:FollowerListTarget){
+        self.target = target
+        moreButton.isHidden = !(target == .followers && self.isCurrentUser)
+        print("isCurrentUser: \(isCurrentUser), target: \(target)")
+    }
     // MARK: - Layout & setup
     private func setupView() {
         setupAvatarView()
@@ -201,6 +211,7 @@ final class FollowerListCell: UITableViewCell {
          delegate?.didTapMore(cell:self)
     }
     @objc private func didTapFollow(){
+        self.user?.isFollower.toggle()
         delegate?.didTapFollow(cell:self)
     }
     @objc private func didTapAvatar() {
