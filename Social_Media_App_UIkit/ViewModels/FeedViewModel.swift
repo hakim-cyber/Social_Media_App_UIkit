@@ -38,6 +38,52 @@ class FeedViewModel{
     private var likingPosts = Set<UUID>()
     private var savingPosts = Set<UUID>()
     
+    @Published private(set) var postTranslations: [UUID: TranslationState] = [:]
+    
+    @MainActor
+    func togglePostTranslation(postId: UUID, originalText: String) {
+        var st = postTranslations[postId] ?? TranslationState()
+
+        // 1️⃣ If showing translation → go back to original
+        if st.isShowingTranslation {
+            st.isShowingTranslation = false
+            postTranslations[postId] = st
+            return
+        }
+
+        // 2️⃣ If translation already exists → show instantly
+        if st.translatedText != nil {
+            st.isShowingTranslation = true
+            postTranslations[postId] = st
+            return
+        }
+
+        // 3️⃣ Mock loading state
+        st.isLoading = true
+        postTranslations[postId] = st
+
+        // 4️⃣ Fake async translation
+        Task { [weak self] in
+            guard let self else { return }
+
+            // ⏱ simulate network delay
+            try? await Task.sleep(nanoseconds: 700_000_000)
+
+            let fakeTranslatedText = """
+            🌍 Translated:
+            \(originalText)
+            """
+
+            await MainActor.run {
+                var updated = self.postTranslations[postId] ?? TranslationState()
+                updated.translatedText = fakeTranslatedText
+                updated.isShowingTranslation = true
+                updated.isLoading = false
+                self.postTranslations[postId] = updated
+            }
+        }
+    }
+
     // Call from VC.viewDidLoad in a Task
         func start() async {
             await loadInitial()

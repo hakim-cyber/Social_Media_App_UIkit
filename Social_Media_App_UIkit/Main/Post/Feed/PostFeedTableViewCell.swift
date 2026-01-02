@@ -14,6 +14,8 @@ protocol PostCellDelegate: AnyObject {
     func postCellDidTapLike(_ cell: PostFeedTableViewCell)
     func postCellDidTapComment(_ cell: PostFeedTableViewCell)
     func postCellDidTapSave(_ cell: PostFeedTableViewCell)
+    func postCellDidTapTranslate(_ cell: PostFeedTableViewCell)
+    
 }
 
 
@@ -22,7 +24,7 @@ final class PostFeedTableViewCell: UITableViewCell {
     // MARK: - Public
     weak var delegate: PostCellDelegate?
     var post: Post?
-
+    var translationState:TranslationState?
     static let reuseID = "PostFeedTableViewCell"
 
     // MARK: - UI
@@ -166,11 +168,14 @@ final class PostFeedTableViewCell: UITableViewCell {
         likeButton.isToggled = false
         saveButton.isToggled = false
         translateButton.isToggled = false
+        translateButton.isLoading = false
+        self.translationState = nil
     }
 
     // MARK: - Public configure
-    func configure(with post: Post) {
+    func configure(with post: Post, translation: TranslationState?) {
         self.post = post
+        self.translationState = translation
         postImageView.setImage(url: post.imageURL)
         if let avatarURL = post.author.avatarURL { avatarImageView.setImage(url: avatarURL) }
         nameTextView.text = post.author.fullName
@@ -189,10 +194,19 @@ final class PostFeedTableViewCell: UITableViewCell {
         saveButton.isToggled = post.isSaved
         
         dateTextLabel.text = post.createdAt.timeAgoDisplay() + " ∘"
-        translateButton.isToggled = false
+        translateButton.isToggled = translation?.isShowingTranslation ?? false
         
     }
 
+    func applyTranslationState(_ state: TranslationState?) {
+        // update caption label + button state here
+        self.translationState = state
+        translateButton.isToggled = state?.isShowingTranslation ?? false
+        translateButton.isLoading = state?.isLoading ?? false
+        if let post{
+            changeDescriptionAndUsername(post: post)
+        }
+    }
     // MARK: - Layout & setup
     private func setupView() {
         setupTopContainerView()
@@ -364,17 +378,22 @@ final class PostFeedTableViewCell: UITableViewCell {
 
     // MARK: - Data/Actions
     private func changeDescriptionAndUsername(post: Post) {
-        let text = "*\(post.author.username)* \(post.caption)"
-        // Match label font size for correct truncation behavior
-        let attr = NSAttributedString(
-            text.makeAttributedString(
-                mainColor: .label,
-                secondaryColor: .label,
-                secondaryWeight: .heavy,
-                size: 12
+        let textToShow: String
+            if let tr = translationState, tr.isShowingTranslation, let translated = tr.translatedText {
+                textToShow = "*\(post.author.username)* \(translated)"
+            } else {
+                textToShow = "*\(post.author.username)* \(post.caption)"
+            }
+
+            descriptionLabel.attributedText = NSAttributedString(
+                textToShow.makeAttributedString(
+                    mainColor: .label,
+                    secondaryColor: .label,
+                    secondaryWeight: .heavy,
+                    size: 12
+                )
             )
-        )
-        descriptionLabel.attributedText = attr
+
     }
 
     private func changeCountOnLabel(count: Int, label: UILabel) {
@@ -421,7 +440,7 @@ final class PostFeedTableViewCell: UITableViewCell {
     }
     
     private func didTapTranslate(isTransalated: Bool) {
-      
+        delegate?.postCellDidTapTranslate(self)
     }
     func styleTopRoundedView(_ v: UIView) {
         // --- Adaptive background color (same behavior as UILabel) ---

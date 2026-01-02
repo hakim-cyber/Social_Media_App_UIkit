@@ -243,9 +243,32 @@ class PostFeedViewController: UIViewController {
                         self?.showToast(msg)
                     }
                     .store(in: &cancellables)
+        
+        vm.$postTranslations
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.reconfigureVisibleTranslatedPosts()
+                }
+                .store(in: &cancellables)
 
     }
-   
+    private func reconfigureVisibleTranslatedPosts() {
+        guard var snapshot = dataSource?.snapshot() else { return }
+
+        let visibleIndexPaths = postFeedTableView.indexPathsForVisibleRows ?? []
+        let visiblePosts: [Post] = visibleIndexPaths.compactMap { indexPath in
+            dataSource?.itemIdentifier(for: indexPath)
+        }
+
+        // Only reconfigure those which have translation state
+        let toReconfigure = visiblePosts.filter { vm.postTranslations[$0.id] != nil }
+
+        guard !toReconfigure.isEmpty else { return }
+
+        snapshot.reconfigureItems(toReconfigure)
+        dataSource?.apply(snapshot, animatingDifferences: false)
+    }
     func updateData(posts: [Post]) {
         var snapshot = NSDiffableDataSourceSnapshot<PostFeedSection, Post>()
         snapshot.appendSections([.main])
@@ -266,12 +289,11 @@ class PostFeedViewController: UIViewController {
             ) as! PostFeedTableViewCell
 
             cell.delegate = self
-            cell.configure(with: post)
+            cell.configure(with: post, translation: self?.vm.postTranslations[post.id])
             return cell
         }
         postFeedTableView.dataSource = dataSource
     }
-    
     
     
     
@@ -290,6 +312,15 @@ extension PostFeedViewController: UITableViewDelegate {
 }
 
 extension PostFeedViewController: PostCellDelegate {
+    func postCellDidTapTranslate(_ cell: PostFeedTableViewCell) {
+        guard let post = cell.post else { return }
+            vm.togglePostTranslation(
+                postId: post.id,
+                originalText: post.caption
+            )
+     
+    }
+    
     func postCellDidTapLike(_ cell: PostFeedTableViewCell) {
         guard let post = cell.post else { return }
         Task {

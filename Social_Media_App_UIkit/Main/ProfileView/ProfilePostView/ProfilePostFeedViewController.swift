@@ -195,7 +195,7 @@ class ProfilePostFeedViewController: UIViewController {
             ) as! PostFeedTableViewCell
 
             cell.delegate = self
-            cell.configure(with: post)
+            cell.configure(with: post, translation:self?.vm.postTranslations[post.id])
             return cell
         }
         postFeedTableView.dataSource = dataSource
@@ -219,6 +219,12 @@ extension ProfilePostFeedViewController: UITableViewDelegate {
 }
 
 extension ProfilePostFeedViewController: PostCellDelegate {
+    func postCellDidTapTranslate(_ cell: PostFeedTableViewCell) {
+        guard let post = cell.post else { return }
+        print("did tap translate")
+        self.vm.togglePostTranslation(postId: post.id, originalText: post.caption)
+    }
+    
     func postCellDidTapLike(_ cell: PostFeedTableViewCell) {
         guard let post = cell.post else { return }
         Task {
