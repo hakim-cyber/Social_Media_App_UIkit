@@ -249,7 +249,11 @@ final class ProfileHeaderView: UIView {
     }
     func setupAvatarImageView(){
         
-        
+        avatarImageView.isUserInteractionEnabled = true
+        let lp = UILongPressGestureRecognizer(target: self, action: #selector(didLongPressAvatar(_:)))
+        lp.minimumPressDuration = 0.2
+        avatarImageView.addGestureRecognizer(lp)
+
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         
         profileHeaderStackView.addArrangedSubview(avatarImageView)
@@ -258,6 +262,11 @@ final class ProfileHeaderView: UIView {
             avatarImageView.widthAnchor.constraint(equalToConstant: 80),
             avatarImageView.heightAnchor.constraint(equalToConstant: 80)
         ])
+    }
+    
+    @objc private func didLongPressAvatar(_ g: UILongPressGestureRecognizer) {
+        guard g.state == .began else { return }
+        AvatarZoomPresenter.shared.present(from: avatarImageView, image: avatarImageView.image)
     }
     func setupStatsStackView(){
         let hStack = profileStatsStackView
