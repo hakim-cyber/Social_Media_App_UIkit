@@ -266,11 +266,11 @@ extension PostCommentViewController: UITableViewDelegate {
 
 extension PostCommentViewController: PostCommentCellDelegate {
    
-    func commentCellDidTapMore(_ cell: PostCommentTableViewCell) {
+    func commentCellDidTapDelete(_ cell: PostCommentTableViewCell) {
         // action sheet etc.
         print("tapped more")
         guard let comment = cell.comment else{return}
-        coordinator?.commentCellDidTapMore(comment: comment)
+        coordinator?.commentCellDidTapDelete(comment: comment)
     }
     func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell) {
         print("tapped avatar")

@@ -80,9 +80,30 @@ protocol FeedCoordinating: AnyObject {
     func postFeedDidRequestCreatePost(_ controller: PostFeedViewController)
     func postCellDidTapComment(_ post:Post)
     func postCellDidTapAvatar(_ post:Post)
+    func postCellDidTapMore(_ post:Post)
 }
 
 extension FeedCoordinator: FeedCoordinating {
+    func postCellDidTapMore(_ post: Post) {
+        MoreSheetPresenter.showPost(
+            post,
+            from: self.navigationController,
+            onSave: {
+               
+            },
+            onCopy: {
+               
+            },
+            onReport: {
+              
+            },
+            onDelete: {
+               
+            }
+        )
+
+    }
+    
   
 
     func postFeedDidRequestCreatePost(_ controller: PostFeedViewController) {
@@ -144,12 +165,12 @@ extension FeedCoordinator {
 
 
 protocol CommentCoordinating: AnyObject {
-    func commentCellDidTapMore(comment: PostComment)
+    func commentCellDidTapDelete(comment: PostComment)
     func commentCellDidTapAvatar(comment: PostComment)
 }
 
 extension FeedCoordinator: CommentCoordinating {
-    func commentCellDidTapMore(comment: PostComment) {
+    func commentCellDidTapDelete(comment: PostComment) {
        
     }
     func commentCellDidTapAvatar(comment: PostComment) {

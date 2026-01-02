@@ -7,10 +7,11 @@
 
 import UIKit
 import Kingfisher
+import Supabase
 
 protocol PostCommentCellDelegate: AnyObject {
    
-    func commentCellDidTapMore(_ cell: PostCommentTableViewCell)
+    func commentCellDidTapDelete(_ cell: PostCommentTableViewCell)
     func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell)
    
 }
@@ -21,6 +22,7 @@ final class PostCommentTableViewCell: UITableViewCell {
     // MARK: - Public
     weak var delegate: PostCommentCellDelegate?
     var comment: PostComment?
+    private var isOwnComment = false
     
     static let reuseID = "PostCommentTableViewCell"
     
@@ -79,6 +81,10 @@ final class PostCommentTableViewCell: UITableViewCell {
         selectionStyle = .none
         contentView.backgroundColor = .clear
         setupView()
+        
+        // ✅ Long press menu
+              let interaction = UIContextMenuInteraction(delegate: self)
+              contentView.addInteraction(interaction)
     }
 
     required init?(coder: NSCoder) {
@@ -112,6 +118,7 @@ final class PostCommentTableViewCell: UITableViewCell {
         dateTextLabel.text = comment.created_at.timeAgoDisplay() + " ∘"
         translateButton.isToggled = false
         
+        isOwnComment = (comment.author.id == UserSessionService.shared.currentUser?.id)
     }
 
     // MARK: - Layout & setup
@@ -152,7 +159,7 @@ final class PostCommentTableViewCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             commentTextView.leadingAnchor.constraint(equalTo: usernameTextView.leadingAnchor),
-            commentTextView.trailingAnchor.constraint(equalTo: moreButton.trailingAnchor),
+            commentTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,constant: -26),
             commentTextView.topAnchor.constraint(equalTo: usernameTextView.bottomAnchor,constant: 5),
            
         ])
@@ -164,19 +171,19 @@ final class PostCommentTableViewCell: UITableViewCell {
         self.contentView.addSubview(usernameTextView)
        
         
-        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
+//        moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
         usernameTextView.isUserInteractionEnabled = true   // ✅ REQUIRED
         usernameTextView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         
-        self.contentView.addSubview(moreButton)
+//        self.contentView.addSubview(moreButton)
         
         NSLayoutConstraint.activate([
             usernameTextView.topAnchor.constraint(equalTo: self.contentView.topAnchor),
             usernameTextView.leadingAnchor.constraint(equalTo: self.avatarImageView.trailingAnchor,constant: 5),
             usernameTextView.heightAnchor.constraint(equalToConstant: 20),
            
-            moreButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -26),
-            moreButton.centerYAnchor.constraint(equalTo: usernameTextView.centerYAnchor),
+//            moreButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -26),
+//            moreButton.centerYAnchor.constraint(equalTo: usernameTextView.centerYAnchor),
         ])
     }
     func setupAvatarView(){
@@ -197,11 +204,34 @@ final class PostCommentTableViewCell: UITableViewCell {
     private func didTapTranslate(isTransalated: Bool) {
       
     }
-     @objc private func didTapMore() {
-         delegate?.commentCellDidTapMore(self)
-    }
+    
     @objc private func didTapAvatar() {
         print("didTapAvatar")
         delegate?.commentCellDidTapAvatar(self)
    }
+}
+
+extension PostCommentTableViewCell: UIContextMenuInteractionDelegate {
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction,
+                                configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+
+        // Only show menu for your own comment
+        guard isOwnComment, let comment = comment else { return nil }
+
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            guard let self else { return UIMenu() }
+
+            let delete = UIAction(
+                title: "Delete",
+                image: UIImage(systemName: "trash"),
+                attributes: [.destructive]
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.commentCellDidTapDelete(self)
+            }
+
+            return UIMenu(children: [delete])
+        }
+    }
 }

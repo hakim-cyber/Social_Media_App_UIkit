@@ -75,9 +75,15 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
 
 protocol FollowerListCoordinating: AnyObject {
     func didTapProfile(user: UserFollowItem)
+    func didTapMore(user: UserFollowItem)
 }
 extension FollowersListCoordinator:FollowerListCoordinating{
     func didTapProfile(user: UserFollowItem) {
         self.showProfile(author: user)
+    }
+    func didTapMore(user: UserFollowItem) {
+        MoreSheetPresenter.showFollower(user, from: self.navigationController) {
+            self.viewModel?.removeFollower(userId: user.id)
+        }
     }
 }

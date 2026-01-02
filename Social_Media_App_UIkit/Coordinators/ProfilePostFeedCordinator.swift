@@ -78,6 +78,25 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
 }
 
 extension ProfilePostFeedCordinator: FeedCoordinating {
+    func postCellDidTapMore(_ post: Post) {
+        MoreSheetPresenter.showPost(
+            post,
+            from: self.navigationController,
+            onSave: {
+               
+            },
+            onCopy: {
+               
+            },
+            onReport: {
+              
+            },
+            onDelete: {
+               
+            }
+        )
+    }
+    
     func postFeedDidRequestCreatePost(_ controller: PostFeedViewController) {
     
     }
@@ -132,7 +151,7 @@ extension ProfilePostFeedCordinator {
 
 
 extension ProfilePostFeedCordinator: CommentCoordinating {
-    func commentCellDidTapMore(comment: PostComment) {
+    func commentCellDidTapDelete(comment: PostComment) {
        
     }
     func commentCellDidTapAvatar(comment: PostComment) {

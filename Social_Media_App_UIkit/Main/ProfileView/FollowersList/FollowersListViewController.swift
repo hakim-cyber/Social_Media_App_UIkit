@@ -293,7 +293,7 @@ extension FollowersListViewController:FollowerListCellDelegate{
     
     func didTapMore(cell: FollowerListCell) {
         guard let user = cell.user else {return}
-        self.vm.removeFollower(userId: user.id)
+        self.coordinator?.didTapMore(user: user)
     }
     
     

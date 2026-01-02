@@ -306,6 +306,8 @@ extension PostFeedViewController: PostCellDelegate {
 
     func postCellDidTapMore(_ cell: PostFeedTableViewCell) {
         // action sheet etc.
+        guard let post = cell.post else { return }
+        self.coordinator?.postCellDidTapMore(post)
     }
 
     func postCellDidTapComment(_ cell: PostFeedTableViewCell) {
