@@ -386,6 +386,24 @@ class ProfileViewModel:ObservableObject{
             }
         }
     }
+    func deletePost(post postId: UUID) {
+          
+
+           Task { [weak self] in
+               guard let self else { return }
+               do {
+                   let resp = try await self.postService.deletePost(postId: postId)
+                   if resp.deleted == true{
+                       self.posts.removeAll { $0.id == resp.post_id }
+                       self.likedPosts.removeAll { $0.id == resp.post_id }
+                       self.savedPosts.removeAll { $0.id == resp.post_id }
+                   }
+               } catch {
+                 
+                   self.errorMessage = "Delete post failed, please try again."
+               }
+           }
+       }
 }
 //extension ProfileViewModel{
 //    func loadMockData() ->[Post]{

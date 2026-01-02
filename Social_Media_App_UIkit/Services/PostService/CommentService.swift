@@ -55,4 +55,14 @@ final class CommentService{
 
         return response
     }
+    
+    func deleteComment(commentId:UUID) async throws -> CommentDeleteResponse {
+        let response : CommentDeleteResponse = try await supabase
+            .rpc("remove_comment", params: [
+                "comment_id_param": AnyJSON(commentId.uuidString)
+            ])
+            .execute()
+            .value
+        
+        return response    }
 }

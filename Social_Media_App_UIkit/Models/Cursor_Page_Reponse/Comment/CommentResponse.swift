@@ -23,3 +23,11 @@ struct PostComment:Identifiable, Hashable, Codable, Sendable {
     let author:UserSummary
 }
 
+
+struct CommentDeleteResponse:Codable{
+    let removed:Bool
+    let comment_id:UUID
+    let post_id:UUID
+    
+    let comment_count:Int
+}

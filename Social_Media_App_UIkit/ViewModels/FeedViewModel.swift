@@ -359,6 +359,23 @@ print("Loading more...")
                }
            }
        }
+    func deletePost(post postId: UUID) {
+          
+
+           Task { [weak self] in
+               guard let self else { return }
+               do {
+                   let resp = try await self.postService.deletePost(postId: postId)
+                   if resp.deleted == true{
+                       self.state.posts.removeAll(where: { $0.id == resp.post_id })
+                       self.posts = self.state.posts
+                   }
+               } catch {
+                 
+                   self.errorMessage = "Delete post failed, please try again."
+               }
+           }
+       }
 }
 
 // MARK: - UI-facing lightweight state

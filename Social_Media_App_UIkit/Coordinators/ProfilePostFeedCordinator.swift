@@ -82,17 +82,19 @@ extension ProfilePostFeedCordinator: FeedCoordinating {
         MoreSheetPresenter.showPost(
             post,
             from: self.navigationController,
-            onSave: {
-               
+            onSave: {[weak self] in
+                self?.viewModel.toggleSave(for: post.id, desiredState: !post.isSaved)
             },
-            onCopy: {
-               
+            onCopy: {/*[weak self] in*/
+               // for now like this later change so it gives real url
+                
+                UIPasteboard.general.string = post.author.username
             },
             onReport: {
               
             },
-            onDelete: {
-               
+            onDelete: {[weak self] in
+                self?.viewModel.deletePost(post: post.id)
             }
         )
     }

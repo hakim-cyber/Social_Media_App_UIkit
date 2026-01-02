@@ -80,8 +80,9 @@ class FollowersListViewModel{
         updateList(userId) { user in
             user.isFollowing = desiredState
         }
-        self.followingCount += !desiredState ? -1 : 1
-
+        if self.isCurrentUser{
+            self.followingCount += !desiredState ? -1 : 1
+        }
         Task { [weak self] in
             guard let self else { return }
             defer { self.followingUsers.remove(userId) }
@@ -96,12 +97,15 @@ class FollowersListViewModel{
                     }
                     
                 }
-                self.followingCount -= !desiredState ? -1 : 1
+                if self.isCurrentUser{
+                    self.followingCount -= !desiredState ? -1 : 1
+                }
                 self.errorMessage = "Follow failed"
             }
         }
     }
     func removeFollower(userId:UUID){
+        print("removing follower")
         guard let old = followers.first (where:{ $0.id == userId } )else{return}
         guard !followingUsers.contains(userId) else { return }
         followingUsers.insert(userId)
@@ -113,8 +117,9 @@ class FollowersListViewModel{
         updateList(userId) { user in
             user.isFollower = false
         }
-        self.followerCount -= 1
-
+        if self.isCurrentUser{
+            self.followerCount -= 1
+        }
         Task { [weak self] in
             guard let self else { return }
             defer { self.followingUsers.remove(userId) }
@@ -122,11 +127,13 @@ class FollowersListViewModel{
             do {
                 let resp:RemoveFollowResponse = try await self.followService.deleteFollower(targetUserID: userId)
                 if !resp.removed{
-                 
+                    print("cant remove follower")
                         self.updateList(userId) { user in
                             user = old
                         }
-                    self.followerCount += 1
+                    if self.isCurrentUser{
+                        self.followerCount += 1
+                    }
                 }
             } catch {
                 // 🔴 Rollback on failure
@@ -134,7 +141,9 @@ class FollowersListViewModel{
                     self.updateList(userId) { user in
                         user = old
                     }
-                self.followerCount += 1
+                if self.isCurrentUser{
+                    self.followerCount += 1
+                }
                 
                 self.errorMessage = "Remove Follower failed"
             }

@@ -36,10 +36,8 @@ struct SearchProfileView: View {
                 }
             }
         }
-        .padding(.top,50)
         .frame(maxWidth: .infinity, maxHeight: .infinity,alignment: .top)
         
-        .ignoresSafeArea(edges: .top)
         
         .onChange(of: vm.errorMessage, { oldValue, newValue in
             if newValue != nil{

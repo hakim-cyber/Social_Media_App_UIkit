@@ -271,6 +271,9 @@ extension PostCommentViewController: PostCommentCellDelegate {
         print("tapped more")
         guard let comment = cell.comment else{return}
         coordinator?.commentCellDidTapDelete(comment: comment)
+        Task{
+          await  self.vm.deleteComment(comment.id)
+        }
     }
     func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell) {
         print("tapped avatar")

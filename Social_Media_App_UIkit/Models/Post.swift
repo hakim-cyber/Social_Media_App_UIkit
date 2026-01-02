@@ -116,3 +116,9 @@ struct RawPost: Codable, Sendable {
     let author_id: UUID
 }
 
+
+struct PostDeleteResponse:Codable{
+    let deleted:Bool
+    let post_id:UUID
+    let new_post_count:Int
+}

@@ -38,6 +38,7 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
         let vm = FollowersListViewModel(target: target, selectedUser: user,isCurrentUser: isCurrentUser)
        let vc = FollowersListViewController(vm: vm)
         vc.coordinator = self
+        self.viewModel = vm
         self.navigationController.pushViewController(vc, animated: true)
         
     }
@@ -82,7 +83,10 @@ extension FollowersListCoordinator:FollowerListCoordinating{
         self.showProfile(author: user)
     }
     func didTapMore(user: UserFollowItem) {
-        MoreSheetPresenter.showFollower(user, from: self.navigationController) {
+        
+        MoreSheetPresenter.showFollower(user, from: self.navigationController) {[weak self] in
+            guard let self else {return}
+            print("delete \(self.viewModel == nil)")
             self.viewModel?.removeFollower(userId: user.id)
         }
     }

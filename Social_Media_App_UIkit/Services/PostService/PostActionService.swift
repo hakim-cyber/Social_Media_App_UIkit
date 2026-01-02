@@ -61,7 +61,15 @@ extension  PostActionService {
         print(post)
         return post
     }
-    
+    func deletePost(postId: UUID) async throws-> PostDeleteResponse {
+        let resp:PostDeleteResponse = try await supabase
+            .rpc("delete_post_hard", params: [
+                "post_id_param": AnyJSON(postId.uuidString)
+            ])
+            .execute()
+            .value
+        return resp
+    }
     // Button Actions on Post
     func addLikeToPost(postId: UUID) async throws -> LikeResponse {
         let response: LikeResponse = try await supabase
