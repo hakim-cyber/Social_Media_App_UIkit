@@ -195,18 +195,9 @@ final class PostFeedTableViewCell: UITableViewCell {
         
         dateTextLabel.text = post.createdAt.timeAgoDisplay() + " ∘"
         translateButton.isToggled = translation?.isShowingTranslation ?? false
-        
+        translateButton.isLoading = translation?.isLoading ?? false
     }
 
-    func applyTranslationState(_ state: TranslationState?) {
-        // update caption label + button state here
-        self.translationState = state
-        translateButton.isToggled = state?.isShowingTranslation ?? false
-        translateButton.isLoading = state?.isLoading ?? false
-        if let post{
-            changeDescriptionAndUsername(post: post)
-        }
-    }
     // MARK: - Layout & setup
     private func setupView() {
         setupTopContainerView()

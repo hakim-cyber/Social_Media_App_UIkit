@@ -26,12 +26,57 @@ class CommentViewModel{
     private var nextCursor:CommentCursor?
     private let pageSize = 20
     
+    @Published private(set) var commentTranslations: [UUID: TranslationState] = [:]
+    
     let userService:UserService = .init()
     init(postId:UUID,service:CommentService,commentsCount:Int){
         self.postId = postId
         self.service = service
         self.commmentsCount = commentsCount
     }
+    @MainActor
+    func toggleTranslation(postId: UUID, originalText: String) {
+        var st = commentTranslations[postId] ?? TranslationState()
+
+        // 1️⃣ If showing translation → go back to original
+        if st.isShowingTranslation {
+            st.isShowingTranslation = false
+            commentTranslations[postId] = st
+            return
+        }
+
+        // 2️⃣ If translation already exists → show instantly
+        if st.translatedText != nil {
+            st.isShowingTranslation = true
+            commentTranslations[postId] = st
+            return
+        }
+
+        // 3️⃣ Mock loading state
+        st.isLoading = true
+        commentTranslations[postId] = st
+
+        // 4️⃣ Fake async translation
+        Task { [weak self] in
+            guard let self else { return }
+            do{
+                let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
+               
+                    var updated = self.commentTranslations[postId] ?? TranslationState()
+                    updated.translatedText = translatedText
+                    updated.isShowingTranslation = true
+                    updated.isLoading = false
+                    self.commentTranslations[postId] = updated
+                
+            }catch{
+               
+                    self.commentTranslations[postId] = nil
+                self.errorMessage = "Error translating comment. Please try again later."
+                
+            }
+        }
+    }
+
     
     func start()async{
         await loadInitial()

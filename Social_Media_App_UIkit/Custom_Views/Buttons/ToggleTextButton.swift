@@ -19,7 +19,7 @@ final class ToggleTextButton: UIControl {
     // MARK: - Texts & colors
     var normalText: String?  { didSet { updateAppearance() } }
     var toggledText: String? { didSet { updateAppearance() } }
-    var loadingText: String = "..." // You can customize this
+    var loadingText: String = "Translating..." // You can customize this
     
     var normalColor: UIColor = .label  { didSet { updateAppearance() } }
     var toggledColor: UIColor = .label { didSet { updateAppearance() } }

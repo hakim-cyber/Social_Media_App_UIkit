@@ -170,8 +170,30 @@ class ProfilePostFeedViewController: UIViewController {
                 }
                 .store(in: &cancellables)
         }
+        vm.$postTranslations
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.reconfigureVisibleTranslatedPosts()
+                }
+                .store(in: &cancellables)
     }
-   
+    private func reconfigureVisibleTranslatedPosts() {
+        guard var snapshot = dataSource?.snapshot() else { return }
+
+        let visibleIndexPaths = postFeedTableView.indexPathsForVisibleRows ?? []
+        let visiblePosts: [Post] = visibleIndexPaths.compactMap { indexPath in
+            dataSource?.itemIdentifier(for: indexPath)
+        }
+
+        // Only reconfigure those which have translation state
+        let toReconfigure = visiblePosts.filter { vm.postTranslations[$0.id] != nil }
+
+        guard !toReconfigure.isEmpty else { return }
+
+        snapshot.reconfigureItems(toReconfigure)
+        dataSource?.apply(snapshot, animatingDifferences: false)
+    }
     func updateData(posts: [Post]) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Post>()
         snapshot.appendSections([.main])

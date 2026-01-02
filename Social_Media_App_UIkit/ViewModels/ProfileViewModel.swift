@@ -114,21 +114,20 @@ class ProfileViewModel:ObservableObject{
         // 4️⃣ Fake async translation
         Task { [weak self] in
             guard let self else { return }
-
-            // ⏱ simulate network delay
-            try? await Task.sleep(nanoseconds: 700_000_000)
-
-            let fakeTranslatedText = """
-            🌍 Translated:
-            \(originalText)
-            """
-
-            await MainActor.run {
-                var updated = self.postTranslations[postId] ?? TranslationState()
-                updated.translatedText = fakeTranslatedText
-                updated.isShowingTranslation = true
-                updated.isLoading = false
-                self.postTranslations[postId] = updated
+            do{
+                let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
+               
+                    var updated = self.postTranslations[postId] ?? TranslationState()
+                    updated.translatedText = translatedText
+                    updated.isShowingTranslation = true
+                    updated.isLoading = false
+                    self.postTranslations[postId] = updated
+                
+            }catch{
+               
+                    self.postTranslations[postId] = nil
+                self.errorMessage = "Error translating post. Please try again later."
+                
             }
         }
     }

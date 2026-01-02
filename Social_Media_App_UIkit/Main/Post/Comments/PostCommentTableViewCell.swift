@@ -13,6 +13,7 @@ protocol PostCommentCellDelegate: AnyObject {
    
     func commentCellDidTapDelete(_ cell: PostCommentTableViewCell)
     func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell)
+    func commentCellDidTapTranslate(_ cell: PostCommentTableViewCell)
    
 }
 
@@ -22,6 +23,7 @@ final class PostCommentTableViewCell: UITableViewCell {
     // MARK: - Public
     weak var delegate: PostCommentCellDelegate?
     var comment: PostComment?
+    var translationState:TranslationState?
     private var isOwnComment = false
     
     static let reuseID = "PostCommentTableViewCell"
@@ -104,22 +106,28 @@ final class PostCommentTableViewCell: UITableViewCell {
         dateTextLabel.text = nil
       
         translateButton.isToggled = false
+        translateButton.isLoading = false
+        self.translationState = nil
     }
 
     // MARK: - Public configure
-    func configure(with comment: PostComment) {
+    func configure(with comment: PostComment, translation: TranslationState?) {
         self.comment = comment
-      
+        self.translationState = translation
         if let avatarURL = comment.author.avatarURL { avatarImageView.setImage(url: avatarURL) }
         usernameTextView.text = comment.author.username
-
-        commentTextView.text = comment.text
-        
+        if let tr = translationState, tr.isShowingTranslation, let translated = tr.translatedText {
+            commentTextView.text = translated
+        }else{
+            commentTextView.text = comment.text
+        }
         dateTextLabel.text = comment.created_at.timeAgoDisplay() + " ∘"
-        translateButton.isToggled = false
+        translateButton.isToggled = translation?.isShowingTranslation ?? false
+        translateButton.isLoading = translation?.isLoading ?? false
         
         isOwnComment = (comment.author.id == UserSessionService.shared.currentUser?.id)
     }
+  
 
     // MARK: - Layout & setup
     private func setupView() {
@@ -202,7 +210,7 @@ final class PostCommentTableViewCell: UITableViewCell {
     }
     
     private func didTapTranslate(isTransalated: Bool) {
-      
+        delegate?.commentCellDidTapTranslate(self)
     }
     
     @objc private func didTapAvatar() {

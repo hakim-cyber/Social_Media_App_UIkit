@@ -218,9 +218,33 @@ class PostCommentViewController: UIViewController {
                         self?.showToast(msg)
                     }
                     .store(in: &cancellables)
+        
+        vm.$commentTranslations
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.reconfigureVisibleTranslatedPosts()
+                }
+                .store(in: &cancellables)
+
 
     }
-   
+    private func reconfigureVisibleTranslatedPosts() {
+        guard var snapshot = dataSource?.snapshot() else { return }
+
+        let visibleIndexPaths = postCommentTableView.indexPathsForVisibleRows ?? []
+        let visible: [PostComment] = visibleIndexPaths.compactMap { indexPath in
+            dataSource?.itemIdentifier(for: indexPath)
+        }
+
+        // Only reconfigure those which have translation state
+        let toReconfigure = visible.filter { vm.commentTranslations[$0.id] != nil }
+
+        guard !toReconfigure.isEmpty else { return }
+
+        snapshot.reconfigureItems(toReconfigure)
+        dataSource?.apply(snapshot, animatingDifferences: false)
+    }
     func updateData(comments: [PostComment]) {
         var snapshot = NSDiffableDataSourceSnapshot<CommentSection, PostComment>()
         snapshot.appendSections([.main])
@@ -241,7 +265,7 @@ class PostCommentViewController: UIViewController {
             ) as! PostCommentTableViewCell
 
            cell.delegate = self
-            cell.configure(with: comment)
+            cell.configure(with: comment, translation: self?.vm.commentTranslations[comment.id])
             return cell
         }
         postCommentTableView.dataSource = dataSource
@@ -265,6 +289,11 @@ extension PostCommentViewController: UITableViewDelegate {
 }
 
 extension PostCommentViewController: PostCommentCellDelegate {
+    func commentCellDidTapTranslate(_ cell: PostCommentTableViewCell) {
+        guard let comment = cell.comment else{return}
+        self.vm.toggleTranslation(postId: comment.id, originalText: comment.text)
+    }
+    
    
     func commentCellDidTapDelete(_ cell: PostCommentTableViewCell) {
         // action sheet etc.
