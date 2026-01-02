@@ -51,14 +51,9 @@ class PostFeedViewController: UIViewController {
     }
     private func setupNavBar() {
         // Cancel button
-        let cancelButton = UIBarButtonItem(
-            title: "Create",
-            style: .plain,
-            target: self,
-            action: #selector(showCreate)
-        )
-
+        let cancelButton = UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(showCreate))
         
+        navigationItem.titleView = NavTitleView(title: "Aura")
         // Apply electric purple tint
         let electricPurple = UIColor.electricPurple
         cancelButton.tintColor = electricPurple
@@ -84,8 +79,8 @@ class PostFeedViewController: UIViewController {
     }
     func setup() {
         self.view.backgroundColor = .systemBackground
-//        self.postFeedTableView.contentInset = UIEdgeInsets(top: 50, left: 0, bottom: 35, right: 0)
-//       
+        self.postFeedTableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+//
         // Add refresh control
            refreshControl.addTarget(self, action: #selector(handlePullToRefresh), for: .valueChanged)
            postFeedTableView.refreshControl = refreshControl
