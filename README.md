@@ -1,3 +1,10 @@
+
+![1](https://github.com/user-attachments/assets/db19a406-cedb-4b63-92bf-c61e3824ca43)
+
+<img width="1196" height="876" alt="Screenshot 2026-01-04 at 03 25 48" src="https://github.com/user-attachments/assets/a0dc7cf8-2d90-4990-922b-f3134166e253" />
+<img width="1196" height="876" alt="Screenshot 2026-01-04 at 03 25 55" src="https://github.com/user-attachments/assets/a5d103cb-79fc-460b-a740-4f436caef1c6" />
+
+
 📱 UIKit Social Media App (MVP)
 
 A production-style social media app built with UIKit, designed to deeply master UIKit architecture, MVVM-Coordinator, and real-world app patterns.
