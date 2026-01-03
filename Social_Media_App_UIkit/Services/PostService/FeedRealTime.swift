@@ -27,7 +27,12 @@ final class FeedRealtime {
 
     func subscribe(handlers: Handlers) async throws {
         // Avoid double subscription
-        if channel != nil { return }
+        
+        // If we already have one, remove it fully and recreate cleanly
+           if let existing = channel {
+               await client.realtimeV2.removeChannel(existing)
+               channel = nil
+           }
 
         let ch = client.realtimeV2.channel("posts_changes") // choose your topic name
         self.channel = ch
@@ -97,8 +102,9 @@ final class FeedRealtime {
         insertTask?.cancel()
         updateTask?.cancel()
         deleteTask?.cancel()
+
         if let ch = channel {
-            await ch.unsubscribe()
+            await client.realtimeV2.removeChannel(ch)   // ✅ important
             channel = nil
         }
     }
