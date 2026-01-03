@@ -157,4 +157,38 @@ extension MoreSheetPresenter {
 
         present(config: config, from: vc)
     }
+    static func showProfile(
+        _ user: UserProfile,
+        from vc: UIViewController,
+        onLogOut: (() -> Void)? = nil
+    ) {
+        let header = MoreSheetConfig.Header(
+            avatar: .url(URL(string: user.avatar_url ?? "")),
+            username: user.username,
+            fullName: user.full_name,
+            isVerified: user.is_verified ?? false
+        )
+
+        let actions: [MoreSheetConfig.Action] = [
+            .init(
+                id: "logout",
+                title: "Log out",
+                subtitle: "You can log back in anytime.",
+                icon: UIImage(systemName: "rectangle.portrait.and.arrow.right"),
+                style: .destructive,
+                isEnabled: true,
+                handler: { onLogOut?() }
+            )
+        ]
+
+        let config = MoreSheetConfig(
+            header: header,
+            title: "Log out of Aura?",
+            message: "You’ll need to sign in again to access your account.",
+            actions: actions
+        )
+
+        present(config: config, from: vc)
+    }
+
 }

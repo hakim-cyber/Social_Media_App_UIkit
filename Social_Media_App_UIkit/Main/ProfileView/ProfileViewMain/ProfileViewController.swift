@@ -60,11 +60,20 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         return layout
     }
     private func setupNavBar() {
-      
+        if self.vm.isCurrentUser{
+            let moreButton = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(tapMore))
+            // Apply electric purple tint
+            let electricPurple = UIColor.electricPurple
+            moreButton.tintColor = electricPurple
+            navigationItem.rightBarButtonItem = moreButton
+        }
+        
         navigationItem.title = vm.profile?.username ?? ""
         
     }
-    
+    @objc func tapMore(){
+        self.coordinator?.didTapMore()
+    }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

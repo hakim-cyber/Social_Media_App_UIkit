@@ -95,6 +95,7 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
 protocol ProfileCoordinating: AnyObject {
     func didTapEditProfile()
     func didTapMessage()
+    func didTapMore()
     func didTapShareProfile()
     func didSelectPostCell(post: Post)
     func didTapFollowers()
@@ -102,6 +103,15 @@ protocol ProfileCoordinating: AnyObject {
 }
 
 extension ProfileCoordinator:ProfileCoordinating{
+    func didTapMore() {
+        guard let profile = viewModel?.profile else { return }
+        MoreSheetPresenter.showProfile(profile, from: self.navigationController){
+            Task{
+                try? await  AuthService.shared.logout()
+            }
+        }
+    }
+    
     func didTapFollowers() {
         guard let profile = viewModel?.profile else { return }
         let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false, target: .followers)
