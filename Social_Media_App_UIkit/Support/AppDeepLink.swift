@@ -16,27 +16,33 @@ final class DeepLinkRouter {
     static func parse(url: URL) -> AppDeepLink? {
         guard url.scheme == "myapp" else { return nil }
 
-        // For myapp://u/<uuid>
-        // host = "u"
-        // path = "/<uuid>"
-        let route = url.host ?? ""
-        let value = url.pathComponents.dropFirst().first // removes "/"
+        let host = url.host ?? ""
+        let pathParts = Array(url.pathComponents.dropFirst()) // remove "/"
+        let pathString = url.path
 
-        switch route {
-        case "account":
-            // myapp://account/update-password
-            if url.path.contains("update-password") {
+        // ✅ Handle auth callback host directly
+        if host == "auth-callback" {
+            // If provider sends /account/update-password
+            if pathParts.contains("account") && pathParts.contains("update-password") {
                 return .resetPassword
             }
+
+            // If provider sends just myapp://auth-callback (with tokens in query/fragment)
+            return .auth
+        }
+
+        // Normal routes (myapp://account/..., myapp://u/<uuid>)
+        switch host {
+        case "account":
+            if pathParts.contains("update-password") { return .resetPassword }
             return .auth
 
         case "u":
-            guard let value, let id = UUID(uuidString: value) else { return nil }
+            guard let first = pathParts.first, let id = UUID(uuidString: first) else { return nil }
             return .profile(userId: id)
 
-
         default:
-            print("none route:", route, "path:", url.path)
+            print("none route:", host, "path:", pathString)
             return nil
         }
     }

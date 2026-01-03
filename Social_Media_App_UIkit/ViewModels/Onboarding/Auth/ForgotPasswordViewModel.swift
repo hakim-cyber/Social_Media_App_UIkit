@@ -18,6 +18,8 @@ class ForgotPasswordViewModel {
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
     
+    var resetedPassword:(()->Void)?
+    
     func changePasswordToNewOne(complete: @escaping ()->Void)  {
        
         
@@ -36,6 +38,7 @@ class ForgotPasswordViewModel {
             do{
               let newUser = try await AuthService.shared.updatePassword(newPassword: newPassword)
                 complete()
+                resetedPassword?()
             }catch{
                 self.loginError = .custom(error.localizedDescription)
             }

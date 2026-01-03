@@ -58,9 +58,12 @@ final class AuthCoordinator: NavigationCoordinator {
         navigationController.pushViewController(vc, animated: true)
     }
     
-    func showForgotPasswordSetNewPasswordScreen() {
+    func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
         let viewModel = ForgotPasswordViewModel()
         viewModel.delegate = self
+        viewModel.resetedPassword = {
+            finished()
+        }
         let resetVC = ForgotPasswordChangeVIew(viewModel: viewModel)
       resetVC.modalPresentationStyle = .automatic
         navigationController.present(resetVC, animated: true)

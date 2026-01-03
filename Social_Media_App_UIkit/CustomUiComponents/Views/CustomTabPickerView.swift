@@ -256,6 +256,11 @@ final class TabPickerView<ID: Hashable>: UIView {
             layoutIfNeeded()
         }
     }
+    deinit {
+        // Explicit deinit to avoid Swift compiler IR crash in Release/Archive
+        onSelect = nil
+    }
+
 
     override func layoutSubviews() {
         super.layoutSubviews()

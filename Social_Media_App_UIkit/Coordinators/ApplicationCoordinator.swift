@@ -18,6 +18,14 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     
     private var authCoordinator: AuthCoordinator?
    private var mainCoordinator: MainCoordinator?
+    
+    private enum RootMode {
+        case normal
+        case passwordReset
+    }
+
+    private var rootMode: RootMode = .normal
+
 
     init(window: UIWindow) {
         self.window = window
@@ -34,6 +42,11 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
         UserSessionService.shared.$isLoggedIn
             .receive(on: DispatchQueue.main)
             .sink { [weak self] signedIn in
+                // ✅ Gate: if we're in password reset mode, stay in auth flow
+                if self?.rootMode == .passwordReset {
+                                self?.showAuthFlow()
+                                return
+                            }
                 if signedIn {
                     self?.showMainFlow()
                 } else {
@@ -78,8 +91,18 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
            authCoordinator = nil
        }
 
-    func showChangePasswordViewController() {
-        self.authCoordinator?.showForgotPasswordSetNewPasswordScreen()
+    func handleResetPasswordDeepLink() {
+        rootMode = .passwordReset
+        showAuthFlow() // ensures auth nav is root
+
+        // Present after auth flow is on screen
+        DispatchQueue.main.async { [weak self] in
+            self?.authCoordinator?.showForgotPasswordSetNewPasswordScreen{
+                guard let self else { return }
+                       self.rootMode = .normal
+                       self.showMainFlow()
+            }
+        }
     }
     func showProfile(userid:UUID){
         mainCoordinator?.showProfile(for: userid)

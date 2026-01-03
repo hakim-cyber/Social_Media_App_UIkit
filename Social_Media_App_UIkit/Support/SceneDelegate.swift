@@ -94,10 +94,10 @@ extension SceneDelegate{
         switch link {
         case .resetPassword:
             try? await handleForgotPasswordLink(url: url)
-
+            print("Show Reset \(url)")
         case .auth:
             try? await handleEmailConfirmationLink(url:url)
-
+            print("Show Auth \(url)")
         case .profile(let userId):
             self.appCoordinator?.showProfile(userid: userId)
             print("Show Profile")
@@ -113,7 +113,7 @@ extension SceneDelegate{
         // Restore session (optional)
         let user = try await AuthService.shared.restoreSession(from: url)
         
-        self.appCoordinator?.showChangePasswordViewController()
+        self.appCoordinator?.handleResetPasswordDeepLink()
      
     }
 }
