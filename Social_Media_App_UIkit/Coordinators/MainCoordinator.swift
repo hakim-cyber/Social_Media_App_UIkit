@@ -135,6 +135,9 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
         tabBarController.selectedIndex = profileTabIndex
         (profileNav).popToRootViewController(animated: false)
     }
+    func showProfile(for userId:UUID){
+        self.feedCoordinator?.showProfile(id: userId)
+    }
     // MARK: - Onboarding flow
 
     private func showOnboardingSetup() {

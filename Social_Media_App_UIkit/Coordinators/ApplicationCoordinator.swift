@@ -81,4 +81,7 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     func showChangePasswordViewController() {
         self.authCoordinator?.showForgotPasswordSetNewPasswordScreen()
     }
+    func showProfile(userid:UUID){
+        mainCoordinator?.showProfile(for: userid)
+    }
 }

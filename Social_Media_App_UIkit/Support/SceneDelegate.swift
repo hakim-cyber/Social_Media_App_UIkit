@@ -44,18 +44,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             // 2️⃣ Handle Supabase Email Confirmation / Auth Callback
             if url.scheme == "myapp" { // your custom URL scheme
                 Task {
-                    do {
-                        if url.path == "/account/update-password" {
-                            // Forgot password / Reset flow
-                            try await handleForgotPasswordLink(url: url)
-                        } else {
-                            // Email confirmation / generic deep link
-                            try await handleEmailConfirmationLink(url: url)
+                            do {
+                                if let deepLink = DeepLinkRouter.parse(url: url) {
+                                    await handleDeepLink(deepLink,url: url)
+                                }
+                            } catch {
+                                print("Deep link handling failed:", error)
+                            }
                         }
-                    } catch {
-                        print("Failed to handle Supabase URL: \(error)")
-                    }
-                }
             }
             
             // 3️⃣ Handle other URLs if needed
@@ -91,7 +87,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+
 extension SceneDelegate{
+    @MainActor
+    private func handleDeepLink(_ link: AppDeepLink,url:URL) async {
+        switch link {
+        case .resetPassword:
+            try? await handleForgotPasswordLink(url: url)
+
+        case .auth:
+            try? await handleEmailConfirmationLink(url:url)
+
+        case .profile(let userId):
+            self.appCoordinator?.showProfile(userid: userId)
+            print("Show Profile")
+        }
+    }
     private func handleEmailConfirmationLink(url: URL) async throws {
         // Restore session and auto-login
         let _ = try await AuthService.shared.restoreSession(from: url)

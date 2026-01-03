@@ -142,6 +142,12 @@ extension ProfileCoordinator:ProfileCoordinating{
         coord.start(animated: true)
     }
     func didTapShareProfile() {
-        
+        guard let profile = viewModel?.profile else { return }
+
+        let urlString = "myapp://u/\(profile.id.uuidString)"
+        UIPasteboard.general.string = urlString
+
+        // Debug: verify immediately
+        print("Copied:", UIPasteboard.general.string ?? "nil")
     }
 }

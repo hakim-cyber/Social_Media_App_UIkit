@@ -44,13 +44,13 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
         navigationController.setViewControllers([vc], animated: animated)
     }
 
-    func showProfile(author: UserSummary) {
+    func showProfile(id: UUID) {
         dismissPresentedIfNeeded { [weak self] in
             guard let self else { return }
 
             let currentId = UserSessionService.shared.currentUser?.id
 
-            if currentId == author.id,
+            if currentId == id,
                let main = self.parentCoordinator as? MainCoordinator {
                 main.switchToMyProfile()
                 return
@@ -58,7 +58,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
 
             let coord = ProfileCoordinator(
                 navigationController: self.navigationController,
-                target: .user(id: author.id)
+                target: .user(id: id)
             )
             coord.parentCoordinator = self
             self.addChild(coord)
@@ -150,7 +150,7 @@ extension FeedCoordinator: FeedCoordinating {
     }
     
     func postCellDidTapAvatar(_ post: Post) {
-        showProfile(author: post.author)
+        showProfile(id: post.author.id)
     }
     
 }
@@ -176,7 +176,7 @@ extension FeedCoordinator: CommentCoordinating {
     }
     func commentCellDidTapAvatar(comment: PostComment) {
         // go to profile
-        showProfile(author: comment.author)
+        showProfile(id: comment.author.id)
         print("Show Profile")
     }
 }
