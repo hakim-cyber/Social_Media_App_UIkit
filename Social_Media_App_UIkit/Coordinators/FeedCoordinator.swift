@@ -22,7 +22,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     private let realtime: FeedRealtime
 
     private var viewModel: FeedViewModel?
-    private var createPostCoordinator: CreatePostCoordinator?
+ 
     private weak var commentsNavController: UINavigationController?
     init(
         navigationController: UINavigationController,
@@ -77,7 +77,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
 
 // what view needs to see
 protocol FeedCoordinating: AnyObject {
-    func postFeedDidRequestCreatePost(_ controller: PostFeedViewController)
+  
     func postCellDidTapComment(_ post:Post)
     func postCellDidTapAvatar(_ post:Post)
     func postCellDidTapMore(_ post:Post)
@@ -108,15 +108,7 @@ extension FeedCoordinator: FeedCoordinating {
     
   
 
-    func postFeedDidRequestCreatePost(_ controller: PostFeedViewController) {
-        let coord = CreatePostCoordinator(presenter: navigationController)
-        coord.parentCoordinator = self
-
-        addChild(coord)                 // ✅ important
-        createPostCoordinator = coord   // optional strong ref
-
-        coord.start(animated: true)
-    }
+   
     func postCellDidTapComment(_ post: Post) {
         let viewModel = CommentViewModel(postId: post.id,
                                         service: CommentService(),
@@ -158,9 +150,7 @@ extension FeedCoordinator: FeedCoordinating {
 extension FeedCoordinator {
     func childDidFinish(_ child: Coordinator?) {
         guard let child else{return}
-        if child === createPostCoordinator {
-            createPostCoordinator = nil
-        }
+       
         removeChild(child)
     }
 }

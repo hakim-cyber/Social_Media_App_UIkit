@@ -44,8 +44,10 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
     }
 
     private func finish() {
-        navigationController.dismiss(animated: true)
-        parentCoordinator?.childDidFinish(self)
+        navigationController.dismiss(animated: true) { [weak self] in
+            guard let self else { return }
+            self.parentCoordinator?.childDidFinish(self)
+        }
     }
     func coordinatorDidFinish() {
         finish()

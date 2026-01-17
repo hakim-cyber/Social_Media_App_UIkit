@@ -51,15 +51,9 @@ class PostFeedViewController: UIViewController {
     }
     private func setupNavBar() {
         // Cancel button
-        let cancelButton = UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(showCreate))
+      
         
         navigationItem.titleView = NavTitleView(title: "Aura")
-        // Apply electric purple tint
-        let electricPurple = UIColor.electricPurple
-        cancelButton.tintColor = electricPurple
-        
-
-        navigationItem.leftBarButtonItem = cancelButton
        
        
     }
@@ -175,9 +169,7 @@ class PostFeedViewController: UIViewController {
         }
         
     }
-    @objc private func showCreate() {
-        self.coordinator?.postFeedDidRequestCreatePost(self)
-    }
+  
     
     func returnToTopRow(){
         let indexPath = IndexPath(row: 0, section: 0)

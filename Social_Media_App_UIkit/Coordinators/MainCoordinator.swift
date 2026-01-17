@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MainCoordinator: Coordinator, ParentCoordinator {
+final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
     
     // MARK: - ParentCoordinator
     var childCoordinators: [Coordinator] = []
@@ -32,6 +32,7 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
     private var profileCoordinator: ProfileCoordinator?
     private var searchCoordinator: SearchProfileCoordinator?
     private var onboardingCoordinator: OnboardingSetupCoordinator?
+    private var createPostCoordinator: CreatePostCoordinator?
     private var onboardingNav: UINavigationController?
     let feedTabIndex: Int = 0
     let searchTabIndex: Int = 1
@@ -119,11 +120,22 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
             image: UIImage(systemName: "person"),
             selectedImage: UIImage(systemName: "person.fill")
         )
+        
+        
+        // CREATE (special separated tab)
+           let createNav = UINavigationController()
+        
+           let createItem = UITabBarItem(tabBarSystemItem: .search, tag: 99)
+           createItem.image = UIImage(systemName: "plus")
+           createItem.selectedImage = UIImage(systemName: "plus")
+           createItem.title = nil
+           createNav.tabBarItem = createItem
+     
         // Add more tabs later: searchNav, notifNav, profileNav...
         tabBarController.viewControllers = [
-            feedNav,searchNav,profileNav
+            feedNav,searchNav,profileNav,  createNav,
         ]
-     
+        tabBarController.delegate = self
     }
 
     func showMainView(animated: Bool = true) {
@@ -166,19 +178,50 @@ final class MainCoordinator: Coordinator, ParentCoordinator {
 
     func childDidFinish(_ child: Coordinator?) {
         childCoordinators.removeAll(where: {$0 === child})
-
+        
         // When onboarding finishes → dismiss its nav and show tabs
         if child === onboardingCoordinator {
             onboardingCoordinator = nil
-
+            
             onboardingNav?.dismiss(animated: true)
             onboardingNav = nil
-
+            
             showMainView()
         }
-
+        
         if child === feedCoordinator {
             feedCoordinator = nil
         }
+        if child === createPostCoordinator {
+            createPostCoordinator = nil
+        }
+    }
+    private func presentCreateFlow() {
+        guard let presenter = tabBarController.presentedViewController ?? tabBarController.selectedViewController else {
+            return
+        }
+
+        let coord = CreatePostCoordinator(presenter: presenter)
+        coord.parentCoordinator = self
+        addChild(coord)                 // important: retain
+        self.createPostCoordinator = coord
+
+        coord.start(animated: true)
+    }
+}
+
+extension MainCoordinator: UITabBarControllerDelegate {
+
+    func tabBarController(
+        _ tabBarController: UITabBarController,
+        shouldSelect viewController: UIViewController
+    ) -> Bool {
+
+        if viewController.tabBarItem.tag == 99 {
+            presentCreateFlow()
+            return false
+        }
+
+        return true
     }
 }
