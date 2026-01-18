@@ -136,6 +136,11 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
             feedNav,searchNav,profileNav,  createNav,
         ]
         tabBarController.delegate = self
+        if #available(iOS 26.0, *) {
+            tabBarController.tabBarMinimizeBehavior = .onScrollDown
+        } else {
+            // Fallback on earlier versions
+        }
     }
 
     func showMainView(animated: Bool = true) {
