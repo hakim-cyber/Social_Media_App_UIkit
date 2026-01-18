@@ -133,12 +133,13 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
      
         // Add more tabs later: searchNav, notifNav, profileNav...
         tabBarController.viewControllers = [
-            feedNav,searchNav,profileNav,  createNav,
+            feedNav  ,searchNav,createNav,profileNav,
         ]
         tabBarController.delegate = self
         if #available(iOS 26.0, *) {
             tabBarController.tabBarMinimizeBehavior = .onScrollDown
         } else {
+            createItem.title = "Post"
             // Fallback on earlier versions
         }
     }
