@@ -36,7 +36,7 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
     private var onboardingNav: UINavigationController?
     let feedTabIndex: Int = 0
     let searchTabIndex: Int = 1
-    let profileTabIndex: Int = 2
+    let profileTabIndex: Int = 3
 
     // MARK: - Init
 
