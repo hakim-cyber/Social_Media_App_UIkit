@@ -165,13 +165,13 @@ class FollowersListViewModel{
     func loadSelectedInitialData() async{
         switch target {
         case .following:
-            Task{
+            
                 await  loadInitialFollowings()
-            }
+            
         case .followers:
-            Task{
+          
                 await  loadInitiaFollowers()
-            }
+            
         }
     }
     func start() async{

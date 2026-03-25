@@ -140,9 +140,7 @@ class CommentViewModel{
         }
     }
     func deleteComment(_ commentId:UUID)async{
-        Task { [weak self] in
-            guard let self else { return }
-            do {
+        do {
                 let resp = try await self.service.deleteComment(commentId: commentId)
                 if resp.removed == true{
                     self.comments.removeAll(where: {$0.id == resp.comment_id})
@@ -152,7 +150,7 @@ class CommentViewModel{
               
                 self.errorMessage = "Delete comment failed, please try again."
             }
-        }
+        
     }
     private func appendDedup(_ new: [PostComment], to array: inout [PostComment]) {
         let existing = Set(array.map(\.id))
