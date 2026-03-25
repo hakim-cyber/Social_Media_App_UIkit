@@ -93,7 +93,6 @@ class ProfilePostFeedViewController: UIViewController {
         configureDataSource()
         updateData(posts: vm.activePosts)
         bindToViewModel()
-        Task { await vm.start() }
      
     }
     private func scrollToPendingPostIfNeeded() {

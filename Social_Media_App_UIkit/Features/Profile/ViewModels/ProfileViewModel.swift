@@ -40,6 +40,8 @@ class ProfileViewModel:ObservableObject{
     @Published private(set) var isLoadingUserPosts = false
     @Published private(set) var isLoadingLikedPosts = false
     @Published private(set) var isLoadingSavedPosts = false
+    private var hasLoadedOnce = false
+    private var isBootstrapping = false
     
    
     @Published private(set) var profileCount: ProfileCounts = .init(liked: 0, saved: 0)
@@ -144,32 +146,8 @@ class ProfileViewModel:ObservableObject{
            guard selectedTab != tab else { return }
            selectedTab = tab
 
-           // lazy load the first page for that tab
-           switch tab {
-           case .posts:
-               if posts.isEmpty {
-                   Task{
-                       await loadInitialPosts()
-                   }
-                 
-                   
-               }
-           case .liked:
-               if likedPosts.isEmpty {
-               Task{
-                   await loadInitialLikedPosts()
-               }
-             
-                   
-               }
-           case .saved:
-               if self.isCurrentUser{
-                   if savedPosts.isEmpty {
-                       Task{
-                           await loadInitialSavedPosts()
-                       }
-                   }
-        }
+           Task { [weak self] in
+               await self?.loadSelectedInitialIfNeeded()
            }
        }
     func loadMoreIfNeeded() {
@@ -193,29 +171,56 @@ class ProfileViewModel:ObservableObject{
         }
 
     
-    func start() async{
-         await loadProfile()
-         await loadSelectedInitial()
-       await getProfileCounts()
-         
+    func loadIfNeeded() async{
+        guard !hasLoadedOnce, !isBootstrapping else { return }
+
+        isBootstrapping = true
+        defer { isBootstrapping = false }
+
+        await loadProfile()
+        await loadSelectedInitialIfNeeded()
+        await getProfileCounts()
+
+        hasLoadedOnce = true
     }
-    func loadSelectedInitial()async{
+    func refresh() async {
+        await loadProfile()
+        await reloadCurrentTab()
+        await getProfileCounts()
+    }
+    private func loadSelectedInitialIfNeeded()async{
         switch selectedTab {
         case .posts:
-            Task{
-              await  loadInitialPosts()
+            if posts.isEmpty {
+                await loadInitialPosts()
             }
         case .liked:
-          
-            Task{
-              await  loadInitialLikedPosts()
+            if likedPosts.isEmpty {
+                await loadInitialLikedPosts()
             }
         case .saved:
             if self.isCurrentUser{
-                Task{
+                if savedPosts.isEmpty {
                     await  loadInitialSavedPosts()
                 }
             }
+        }
+    }
+    private func reloadCurrentTab() async {
+        switch selectedTab {
+        case .posts:
+            userPostsCursor = nil
+            posts = []
+            await loadInitialPosts()
+        case .liked:
+            likedPostsCursor = nil
+            likedPosts = []
+            await loadInitialLikedPosts()
+        case .saved:
+            guard isCurrentUser else { return }
+            savedPostsCursor = nil
+            savedPosts = []
+            await loadInitialSavedPosts()
         }
     }
     func updateProfile(profile:UserProfile){

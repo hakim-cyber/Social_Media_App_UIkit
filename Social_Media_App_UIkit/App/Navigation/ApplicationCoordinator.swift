@@ -11,21 +11,29 @@ import Combine
 final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     var navigationController: UINavigationController
     var childCoordinators: [Coordinator] = []
-    private var window: UIWindow
+
+    private let window: UIWindow
     private var cancellables = Set<AnyCancellable>()
+    private var hasStarted = false
 
     let onboardingService: OnboardingService = .init()
-    
+
     private var authCoordinator: AuthCoordinator?
-   private var mainCoordinator: MainCoordinator?
-    
+    private var mainCoordinator: MainCoordinator?
+
     private enum RootMode {
         case normal
         case passwordReset
     }
 
-    private var rootMode: RootMode = .normal
+    private enum RootFlow: Equatable {
+        case auth
+        case main
+    }
 
+    private var rootMode: RootMode = .normal
+    private var currentRootFlow: RootFlow?
+    private var didPresentPasswordReset = false
 
     init(window: UIWindow) {
         self.window = window
@@ -33,8 +41,12 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     }
 
     func start(animated: Bool = true) {
+        guard !hasStarted else { return }
+        hasStarted = true
+
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
+
         listenToAuthChanges()
     }
 
@@ -42,69 +54,120 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
         UserSessionService.shared.$isLoggedIn
             .receive(on: DispatchQueue.main)
             .sink { [weak self] signedIn in
-                // ✅ Gate: if we're in password reset mode, stay in auth flow
-                if self?.rootMode == .passwordReset {
-                                self?.showAuthFlow()
-                                return
-                            }
-                if signedIn {
-                    self?.showMainFlow()
-                } else {
-                    self?.showAuthFlow()
+                guard let self else { return }
+
+                if self.rootMode == .passwordReset {
+                    self.transition(to: .auth)
+                    self.presentPasswordResetIfNeeded()
+                    return
                 }
+
+                self.transition(to: signedIn ? .main : .auth)
             }
             .store(in: &cancellables)
     }
 
-    
-    private func showAuthFlow() {
-           // Root is our auth nav
-           window.rootViewController = navigationController
-           window.makeKeyAndVisible()
+    private func transition(to target: RootFlow) {
+        guard !isShowingRoot(target) else { return }
 
-           // Clean old main
-           mainCoordinator = nil
+        tearDownCurrentRoot()
 
-           // Build auth
-           let auth = AuthCoordinator(
-               navigationController: navigationController,
-               onboardingService: onboardingService
-           )
-           authCoordinator = auth
-           addChild(auth)
+        switch target {
+        case .auth:
+            startAuthFlow()
+        case .main:
+            startMainFlow()
+        }
 
-           auth.start()
-           navigationController.setNavigationBarHidden(false, animated: false)
-       }
-    
-    func showMainFlow() {
-           let main = MainCoordinator(onboardingService: onboardingService)
-           mainCoordinator = main
-           addChild(main)
+        currentRootFlow = target
+    }
 
-           // Make tab bar the root
-           main.start(animated: false)
-           window.rootViewController = main.tabBarController
-           window.makeKeyAndVisible()
+    private func isShowingRoot(_ flow: RootFlow) -> Bool {
+        switch flow {
+        case .auth:
+            return currentRootFlow == .auth &&
+                authCoordinator != nil &&
+                window.rootViewController === navigationController
 
-           // Clean auth
-           authCoordinator = nil
-       }
+        case .main:
+            guard let mainCoordinator else { return false }
+            return currentRootFlow == .main &&
+                window.rootViewController === mainCoordinator.tabBarController
+        }
+    }
+
+    private func tearDownCurrentRoot() {
+        window.rootViewController?.dismiss(animated: false)
+
+        // AppCoordinator directly owns only the two root flows.
+        childCoordinators.removeAll { coordinator in
+            coordinator is AuthCoordinator || coordinator is MainCoordinator
+        }
+
+        authCoordinator = nil
+        mainCoordinator = nil
+        currentRootFlow = nil
+    }
+
+    private func startAuthFlow() {
+        let auth = AuthCoordinator(
+            navigationController: navigationController,
+            onboardingService: onboardingService
+        )
+
+        authCoordinator = auth
+        addChild(auth)
+
+        window.rootViewController = navigationController
+        window.makeKeyAndVisible()
+
+        navigationController.setNavigationBarHidden(false, animated: false)
+        auth.start(animated: false)
+    }
+
+    private func startMainFlow() {
+        let main = MainCoordinator(onboardingService: onboardingService)
+
+        mainCoordinator = main
+        addChild(main)
+
+        main.start(animated: false)
+
+        window.rootViewController = main.tabBarController
+        window.makeKeyAndVisible()
+    }
 
     func handleResetPasswordDeepLink() {
         rootMode = .passwordReset
-        showAuthFlow() // ensures auth nav is root
+        didPresentPasswordReset = false
 
-        // Present after auth flow is on screen
+        transition(to: .auth)
+        presentPasswordResetIfNeeded()
+    }
+
+    private func presentPasswordResetIfNeeded() {
+        guard rootMode == .passwordReset else { return }
+        guard !didPresentPasswordReset else { return }
+        guard authCoordinator != nil else { return }
+
+        didPresentPasswordReset = true
+
         DispatchQueue.main.async { [weak self] in
-            self?.authCoordinator?.showForgotPasswordSetNewPasswordScreen{
+            guard let self else { return }
+
+            self.authCoordinator?.showForgotPasswordSetNewPasswordScreen { [weak self] in
                 guard let self else { return }
-                       self.rootMode = .normal
-                       self.showMainFlow()
+
+                self.rootMode = .normal
+                self.didPresentPasswordReset = false
+
+                let target: RootFlow = UserSessionService.shared.isLoggedIn ? .main : .auth
+                self.transition(to: target)
             }
         }
     }
-    func showProfile(userid:UUID){
+
+    func showProfile(userid: UUID) {
         mainCoordinator?.showProfile(for: userid)
     }
 }

@@ -62,9 +62,6 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
      
      
         navigationController.setViewControllers([vc], animated: animated)
-     Task{
-       await  vm.start()
-     }
     }
     func startPush(animated: Bool) {
             let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
@@ -76,8 +73,6 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
 
             navigationController.delegate = self
             navigationController.pushViewController(vc, animated: animated)
-
-            Task { await vm.start() }
         }
     func navigationController(_ navigationController: UINavigationController,
                                   didShow viewController: UIViewController,

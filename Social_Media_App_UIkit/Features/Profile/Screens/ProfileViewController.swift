@@ -99,10 +99,8 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         Task { [weak self] in
             guard let self else { return }
 
-            // refresh (re-fetch)
-            await self.vm.start()
+            await self.vm.refresh()
 
-            // stop spinner on main
             await MainActor.run {
                 self.refreshControl.endRefreshing()
             }
@@ -110,8 +108,8 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        Task{
-        await    self.vm.start()
+        Task { [weak self] in
+            await self?.vm.loadIfNeeded()
         }
     }
         
