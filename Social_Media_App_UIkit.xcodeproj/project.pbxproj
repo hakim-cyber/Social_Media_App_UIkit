@@ -29,7 +29,7 @@
 		084495C72E7EC8BE00DB8EA3 /* Exceptions for "Social_Media_App_UIkit" folder in "Social_Media_App_UIkit" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				App/Configuration/Info.plist,
 			);
 			target = 084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */;
 		};
@@ -197,12 +197,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Social_Media_App_UIkit/Social_Media_App_UIkit.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Social_Media_App_UIkit/App/Configuration/Social_Media_App_UIkit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NLRT8KSZR;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Social_Media_App_UIkit/Info.plist;
+				INFOPLIST_FILE = Social_Media_App_UIkit/App/Configuration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Aura;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Give permission to use library";
@@ -238,12 +238,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Social_Media_App_UIkit/Social_Media_App_UIkit.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Social_Media_App_UIkit/App/Configuration/Social_Media_App_UIkit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NLRT8KSZR;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Social_Media_App_UIkit/Info.plist;
+				INFOPLIST_FILE = Social_Media_App_UIkit/App/Configuration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Aura;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Give permission to use library";
