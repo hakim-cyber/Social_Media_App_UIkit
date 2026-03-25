@@ -8,13 +8,19 @@
 import UIKit
 import AuthenticationServices
 import Combine
+
+enum LoginRoute {
+    case signUp(email: String)
+    case forgotPassword(email: String)
+}
+
 class LoginViewModel:ObservableObject{
-    weak var delegate: AuthViewModelDelegate?
     @Published var email:String = ""
     @Published var password:String = ""
     
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
+    let route = PassthroughSubject<LoginRoute, Never>()
     
     func login() {
         // Reset previous error
@@ -54,8 +60,7 @@ class LoginViewModel:ObservableObject{
     
     
     func forgotPassword(){
-      
-        self.delegate?.showForgotPasswordEmailScreen(email: email)
+        route.send(.forgotPassword(email: email))
     }
     func signInWithGoogle(viewController:UIViewController){
         isLoading = true
@@ -90,7 +95,7 @@ class LoginViewModel:ObservableObject{
     
     
     func goToSignUP(){
-        self.delegate?.showSignUpScreen(email: email)
+        route.send(.signUp(email: email))
     }
     
     // MARK: - Helper functions

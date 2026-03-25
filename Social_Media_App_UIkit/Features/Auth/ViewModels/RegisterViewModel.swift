@@ -10,14 +10,19 @@ import UIKit
 import AuthenticationServices
 import Combine
 internal import Auth
+
+enum RegisterRoute {
+    case showConfirmAlert(email: String, type: ConfirmAlerrType)
+}
+
 class RegisterViewModel:ObservableObject{
-    weak var delegate: AuthViewModelDelegate?
     @Published var email:String = ""
     @Published var password:String = ""
     @Published var confirmPassword:String = ""
     
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
+    let route = PassthroughSubject<RegisterRoute, Never>()
     
   // returns email to show in alert
     func signUp(){
@@ -52,7 +57,7 @@ class RegisterViewModel:ObservableObject{
             do{
                 let user =  try await  AuthService.shared.signUp(email: email, password: password)
                 if let email = user.email{
-                    self.delegate?.showConfirmAlert(email: email, type: .emailVerification)
+                    route.send(.showConfirmAlert(email: email, type: .emailVerification))
                 }
             }catch{
                 print(error)

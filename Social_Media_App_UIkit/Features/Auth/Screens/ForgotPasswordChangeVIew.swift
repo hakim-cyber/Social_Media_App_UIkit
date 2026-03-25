@@ -118,27 +118,8 @@ class ForgotPasswordChangeVIew: UIViewController {
     }
    
     
-    func showConfirmMailAlert(){
-        let alert = UIAlertController(
-                                title: "Changed Your Password",
-                                message:"You can now enter with new password.",
-                                preferredStyle: .alert
-                            )
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-            self.dismiss(animated: true)
-        }))
-                            self.present(alert, animated: true)
-    }
-    
-    
-    
     @objc func changeButtonTapped() {
-   
-       
-        viewModel.changePasswordToNewOne {[weak self] in
-                    self?.showConfirmMailAlert()
-                }
-               
+        viewModel.changePasswordToNewOne()
     }
    
   

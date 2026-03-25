@@ -7,8 +7,12 @@
 import Foundation
 import Combine
 
+enum ForgotPasswordRoute {
+    case showConfirmAlert(email: String, type: ConfirmAlerrType)
+    case passwordChanged
+}
+
 class ForgotPasswordViewModel {
-    weak var delegate: AuthViewModelDelegate?
     @Published var email:String = ""
     
     @Published var newPassword:String = ""
@@ -17,10 +21,9 @@ class ForgotPasswordViewModel {
     
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
+    let route = PassthroughSubject<ForgotPasswordRoute, Never>()
     
-    var resetedPassword:(()->Void)?
-    
-    func changePasswordToNewOne(complete: @escaping ()->Void)  {
+    func changePasswordToNewOne()  {
        
         
         guard newPassword.count >= 6 else {
@@ -36,9 +39,8 @@ class ForgotPasswordViewModel {
         
         Task{
             do{
-              let newUser = try await AuthService.shared.updatePassword(newPassword: newPassword)
-                complete()
-                resetedPassword?()
+                let _ = try await AuthService.shared.updatePassword(newPassword: newPassword)
+                route.send(.passwordChanged)
             }catch{
                 self.loginError = .custom(error.localizedDescription)
             }
@@ -56,7 +58,7 @@ class ForgotPasswordViewModel {
         Task{
             do{
                 try await AuthService.shared.sendPasswordReset(email: email)
-                self.delegate?.showConfirmAlert(email: email, type: .passwordReset)
+                route.send(.showConfirmAlert(email: email, type: .passwordReset))
             }catch{
                 self.loginError = .custom(error.localizedDescription)
             }

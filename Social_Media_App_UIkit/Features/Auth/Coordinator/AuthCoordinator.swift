@@ -6,10 +6,12 @@
 //
 
 import UIKit
+import Combine
 
 final class AuthCoordinator: NavigationCoordinator {
     var navigationController: UINavigationController
     let onboardingService: OnboardingService
+    private var cancellables = Set<AnyCancellable>()
 
     init(navigationController: UINavigationController,onboardingService:OnboardingService) {
         self.navigationController = navigationController
@@ -36,14 +38,27 @@ final class AuthCoordinator: NavigationCoordinator {
        }
        
        func showLoginScreen() {
+           cancellables.removeAll()
            let viewModel = LoginViewModel()
-           viewModel.delegate = self
+
+           viewModel.route
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] route in
+                   self?.handleLoginRoute(route)
+               }
+               .store(in: &cancellables)
+
            let vc = LoginViewController(viewModel: viewModel)
            navigationController.setViewControllers([vc], animated: true)
        }
     func showSignUpScreen(email:String){
         let viewModel = RegisterViewModel()
-        viewModel.delegate = self
+        viewModel.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handleRegisterRoute(route)
+            }
+            .store(in: &cancellables)
         viewModel.email = email
         let vc = RegisterViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
@@ -53,17 +68,24 @@ final class AuthCoordinator: NavigationCoordinator {
     func showForgotPasswordEmailScreen(email:String) {
         let viewModel = ForgotPasswordViewModel()
         viewModel.email = email
-        viewModel.delegate = self
+        viewModel.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handleForgotPasswordRoute(route)
+            }
+            .store(in: &cancellables)
         let vc = ForgetPasswordEmailViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
     }
     
     func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
         let viewModel = ForgotPasswordViewModel()
-        viewModel.delegate = self
-        viewModel.resetedPassword = {
-            finished()
-        }
+        viewModel.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handleForgotPasswordRoute(route, finished: finished)
+            }
+            .store(in: &cancellables)
         let resetVC = ForgotPasswordChangeVIew(viewModel: viewModel)
       resetVC.modalPresentationStyle = .automatic
         navigationController.present(resetVC, animated: true)
@@ -71,17 +93,45 @@ final class AuthCoordinator: NavigationCoordinator {
     
 }
 
+extension AuthCoordinator {
+    private func handleLoginRoute(_ route: LoginRoute) {
+        switch route {
+        case .signUp(let email):
+            showSignUpScreen(email: email)
+        case .forgotPassword(let email):
+            showForgotPasswordEmailScreen(email: email)
+        }
+    }
+
+    private func handleRegisterRoute(_ route: RegisterRoute) {
+        switch route {
+        case .showConfirmAlert(let email, let type):
+            showConfirmAlert(email: email, type: type)
+        }
+    }
+
+    private func handleForgotPasswordRoute(_ route: ForgotPasswordRoute, finished: (() -> Void)? = nil) {
+        switch route {
+        case .showConfirmAlert(let email, let type):
+            showConfirmAlert(email: email, type: type)
+        case .passwordChanged:
+            let presenter = navigationController.presentedViewController ?? navigationController
+            showAlert(
+                title: "Changed Your Password",
+                message: "You can now enter with new password.",
+                presenter: presenter
+            ) { [weak self] in
+                self?.navigationController.dismiss(animated: true)
+                finished?()
+            }
+        }
+    }
+}
 
 enum ConfirmAlerrType {
    case passwordReset, emailVerification
 }
-protocol AuthViewModelDelegate: AnyObject {
-    
-    func showConfirmAlert(email:String,type:ConfirmAlerrType)
-    func showForgotPasswordEmailScreen(email:String)
-    func showSignUpScreen(email:String)
-}
-extension AuthCoordinator: AuthViewModelDelegate {
+extension AuthCoordinator {
      
     func showConfirmAlert(email: String,type:ConfirmAlerrType) {
         switch type {
@@ -105,6 +155,7 @@ extension AuthCoordinator: AuthViewModelDelegate {
             title: String,
             message: String,
             okTitle: String = "OK",
+            presenter: UIViewController? = nil,
             onOk: (() -> Void)? = nil
         ) {
             let alert = UIAlertController(
@@ -117,7 +168,7 @@ extension AuthCoordinator: AuthViewModelDelegate {
                 onOk?()
             })
             
-            self.navigationController.present(alert, animated: true)
+            (presenter ?? self.navigationController).present(alert, animated: true)
         }
     
 }
