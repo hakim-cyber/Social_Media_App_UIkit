@@ -60,6 +60,9 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
         let vc = ProfileViewController(vm: vm)
         vc.coordinator = self   // via protocol
      
+     Task { [weak self] in
+         await self?.viewModel?.loadIfNeeded() // because we need to load before showing
+     }
      
         navigationController.setViewControllers([vc], animated: animated)
     }
@@ -70,7 +73,9 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
             let vc = ProfileViewController(vm: vm)
             vc.coordinator = self
             profileVC = vc
-
+        Task { [weak self] in
+            await self?.viewModel?.loadIfNeeded() // because we need to load before showing
+        }
             navigationController.delegate = self
             navigationController.pushViewController(vc, animated: animated)
         }

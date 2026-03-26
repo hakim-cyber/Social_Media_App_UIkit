@@ -8,32 +8,58 @@
 import UIKit
 import Combine
 
-class CreatePostViewModel:ObservableObject{
-    weak var coordinator:CreatePostDelegate?
+
+enum CreatePostRoute {
+    case cancel
+    case showLocationPicker
+    case finished(Post)
+}
+
+final class CreatePostViewModel: ObservableObject {
     var selectedImage:UIImage?
-   @Published var isLoading:Bool = false
+    @Published private(set) var selectedLocation: String?
+    @Published var isLoading:Bool = false
     @Published private(set) var errorMessage: String? = nil
-    
-    let postService = PostActionService()
-    
-    func createPost(caption:String,location:String?) async{
-        guard !isLoading else{return}
-      
-        if let image = self.selectedImage{
-            isLoading = true
-                do{
-                   let createdPost = try await   postService.createPost(caption: caption, image: image , location: location)
-                  print("Create \(createdPost)")
-                    coordinator?.finishedCreatingPost(post: createdPost)
-                }catch{
-                    errorMessage = error.localizedDescription
-                }
-            isLoading = false
-            
+
+    let route = PassthroughSubject<CreatePostRoute, Never>()
+    private let postService = PostActionService()
+
+    func createPost(caption: String) async {
+        guard !isLoading else { return }
+
+        guard let image = selectedImage else {
+            errorMessage = "Please select an image."
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let createdPost = try await postService.createPost(
+                caption: caption,
+                image: image,
+                location: selectedLocation
+            )
+            route.send(.finished(createdPost))
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
+
     func tappedCancel(){
-        self.isLoading = false
-        self.coordinator?.tappedCancelCreate()
+        self.route.send(.cancel)
+    }
+
+    func tappedLocation(){
+        self.route.send(.showLocationPicker)
+    }
+
+    func setSelectedLocation(_ location: String) {
+        selectedLocation = location
+    }
+
+    func clearLocation() {
+        selectedLocation = nil
     }
 }

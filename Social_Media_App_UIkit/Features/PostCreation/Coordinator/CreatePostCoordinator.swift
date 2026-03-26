@@ -6,11 +6,9 @@
 //
 
 import UIKit
-import UIKit
+import Combine
 
 final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
-  
-
     weak var parentCoordinator: ParentCoordinator?
 
     /// This is the nav (or VC) that will present the create flow.
@@ -18,54 +16,67 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
 
     /// This is the modal nav controller we present full-screen.
     var navigationController: UINavigationController
-
+    private var cancellables = Set<AnyCancellable>()
     private var viewModel: CreatePostViewModel?
+
     init(presenter: UIViewController) {
         self.presenter = presenter
         self.navigationController = UINavigationController()
     }
 
     func start(animated: Bool) {
-        // 1) Build VM & VC
         let vm = CreatePostViewModel()
-        self.viewModel = vm
-        vm.coordinator = self
-        let vc = PostCreationViewController(vm: vm)
-        
-       
+        viewModel = vm
+        vm.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handleCreatePostRoute(route: route)
+            }
+            .store(in: &cancellables)
 
-        // 2) Configure modal nav
+        let vc = PostCreationViewController(vm: vm)
+
         navigationController.setViewControllers([vc], animated: false)
         navigationController.modalPresentationStyle = .fullScreen
-        
 
-        // 3) Present full-screen
         presenter.present(navigationController, animated: animated)
     }
 
     private func finish() {
         navigationController.dismiss(animated: true) { [weak self] in
             guard let self else { return }
+            self.cancellables.removeAll()
+            self.viewModel = nil
             self.parentCoordinator?.childDidFinish(self)
         }
     }
+
     func coordinatorDidFinish() {
         finish()
     }
-    
+
+    private func showLocationPicker() {
+        guard navigationController.presentedViewController == nil else { return }
+
+        let picker = LocationTextPickerViewController()
+        picker.onSelect = { [weak self] locationString in
+            self?.viewModel?.setSelectedLocation(locationString)
+        }
+        let nav = UINavigationController(rootViewController: picker)
+        navigationController.present(nav, animated: true)
+    }
+
 }
 
-// MARK: - Pager delegate -> Coordinator closes flow
-extension CreatePostCoordinator: CreatePostDelegate {
-    func tappedCancelCreate() {
-        finish()
+extension CreatePostCoordinator {
+    private func handleCreatePostRoute(route: CreatePostRoute) {
+        switch route {
+        case .cancel:
+            finish()
+        case .finished:
+            finish()
+        case .showLocationPicker:
+            showLocationPicker()
+        }
     }
-    func finishedCreatingPost(post: Post) {
-        finish()
-    }
-}
-
-protocol CreatePostDelegate:AnyObject{
-    func tappedCancelCreate()
-    func finishedCreatingPost(post:Post)
 }
