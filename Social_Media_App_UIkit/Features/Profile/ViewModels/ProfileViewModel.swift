@@ -76,8 +76,8 @@ class ProfileViewModel:ObservableObject{
     private var likingPosts = Set<UUID>()
     private var savingPosts = Set<UUID>()
     @Published private(set) var postTranslations: [UUID: TranslationState] = [:]
-    let route = PassthroughSubject<ProfileRoute, Never>()
-    let postRoute = PassthroughSubject<ProfilePostRoute, Never>()
+    var onRoute: ((ProfileRoute) -> Void)?
+    var onPostRoute: ((ProfilePostRoute) -> Void)?
 
 
     let target: ProfileTarget
@@ -248,34 +248,34 @@ class ProfileViewModel:ObservableObject{
         self.profile = profile
     }
     func didTapEditProfile() {
-        route.send(.editProfile)
+        onRoute?(.editProfile)
     }
     func didTapMessage() {
-        route.send(.message)
+        onRoute?(.message)
     }
     func didTapMore() {
-        route.send(.more)
+        onRoute?(.more)
     }
     func didTapShareProfile() {
-        route.send(.shareProfile)
+        onRoute?(.shareProfile)
     }
     func didTapFollowers() {
-        route.send(.followers)
+        onRoute?(.followers)
     }
     func didTapFollowing() {
-        route.send(.following)
+        onRoute?(.following)
     }
     func didSelectPost(_ post: Post) {
-        route.send(.openPost(post))
+        onRoute?(.openPost(post))
     }
     func didTapPostAvatar(_ post: Post) {
-        postRoute.send(.openProfile(post.author))
+        onPostRoute?(.openProfile(post.author))
     }
     func didTapPostMore(_ post: Post) {
-        postRoute.send(.showPostMore(post))
+        onPostRoute?(.showPostMore(post))
     }
     func didTapPostComment(_ post: Post) {
-        postRoute.send(.showComments(post))
+        onPostRoute?(.showComments(post))
     }
     func logout() async {
         do {

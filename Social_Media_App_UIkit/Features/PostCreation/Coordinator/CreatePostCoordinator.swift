@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Combine
 
 final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
     weak var parentCoordinator: ParentCoordinator?
@@ -16,7 +15,6 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
 
     /// This is the modal nav controller we present full-screen.
     var navigationController: UINavigationController
-    private var cancellables = Set<AnyCancellable>()
     private var viewModel: CreatePostViewModel?
 
     init(presenter: UIViewController) {
@@ -27,12 +25,11 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
     func start(animated: Bool) {
         let vm = CreatePostViewModel()
         viewModel = vm
-        vm.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        vm.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handleCreatePostRoute(route: route)
             }
-            .store(in: &cancellables)
+        }
 
         let vc = PostCreationViewController(vm: vm)
 
@@ -45,7 +42,7 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
     private func finish() {
         navigationController.dismiss(animated: true) { [weak self] in
             guard let self else { return }
-            self.cancellables.removeAll()
+            self.viewModel?.onRoute = nil
             self.viewModel = nil
             self.parentCoordinator?.childDidFinish(self)
         }

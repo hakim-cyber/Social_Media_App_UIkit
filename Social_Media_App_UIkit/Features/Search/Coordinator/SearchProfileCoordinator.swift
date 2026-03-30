@@ -8,7 +8,6 @@
 import UIKit
 import SwiftUI
 import Supabase
-import Combine
 
 final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
@@ -22,40 +21,37 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
     var navigationController: UINavigationController
 
     private var viewModel: SearchViewModel?
-    private var cancellables = Set<AnyCancellable>()
-  
+
     init(
         navigationController: UINavigationController,
     ) {
         self.navigationController = navigationController
-       
+
     }
 
     func start(animated: Bool) {
         let vm = SearchViewModel()
-        
-        vm.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        vm.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 switch route {
                 case .openProfile(let id):
                     self?.showProfile(userId: id)
                 }
             }
-            .store(in: &cancellables)
-        
+        }
+
 
         let view = SearchProfileView(vm: vm)
                 let host = UIHostingController(rootView: view)
         self.viewModel = vm
-       
+
 
             navigationController.setViewControllers([host], animated: animated)
-           
-            
+
+
     }
     func showProfile(userId: UUID) {
-     
+
             let currentId = UserSessionService.shared.currentUser?.id
 
             if currentId == userId,
@@ -71,14 +67,14 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
             coord.parentCoordinator = self
             self.addChild(coord)
             coord.startPush(animated: true)
-        
+
     }
     deinit {
-       
+
     }
 
     func coordinatorDidFinish() {
-       
+
         parentCoordinator?.childDidFinish(self)
     }
 }

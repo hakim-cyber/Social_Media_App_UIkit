@@ -21,7 +21,7 @@ final class CreatePostViewModel: ObservableObject {
     @Published var isLoading:Bool = false
     @Published private(set) var errorMessage: String? = nil
 
-    let route = PassthroughSubject<CreatePostRoute, Never>()
+    var onRoute: ((CreatePostRoute) -> Void)?
     private let postService = PostActionService()
 
     func createPost(caption: String) async {
@@ -41,18 +41,18 @@ final class CreatePostViewModel: ObservableObject {
                 image: image,
                 location: selectedLocation
             )
-            route.send(.finished(createdPost))
+            onRoute?(.finished(createdPost))
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
     func tappedCancel(){
-        self.route.send(.cancel)
+        onRoute?(.cancel)
     }
 
     func tappedLocation(){
-        self.route.send(.showLocationPicker)
+        onRoute?(.showLocationPicker)
     }
 
     func setSelectedLocation(_ location: String) {

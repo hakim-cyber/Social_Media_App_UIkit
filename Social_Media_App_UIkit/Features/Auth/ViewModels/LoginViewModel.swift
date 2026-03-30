@@ -17,28 +17,28 @@ enum LoginRoute {
 class LoginViewModel:ObservableObject{
     @Published var email:String = ""
     @Published var password:String = ""
-    
+
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
-    let route = PassthroughSubject<LoginRoute, Never>()
-    
+    var onRoute: ((LoginRoute) -> Void)?
+
     func login() {
         // Reset previous error
-      
+
         loginError = nil
-        
+
         // Validate email
         guard email.isValidEmail else {
             newError(AuthError.invalidEmail)
             return
         }
-        
+
         // Validate password
         guard !password.isEmpty else {
             newError(AuthError.invalidPasswordEmpty)
             return
         }
-        
+
         guard password.count >= 6 else {
             newError(AuthError.invalidPasswordTooShort)
             return
@@ -47,20 +47,20 @@ class LoginViewModel:ObservableObject{
         Task{
             do{
                 let _ =  try await  AuthService.shared.signIn(email: email, password: password)
-               
+
             }catch{
                 print(error)
                newError(error)
-               
+
             }
             isLoading = false
         }
-      
+
     }
-    
-    
+
+
     func forgotPassword(){
-        route.send(.forgotPassword(email: email))
+        onRoute?(.forgotPassword(email: email))
     }
     func signInWithGoogle(viewController:UIViewController){
         isLoading = true
@@ -74,15 +74,15 @@ class LoginViewModel:ObservableObject{
             }
             self.isLoading = false
         }
-       
+
     }
     // MARK: - Apple Sign In
     func signInWithApple(presentationContextProvider:ASAuthorizationControllerPresentationContextProviding){
         isLoading = true
-        
+
         AuthService.shared.signInWithAppleUI(presentationContextProvider: presentationContextProvider){[weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success(_):
                 self.loginError = nil
@@ -92,14 +92,14 @@ class LoginViewModel:ObservableObject{
             self.isLoading = false
         }
     }
-    
-    
+
+
     func goToSignUP(){
-        route.send(.signUp(email: email))
+        onRoute?(.signUp(email: email))
     }
-    
+
     // MARK: - Helper functions
-    
+
     func newError(_ error:Error){
         if let error = error as? AuthError {
             self.loginError = error
@@ -108,5 +108,5 @@ class LoginViewModel:ObservableObject{
             self.loginError = error
         }
     }
-   
+
 }

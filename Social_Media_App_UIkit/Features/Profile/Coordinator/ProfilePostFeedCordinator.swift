@@ -9,7 +9,6 @@ import Foundation
 
 import UIKit
 import Supabase
-import Combine
 final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -23,9 +22,7 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
 
     private let viewModel: ProfileViewModel
     private let seletedPost: Post
-    private var cancellables = Set<AnyCancellable>()
     private weak var commentsNavController: UINavigationController?
-    private var commentRouteCancellable: AnyCancellable?
     init(
         navigationController: UINavigationController,
         viewModel:ProfileViewModel,
@@ -78,13 +75,11 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
         parentCoordinator?.childDidFinish(self)
     }
     private func bindPostRoutes() {
-        cancellables.removeAll()
-        viewModel.postRoute
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        viewModel.onPostRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handle(route)
             }
-            .store(in: &cancellables)
+        }
     }
 }
 
@@ -163,28 +158,26 @@ extension ProfilePostFeedCordinator {
 
 extension ProfilePostFeedCordinator{
     private func bindCommentRoutes(_ viewModel: CommentViewModel) {
-        commentRouteCancellable = viewModel.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 switch route {
                 case .openProfile(let author):
                     self?.showProfile(author: author)
                 }
             }
+        }
     }
 
     private func dismissPresentedIfNeeded(animated: Bool = true, completion: @escaping () -> Void) {
         // If you keep an explicit ref (recommended)
         if let nav = commentsNavController {
             commentsNavController = nil
-            commentRouteCancellable = nil
             nav.dismiss(animated: animated, completion: completion)
             return
         }
 
         // Fallback: dismiss whatever is presented from the feed nav
         if let presented = navigationController.presentedViewController {
-            commentRouteCancellable = nil
             presented.dismiss(animated: animated, completion: completion)
             return
         }

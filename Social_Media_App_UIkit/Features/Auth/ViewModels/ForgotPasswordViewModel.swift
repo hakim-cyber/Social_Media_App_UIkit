@@ -14,39 +14,39 @@ enum ForgotPasswordRoute {
 
 class ForgotPasswordViewModel {
     @Published var email:String = ""
-    
+
     @Published var newPassword:String = ""
     @Published var confirmPassword:String = ""
-    
-    
+
+
     @Published var loginError: AuthError?
     @Published var isLoading: Bool = false
-    let route = PassthroughSubject<ForgotPasswordRoute, Never>()
-    
+    var onRoute: ((ForgotPasswordRoute) -> Void)?
+
     func changePasswordToNewOne()  {
-       
-        
+
+
         guard newPassword.count >= 6 else {
             self.loginError = AuthError.invalidPasswordTooShort
             return
         }
-        
+
         guard newPassword == confirmPassword else {
             self.loginError = AuthError.passwordsDoNotMatch
             return
         }
         isLoading = true
-        
+
         Task{
             do{
                 let _ = try await AuthService.shared.updatePassword(newPassword: newPassword)
-                route.send(.passwordChanged)
+                onRoute?(.passwordChanged)
             }catch{
                 self.loginError = .custom(error.localizedDescription)
             }
             isLoading = false
         }
-        
+
     }
     func sendPasswordReset()  {
         // Validate email
@@ -58,7 +58,7 @@ class ForgotPasswordViewModel {
         Task{
             do{
                 try await AuthService.shared.sendPasswordReset(email: email)
-                route.send(.showConfirmAlert(email: email, type: .passwordReset))
+                onRoute?(.showConfirmAlert(email: email, type: .passwordReset))
             }catch{
                 self.loginError = .custom(error.localizedDescription)
             }

@@ -9,7 +9,6 @@ import Foundation
 
 
 import UIKit
-import Combine
 final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator, ChildCoordinator,UINavigationControllerDelegate {
 
     // MARK: - ParentCoordinator
@@ -26,7 +25,6 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
 
 
     private var viewModel: ProfileViewModel?
-    private var cancellables = Set<AnyCancellable>()
     private let target: ProfileTarget
 
     private weak var profileVC: UIViewController?
@@ -85,13 +83,11 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
         }
 
     private func bind(_ vm: ProfileViewModel) {
-        cancellables.removeAll()
-        vm.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        vm.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handle(route)
             }
-            .store(in: &cancellables)
+        }
     }
 }
 

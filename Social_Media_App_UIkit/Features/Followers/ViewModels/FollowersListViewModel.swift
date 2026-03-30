@@ -53,7 +53,7 @@ class FollowersListViewModel{
     let isCurrentUser:Bool
 
     private var followingUsers = Set<UUID>()
-    let route = PassthroughSubject<FollowerListRoute, Never>()
+    var onRoute: ((FollowerListRoute) -> Void)?
 
     let followService:FollowService
     init(
@@ -68,10 +68,10 @@ class FollowersListViewModel{
            self.followService = followService
     }
     func didTapProfile(_ user: UserFollowItem) {
-        route.send(.openProfile(user))
+        onRoute?(.openProfile(user))
     }
     func didTapMore(_ user: UserFollowItem) {
-        route.send(.showMore(user))
+        onRoute?(.showMore(user))
     }
     // button actions
     private func updateList(_ userID: UUID, _ update: (inout UserFollowItem) -> Void) {

@@ -7,7 +7,6 @@
 
 import UIKit
 import Supabase
-import Combine
 
 final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
@@ -24,10 +23,8 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     private let realtime: FeedRealtime
 
     private var viewModel: FeedViewModel?
-    private var cancellables = Set<AnyCancellable>()
 
     private weak var commentsNavController: UINavigationController?
-    private var commentRouteCancellable: AnyCancellable?
     init(
         navigationController: UINavigationController,
         feedService: FeedService = .init(),
@@ -41,10 +38,8 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     func start(animated: Bool) {
         let vm = FeedViewModel(service: feedService, realtime: realtime)
         self.viewModel = vm
-
-        vm.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        vm.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 switch route {
                 case .openProfile(let userId):
                     self?.showProfile(id: userId)
@@ -54,7 +49,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
                     self?.postCellDidTapComment(post)
                 }
             }
-            .store(in: &cancellables)
+        }
         let vc = PostFeedViewController(vm: vm)
 
 
@@ -166,28 +161,26 @@ extension FeedCoordinator {
 
 extension FeedCoordinator{
     private func bindCommentRoutes(_ viewModel: CommentViewModel) {
-        commentRouteCancellable = viewModel.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 switch route {
                 case .openProfile(let author):
                     self?.showProfile(id: author.id)
                 }
             }
+        }
     }
 
     private func dismissPresentedIfNeeded(animated: Bool = true, completion: @escaping () -> Void) {
         // If you keep an explicit ref (recommended)
         if let nav = commentsNavController {
             commentsNavController = nil
-            commentRouteCancellable = nil
             nav.dismiss(animated: animated, completion: completion)
             return
         }
 
         // Fallback: dismiss whatever is presented from the feed nav
         if let presented = navigationController.presentedViewController {
-            commentRouteCancellable = nil
             presented.dismiss(animated: animated, completion: completion)
             return
         }

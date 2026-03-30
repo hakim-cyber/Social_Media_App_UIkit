@@ -6,12 +6,10 @@
 //
 
 import UIKit
-import Combine
 
 final class AuthCoordinator: NavigationCoordinator {
     var navigationController: UINavigationController
     let onboardingService: OnboardingService
-    private var cancellables = Set<AnyCancellable>()
 
     init(navigationController: UINavigationController,onboardingService:OnboardingService) {
         self.navigationController = navigationController
@@ -27,7 +25,7 @@ final class AuthCoordinator: NavigationCoordinator {
     }
 
     // MARK: - Screens
-       
+
        func showWelcomeScreen() {
            let welcomeVC = WelcomeViewController()
            welcomeVC.onUnlock = { [weak self] in
@@ -36,61 +34,55 @@ final class AuthCoordinator: NavigationCoordinator {
            }
            navigationController.setViewControllers([welcomeVC], animated: true)
        }
-       
-       func showLoginScreen() {
-           cancellables.removeAll()
-           let viewModel = LoginViewModel()
 
-           viewModel.route
-               .receive(on: DispatchQueue.main)
-               .sink { [weak self] route in
+       func showLoginScreen() {
+           let viewModel = LoginViewModel()
+           viewModel.onRoute = { [weak self] route in
+               DispatchQueue.main.async {
                    self?.handleLoginRoute(route)
                }
-               .store(in: &cancellables)
+           }
 
            let vc = LoginViewController(viewModel: viewModel)
            navigationController.setViewControllers([vc], animated: true)
        }
     func showSignUpScreen(email:String){
         let viewModel = RegisterViewModel()
-        viewModel.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handleRegisterRoute(route)
             }
-            .store(in: &cancellables)
+        }
         viewModel.email = email
         let vc = RegisterViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
     }
-    
-    
+
+
     func showForgotPasswordEmailScreen(email:String) {
         let viewModel = ForgotPasswordViewModel()
         viewModel.email = email
-        viewModel.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handleForgotPasswordRoute(route)
             }
-            .store(in: &cancellables)
+        }
         let vc = ForgetPasswordEmailViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
     }
-    
+
     func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
         let viewModel = ForgotPasswordViewModel()
-        viewModel.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handleForgotPasswordRoute(route, finished: finished)
             }
-            .store(in: &cancellables)
+        }
         let resetVC = ForgotPasswordChangeVIew(viewModel: viewModel)
       resetVC.modalPresentationStyle = .automatic
         navigationController.present(resetVC, animated: true)
     }
-    
+
 }
 
 extension AuthCoordinator {
@@ -132,10 +124,10 @@ enum ConfirmAlerrType {
    case passwordReset, emailVerification
 }
 extension AuthCoordinator {
-     
+
     func showConfirmAlert(email: String,type:ConfirmAlerrType) {
         switch type {
-       
+
         case .passwordReset:
             self.showAlert(title: "Check Your Email", message:  "A password reset link has been sent to \(email).") {[weak self] in
                 self?.navigationController.popViewController(animated: true)
@@ -149,8 +141,8 @@ extension AuthCoordinator {
             }
         }
         }
-    
-   
+
+
         func showAlert(
             title: String,
             message: String,
@@ -163,12 +155,12 @@ extension AuthCoordinator {
                 message: message,
                 preferredStyle: .alert
             )
-            
+
             alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in
                 onOk?()
             })
-            
+
             (presenter ?? self.navigationController).present(alert, animated: true)
         }
-    
+
 }

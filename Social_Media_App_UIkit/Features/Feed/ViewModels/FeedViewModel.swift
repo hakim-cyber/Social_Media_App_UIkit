@@ -38,7 +38,7 @@ class FeedViewModel{
         self.realtime = realtime
     }
     private(set) var cancellables = Set<AnyCancellable>()
-    let route = PassthroughSubject<FeedRoute, Never>()
+    var onRoute: ((FeedRoute) -> Void)?
     private let pageSize =  20
     private let newerPageSize = 40
 
@@ -51,15 +51,15 @@ class FeedViewModel{
     // MARK: - Navigation
 
     func didTapAvatar(_ post: Post) {
-        route.send(.openProfile(post.author.id))
+        onRoute?(.openProfile(post.author.id))
     }
 
     func didTapMore(_ post: Post) {
-        route.send(.showPostMore(post))
+        onRoute?(.showPostMore(post))
     }
 
     func didTapComment(_ post: Post) {
-        route.send(.showComments(post))
+        onRoute?(.showComments(post))
     }
 
     @MainActor

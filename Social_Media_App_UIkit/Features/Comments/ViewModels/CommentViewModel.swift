@@ -30,7 +30,7 @@ class CommentViewModel{
     private let pageSize = 20
 
     @Published private(set) var commentTranslations: [UUID: TranslationState] = [:]
-    let route = PassthroughSubject<CommentRoute, Never>()
+    var onRoute: ((CommentRoute) -> Void)?
 
     let userService:UserService = .init()
     init(postId:UUID,service:CommentService,commentsCount:Int){
@@ -39,7 +39,7 @@ class CommentViewModel{
         self.commmentsCount = commentsCount
     }
     func didTapAvatar(_ comment: PostComment) {
-        route.send(.openProfile(comment.author))
+        onRoute?(.openProfile(comment.author))
     }
     @MainActor
     func toggleTranslation(postId: UUID, originalText: String) {

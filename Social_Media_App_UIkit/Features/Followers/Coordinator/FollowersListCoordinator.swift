@@ -7,7 +7,6 @@
 
 import UIKit
 import Supabase
-import Combine
 final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -20,7 +19,6 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
     var navigationController: UINavigationController
 
     private var viewModel: FollowersListViewModel?
-    private var cancellables = Set<AnyCancellable>()
     private let user: UserProfile
     private let isCurrentUser: Bool
     private let target: FollowerListTarget
@@ -76,13 +74,11 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
     }
 
     private func bind(_ vm: FollowersListViewModel) {
-        cancellables.removeAll()
-        vm.route
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] route in
+        vm.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
                 self?.handle(route)
             }
-            .store(in: &cancellables)
+        }
     }
 
     private func handle(_ route: FollowerListRoute) {

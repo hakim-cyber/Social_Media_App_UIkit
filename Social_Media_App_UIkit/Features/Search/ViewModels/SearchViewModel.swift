@@ -16,21 +16,21 @@ class SearchViewModel:ObservableObject{
     @Published private(set) var results: [UserSummary] = []
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var errorMessage: String?
-    
-    let route = PassthroughSubject<SearchRoute, Never>()
+
+    var onRoute: ((SearchRoute) -> Void)?
     let searchService: SearchService
-    
+
     private let limit = 10
-    
+
     init(
         searchService: SearchService = .init(),
     ) {
-        
+
         self.searchService = searchService
     }
-    
+
     func didSelectUser(_ user: UserSummary) {
-        route.send(.openProfile(user.id))
+        onRoute?(.openProfile(user.id))
     }
     func search() async{
         guard !query.isEmpty else {
@@ -39,22 +39,22 @@ class SearchViewModel:ObservableObject{
             isLoading = false
             return
         }
-        
+
         isLoading = true
         errorMessage = nil
-        
+
         do {
             let users = try await searchService.searchUsers(query: query, limit: limit)
             self.results = users
             self.isLoading = false
-            
+
         } catch {
-            
+
             self.results = []
             self.isLoading = false
             self.errorMessage = error.localizedDescription
         }
-        
+
     }
     func clean(){
         results = []
