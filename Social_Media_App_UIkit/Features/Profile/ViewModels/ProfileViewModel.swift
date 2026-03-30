@@ -70,11 +70,13 @@ class ProfileViewModel:ObservableObject{
     let followService: FollowService
     let postQueryService:PostQueryService = .init()
     private let postService = PostActionService()
+    private let sessionManager: SessionManaging
     
     init(
            target: ProfileTarget,
            profileService: ProfileService = .init(),
-           followService: FollowService = .init()
+           followService: FollowService = .init(),
+           sessionManager: SessionManaging = AuthSessionManager()
        ) {
         self.target = target
         switch target {
@@ -87,6 +89,7 @@ class ProfileViewModel:ObservableObject{
         }
            self.profileService = profileService
            self.followService = followService
+        self.sessionManager = sessionManager
       
           
            
@@ -225,6 +228,13 @@ class ProfileViewModel:ObservableObject{
     }
     func updateProfile(profile:UserProfile){
         self.profile = profile
+    }
+    func logout() async {
+        do {
+            try await sessionManager.logout()
+        } catch {
+            errorMessage = "Failed to log out. Please try again."
+        }
     }
     func loadProfile() async  {
         guard let userID else {

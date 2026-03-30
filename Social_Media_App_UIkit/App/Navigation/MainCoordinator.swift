@@ -15,6 +15,7 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
     // MARK: - Shared services
     let onboardingService: OnboardingService
     let profileService: ProfileService
+    private let startResolver: MainStartResolving
 
     // MARK: - Root
     /// This is the REAL root of the main app (AppCoordinator sets this as window.rootViewController)
@@ -40,38 +41,29 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
 
     // MARK: - Init
 
-    init(onboardingService: OnboardingService) {
+    init(
+        onboardingService: OnboardingService,
+        profileService: ProfileService = .init(),
+        startResolver: MainStartResolving? = nil
+    ) {
         self.onboardingService = onboardingService
-        self.profileService = ProfileService()
+        self.profileService = profileService
+        self.startResolver = startResolver ?? MainStartResolver(profileService: profileService)
     }
 
     // Main entry point
     func start(animated: Bool) {
-        Task {
-            await checkAndShowSetupIfNeeded()
-        }
-    }
-
-    // MARK: - Profile / onboarding logic
-
-    private func checkAndShowSetupIfNeeded() async {
-        do {
-            let userHasProfile = try await profileService.checkIfUserHasProfile()
+        Task { [weak self] in
+            guard let self else { return }
+            let destination = await startResolver.resolve()
 
             await MainActor.run {
-                if userHasProfile {
-                    // User already has profile → show main tabs
+                switch destination {
+                case .mainTabs:
                     self.showMainView(animated: false)
-                } else {
-                    // No profile yet → show onboarding flow on top
+                case .onboarding:
                     self.showOnboardingSetup()
                 }
-            }
-        } catch {
-            print("Error checking profile: \(error)")
-            await MainActor.run {
-                // Fallback: treat as no profile, force onboarding
-                self.showOnboardingSetup()
             }
         }
     }

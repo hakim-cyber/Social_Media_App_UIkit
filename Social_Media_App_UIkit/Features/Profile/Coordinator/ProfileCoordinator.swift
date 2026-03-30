@@ -105,9 +105,9 @@ protocol ProfileCoordinating: AnyObject {
 extension ProfileCoordinator:ProfileCoordinating{
     func didTapMore() {
         guard let profile = viewModel?.profile else { return }
-        MoreSheetPresenter.showProfile(profile, from: self.navigationController){
-            Task{
-                try? await  AuthService.shared.logout()
+        MoreSheetPresenter.showProfile(profile, from: self.navigationController) { [weak self] in
+            Task {
+                await self?.viewModel?.logout()
             }
         }
     }
