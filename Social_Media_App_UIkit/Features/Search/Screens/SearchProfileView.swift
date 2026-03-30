@@ -9,8 +9,6 @@ import SwiftUI
 
 struct SearchProfileView: View {
     @StateObject var vm: SearchViewModel
-       @ObservedObject var router: SearchRouter
-
 
     @State private var presentError: Bool = false
     var body: some View {
@@ -29,7 +27,7 @@ struct SearchProfileView: View {
                 VStack(spacing: 15){
                     ForEach(vm.results, id: \.id) { user in
                         SearchProfileButton(user: user) {
-                            router.openProfile?(user.id)
+                            vm.didSelectUser(user)
                         }
                     }
                     

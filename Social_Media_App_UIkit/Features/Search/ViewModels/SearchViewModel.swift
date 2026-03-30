@@ -8,51 +8,53 @@
 import Combine
 import SwiftUI
 
+enum SearchRoute{
+    case openProfile(UUID)
+}
 class SearchViewModel:ObservableObject{
-   @Published var query: String = ""
+    @Published var query: String = ""
     @Published private(set) var results: [UserSummary] = []
-   @Published private(set) var isLoading: Bool = false
-   @Published private(set) var errorMessage: String?
+    @Published private(set) var isLoading: Bool = false
+    @Published private(set) var errorMessage: String?
     
-    
+    let route = PassthroughSubject<SearchRoute, Never>()
     let searchService: SearchService
-    private var cancellables = Set<AnyCancellable>()
-        private var searchTask: Task<Void, Never>?
-
-        private let limit = 10
+    
+    private let limit = 10
     
     init(
-           searchService: SearchService = .init(),
-       ) {
-      
-           self.searchService = searchService
+        searchService: SearchService = .init(),
+    ) {
+        
+        self.searchService = searchService
     }
     
+    func didSelectUser(_ user: UserSummary) {
+        route.send(.openProfile(user.id))
+    }
     func search() async{
         guard !query.isEmpty else {
-                    results = []
-                    errorMessage = nil
-                    isLoading = false
-                    return
-                }
+            results = []
+            errorMessage = nil
+            isLoading = false
+            return
+        }
         
         isLoading = true
-              errorMessage = nil
+        errorMessage = nil
         
         do {
-                    let users = try await searchService.searchUsers(query: query, limit: limit)
-
-print(users)
-                    self.results = users
-                    self.isLoading = false
-
-                } catch {
-                  
-                    self.results = []
-                    self.isLoading = false
-                    self.errorMessage = error.localizedDescription
-                }
-
+            let users = try await searchService.searchUsers(query: query, limit: limit)
+            self.results = users
+            self.isLoading = false
+            
+        } catch {
+            
+            self.results = []
+            self.isLoading = false
+            self.errorMessage = error.localizedDescription
+        }
+        
     }
     func clean(){
         results = []

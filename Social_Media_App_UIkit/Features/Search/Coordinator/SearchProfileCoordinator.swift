@@ -8,6 +8,8 @@
 import UIKit
 import SwiftUI
 import Supabase
+import Combine
+
 final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -19,11 +21,9 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
     // MARK: - Coordinator
     var navigationController: UINavigationController
 
-   
-
     private var viewModel: SearchViewModel?
-    private var router: SearchRouter?
-    
+    private var cancellables = Set<AnyCancellable>()
+  
     init(
         navigationController: UINavigationController,
     ) {
@@ -33,16 +33,22 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
 
     func start(animated: Bool) {
         let vm = SearchViewModel()
-       
-        let router = SearchRouter()
-        router.openProfile = { [weak self] userId in
-                   self?.showProfile(userId: userId)
-               }
-       
-        let view = SearchProfileView(vm: vm, router: router)
+        
+        vm.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                switch route {
+                case .openProfile(let id):
+                    self?.showProfile(userId: id)
+                }
+            }
+            .store(in: &cancellables)
+        
+
+        let view = SearchProfileView(vm: vm)
                 let host = UIHostingController(rootView: view)
         self.viewModel = vm
-        self.router = router
+       
 
             navigationController.setViewControllers([host], animated: animated)
            
@@ -76,9 +82,3 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
         parentCoordinator?.childDidFinish(self)
     }
 }
-import Combine
-
-final class SearchRouter: ObservableObject {
-    var openProfile: ((UUID) -> Void)?
-}
-
