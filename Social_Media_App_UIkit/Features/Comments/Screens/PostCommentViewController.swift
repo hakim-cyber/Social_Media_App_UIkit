@@ -15,13 +15,12 @@ nonisolated enum CommentSection: Hashable, Sendable {
 }
 
 class PostCommentViewController: UIViewController {
-    
+
     private var cancellables = Set<AnyCancellable>()
-    
+
     var dataSource: UITableViewDiffableDataSource<CommentSection, PostComment>?
     let vm:CommentViewModel
-    weak var coordinator: CommentCoordinating?
-    
+
     private lazy var postCommentTableView: UITableView = {
         let tv = UITableView()
         tv.showsVerticalScrollIndicator = false
@@ -33,14 +32,14 @@ class PostCommentViewController: UIViewController {
         tv.register(PostCommentTableViewCell.self, forCellReuseIdentifier: PostCommentTableViewCell.reuseID)
         tv.allowsSelection = true
         tv.delegate = self
-      
+
         return tv
     }()
     let commentContainerView:UIView = {
         let v = UIView()
         v.translatesAutoresizingMaskIntoConstraints = false
         v.backgroundColor = .systemBackground
-    
+
         return v
     }()
     private let topBorder = CALayer()
@@ -48,45 +47,45 @@ class PostCommentViewController: UIViewController {
     let avatarImageView = RoundedImageView(url: nil, isCircular: true)
     let emojiOverlayView = EmojiOverlayView()
     // Pull-to-refresh
-   
+
     init(vm:CommentViewModel,) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
-        
-      
+
+
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     private func setupNavBar() {
         navigationItem.title = "Comments"
-             
-       
+
+
     }
     @objc private func closeTapped() {
             dismiss(animated: true)
         }
-        
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
-        
+
        setupNavBar()
-      
+
         configureDataSource()
         configureActions()
         bindToViewModel()
   Task { await vm.start() }
-      
+
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let h = commentContainerView.bounds.height
         postCommentTableView.contentInset.bottom = h
         postCommentTableView.verticalScrollIndicatorInsets.bottom = h
-        
+
         let thickness: CGFloat = 0.5
            topBorder.frame = CGRect(
                x: 0,
@@ -96,10 +95,10 @@ class PostCommentViewController: UIViewController {
            )
     }
     func setup() {
-        
+
         topBorder.backgroundColor = UIColor.gray.withAlphaComponent(0.2).cgColor
         commentContainerView.layer.addSublayer(topBorder)
-        
+
         view.backgroundColor = .systemBackground
 
         view.addSubview(postCommentTableView)
@@ -107,8 +106,8 @@ class PostCommentViewController: UIViewController {
         commentContainerView.addSubview(avatarImageView)
         commentContainerView.addSubview(commentTextField)
         commentContainerView.addSubview(emojiOverlayView)
-        
-       
+
+
 
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         commentTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -136,7 +135,7 @@ class PostCommentViewController: UIViewController {
             avatarImageView.widthAnchor.constraint(equalTo: avatarImageView.heightAnchor),
 
             // CommentTextField fills container vertically (THIS was missing)
-            
+
             emojiOverlayView.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
             emojiOverlayView.trailingAnchor.constraint(equalTo: commentTextField.trailingAnchor,constant: -12),
             emojiOverlayView.topAnchor.constraint(equalTo: commentContainerView.topAnchor),
@@ -189,7 +188,7 @@ class PostCommentViewController: UIViewController {
                         self?.updateData(comments: comments)
                     }
                     .store(in: &cancellables)
-        
+
         // 4) Optional loading-more spinner (footer)
         vm.$isLoadingMore
             .removeDuplicates()
@@ -198,18 +197,18 @@ class PostCommentViewController: UIViewController {
                 self?.toggleFooterSpinner(visible: loading)
             }
             .store(in: &cancellables)
-        
+
         vm.$currentUserSummary
             .removeDuplicates()
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] user in
-               
+
                 self?.setProfileImage(summary:user)
             }
             .store(in: &cancellables)
-        
-        
+
+
         // 5) Errors → toast/alert
                 vm.$errorMessage
                     .compactMap { $0 }
@@ -218,7 +217,7 @@ class PostCommentViewController: UIViewController {
                         self?.showToast(msg)
                     }
                     .store(in: &cancellables)
-        
+
         vm.$commentTranslations
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
@@ -253,8 +252,8 @@ class PostCommentViewController: UIViewController {
             self.dataSource?.apply(snapshot, animatingDifferences: false)
         }
     }
-  
-    
+
+
     func configureDataSource() {
         dataSource = UITableViewDiffableDataSource<CommentSection, PostComment>(
             tableView: postCommentTableView
@@ -270,10 +269,10 @@ class PostCommentViewController: UIViewController {
         }
         postCommentTableView.dataSource = dataSource
     }
-    
-    
-    
-    
+
+
+
+
 }
 
 // MARK: - Scrolling → infinite load trigger
@@ -282,7 +281,7 @@ extension PostCommentViewController: UITableViewDelegate {
         let offsetY = scrollView.contentOffset.y
         let threshold = scrollView.contentSize.height - scrollView.bounds.height * 1.8
         if offsetY > threshold {
-           
+
             Task {await vm.loadMore() }
         }
     }
@@ -293,24 +292,18 @@ extension PostCommentViewController: PostCommentCellDelegate {
         guard let comment = cell.comment else{return}
         self.vm.toggleTranslation(postId: comment.id, originalText: comment.text)
     }
-    
-   
+
+
     func commentCellDidTapDelete(_ cell: PostCommentTableViewCell) {
-        // action sheet etc.
-        print("tapped more")
         guard let comment = cell.comment else{return}
-        coordinator?.commentCellDidTapDelete(comment: comment)
         Task{
           await  self.vm.deleteComment(comment.id)
         }
     }
     func commentCellDidTapAvatar(_ cell: PostCommentTableViewCell) {
-        print("tapped avatar")
         guard let comment = cell.comment else{return}
-        // go to profile
-    
-        coordinator?.commentCellDidTapAvatar(comment: comment)
+        vm.didTapAvatar(comment)
     }
 
-   
+
 }

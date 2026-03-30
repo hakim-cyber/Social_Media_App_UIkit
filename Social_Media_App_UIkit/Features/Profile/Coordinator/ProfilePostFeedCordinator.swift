@@ -9,6 +9,7 @@ import Foundation
 
 import UIKit
 import Supabase
+import Combine
 final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -22,8 +23,9 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
 
     private let viewModel: ProfileViewModel
     private let seletedPost: Post
-    private var createPostCoordinator: CreatePostCoordinator?
+    private var cancellables = Set<AnyCancellable>()
     private weak var commentsNavController: UINavigationController?
+    private var commentRouteCancellable: AnyCancellable?
     init(
         navigationController: UINavigationController,
         viewModel:ProfileViewModel,
@@ -35,9 +37,9 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
     }
 
     func start(animated: Bool) {
+        bindPostRoutes()
         let vc = ProfilePostFeedViewController(selectedPost: seletedPost, vm: viewModel)
-        vc.coordinator = self
-        
+
         navigationController.pushViewController(vc, animated: true)
     }
 
@@ -56,7 +58,7 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
                self.addChild(coord)
                coord.startPush(animated: true)
             }else{
-                
+
                 let coord = ProfileCoordinator(
                     navigationController: self.navigationController,
                     target: .user(id: author.id)
@@ -75,10 +77,30 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
         print("FeedCoordinator finished")
         parentCoordinator?.childDidFinish(self)
     }
+    private func bindPostRoutes() {
+        cancellables.removeAll()
+        viewModel.postRoute
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handle(route)
+            }
+            .store(in: &cancellables)
+    }
 }
 
-extension ProfilePostFeedCordinator: FeedCoordinating {
-    func postCellDidTapMore(_ post: Post) {
+extension ProfilePostFeedCordinator {
+    private func handle(_ route: ProfilePostRoute) {
+        switch route {
+        case .openProfile(let author):
+            showProfile(author: author)
+        case .showPostMore(let post):
+            showPostMore(post)
+        case .showComments(let post):
+            showComments(for: post)
+        }
+    }
+
+    private func showPostMore(_ post: Post) {
         MoreSheetPresenter.showPost(
             post,
             from: self.navigationController,
@@ -87,32 +109,28 @@ extension ProfilePostFeedCordinator: FeedCoordinating {
             },
             onCopy: {/*[weak self] in*/
                // for now like this later change so it gives real url
-                
+
                 UIPasteboard.general.string = post.author.username
             },
             onReport: {
-              
+
             },
             onDelete: {[weak self] in
                 self?.viewModel.deletePost(post: post.id)
             }
         )
     }
-    
-    func postFeedDidRequestCreatePost(_ controller: PostFeedViewController) {
-    
-    }
-    
-    func postCellDidTapComment(_ post: Post) {
+
+    private func showComments(for post: Post) {
         let viewModel = CommentViewModel(postId: post.id,
                                         service: CommentService(),
                                         commentsCount: post.commentCount)
+        bindCommentRoutes(viewModel)
 
         let commentsVC = PostCommentViewController(vm: viewModel)
-        commentsVC.coordinator = self
         let navController = UINavigationController(rootViewController: commentsVC)
         navController.modalPresentationStyle = .formSheet
-      
+
         commentsNavController = navController
         if let sheet = navController.sheetPresentationController {
             sheet.detents = [
@@ -134,46 +152,39 @@ extension ProfilePostFeedCordinator: FeedCoordinating {
 
         navigationController.present(navController, animated: true)
     }
-    
-    func postCellDidTapAvatar(_ post: Post) {
-        showProfile(author: post.author)
-    }
-    
 }
 
 extension ProfilePostFeedCordinator {
     func childDidFinish(_ child: Coordinator?) {
         guard let child else{return}
-        if child === createPostCoordinator {
-            createPostCoordinator = nil
-        }
         removeChild(child)
     }
 }
 
-
-extension ProfilePostFeedCordinator: CommentCoordinating {
-    func commentCellDidTapDelete(comment: PostComment) {
-       
-    }
-    func commentCellDidTapAvatar(comment: PostComment) {
-        // go to profile
-        showProfile(author: comment.author)
-        print("Show Profile")
-    }
-}
-
 extension ProfilePostFeedCordinator{
+    private func bindCommentRoutes(_ viewModel: CommentViewModel) {
+        commentRouteCancellable = viewModel.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                switch route {
+                case .openProfile(let author):
+                    self?.showProfile(author: author)
+                }
+            }
+    }
+
     private func dismissPresentedIfNeeded(animated: Bool = true, completion: @escaping () -> Void) {
         // If you keep an explicit ref (recommended)
         if let nav = commentsNavController {
             commentsNavController = nil
+            commentRouteCancellable = nil
             nav.dismiss(animated: animated, completion: completion)
             return
         }
 
         // Fallback: dismiss whatever is presented from the feed nav
         if let presented = navigationController.presentedViewController {
+            commentRouteCancellable = nil
             presented.dismiss(animated: animated, completion: completion)
             return
         }

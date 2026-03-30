@@ -9,8 +9,9 @@ import Foundation
 
 
 import UIKit
+import Combine
 final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator, ChildCoordinator,UINavigationControllerDelegate {
-  
+
     // MARK: - ParentCoordinator
     var childCoordinators: [Coordinator] = []
 
@@ -23,10 +24,11 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
     private let profileService: ProfileService
     private let followService: FollowService
 
-    
+
     private var viewModel: ProfileViewModel?
+    private var cancellables = Set<AnyCancellable>()
     private let target: ProfileTarget
-   
+
     private weak var profileVC: UIViewController?
     init(
         navigationController: UINavigationController,
@@ -40,8 +42,8 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
         self.target = target
     }
 
-    
-    
+
+
     deinit {
         print("FeedCoordinator deinit")
     }
@@ -53,32 +55,24 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
     func start(animated: Bool) {
         startRooot(animated: animated)
     }
- private func startRooot(animated: Bool) {
+    private func startRooot(animated: Bool) {
         let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
         self.viewModel = vm
-        
+        bind(vm)
+
         let vc = ProfileViewController(vm: vm)
-        vc.coordinator = self   // via protocol
-     
-     Task { [weak self] in
-         await self?.viewModel?.loadIfNeeded() // because we need to load before showing
-     }
-     
         navigationController.setViewControllers([vc], animated: animated)
     }
     func startPush(animated: Bool) {
-            let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
-            self.viewModel = vm
+        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
+        self.viewModel = vm
+        bind(vm)
 
-            let vc = ProfileViewController(vm: vm)
-            vc.coordinator = self
-            profileVC = vc
-        Task { [weak self] in
-            await self?.viewModel?.loadIfNeeded() // because we need to load before showing
-        }
-            navigationController.delegate = self
-            navigationController.pushViewController(vc, animated: animated)
-        }
+        let vc = ProfileViewController(vm: vm)
+        profileVC = vc
+        navigationController.delegate = self
+        navigationController.pushViewController(vc, animated: animated)
+    }
     func navigationController(_ navigationController: UINavigationController,
                                   didShow viewController: UIViewController,
                                   animated: Bool) {
@@ -89,21 +83,39 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
                 parentCoordinator?.childDidFinish(self)
             }
         }
+
+    private func bind(_ vm: ProfileViewModel) {
+        cancellables.removeAll()
+        vm.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handle(route)
+            }
+            .store(in: &cancellables)
+    }
 }
 
+extension ProfileCoordinator {
+    private func handle(_ route: ProfileRoute) {
+        switch route {
+        case .editProfile:
+            showEditProfile()
+        case .message:
+            break
+        case .more:
+            showMoreActions()
+        case .shareProfile:
+            shareProfile()
+        case .openPost(let post):
+            showSelectedPost(post)
+        case .followers:
+            showFollowers()
+        case .following:
+            showFollowings()
+        }
+    }
 
-protocol ProfileCoordinating: AnyObject {
-    func didTapEditProfile()
-    func didTapMessage()
-    func didTapMore()
-    func didTapShareProfile()
-    func didSelectPostCell(post: Post)
-    func didTapFollowers()
-    func didTapFollowing()
-}
-
-extension ProfileCoordinator:ProfileCoordinating{
-    func didTapMore() {
+    private func showMoreActions() {
         guard let profile = viewModel?.profile else { return }
         MoreSheetPresenter.showProfile(profile, from: self.navigationController) { [weak self] in
             Task {
@@ -111,27 +123,27 @@ extension ProfileCoordinator:ProfileCoordinating{
             }
         }
     }
-    
-    func didTapFollowers() {
+
+    private func showFollowers() {
         guard let profile = viewModel?.profile else { return }
         let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false, target: .followers)
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)
     }
-    
-    func didTapFollowing() {
+
+    private func showFollowings() {
         guard let profile = viewModel?.profile else { return }
         let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false,target: .following)
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)
     }
-    
-    func didTapEditProfile() {
+
+    private func showEditProfile() {
         guard let profile = viewModel?.profile else { return }
         let vm = EditProfileViewModel(profileService: profileService)
-       
+
         vm.configure(with: profile)
         vm.onProfileUpdated = { [weak self] newUser in
             self?.navigationController.popViewController(animated: true)
@@ -140,18 +152,17 @@ extension ProfileCoordinator:ProfileCoordinating{
         let vc = ProfileEditViewController(viewModel: vm)
         self.navigationController.pushViewController(vc, animated: true)
     }
-    func didTapMessage() {
-        
-    }
-    func didSelectPostCell(post: Post) {
+
+    private func showSelectedPost(_ post: Post) {
         guard let viewModel else{return}
        let coord = ProfilePostFeedCordinator(navigationController: navigationController, viewModel: viewModel, selectedPost: post)
-        
+
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)
     }
-    func didTapShareProfile() {
+
+    private func shareProfile() {
         guard let profile = viewModel?.profile else { return }
 
         let urlString = "myapp://u/\(profile.id.uuidString)"

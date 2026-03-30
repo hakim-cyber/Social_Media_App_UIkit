@@ -13,13 +13,12 @@ nonisolated enum PostFeedSection: Hashable, Sendable {
 }
 
 class PostFeedViewController: UIViewController {
-    
+
     private var cancellables = Set<AnyCancellable>()
-    
+
     var dataSource: UITableViewDiffableDataSource<PostFeedSection, Post>?
     let vm:FeedViewModel
-    weak var coordinator: FeedCoordinating?
-    
+
     private lazy var postFeedTableView: UITableView = {
         let tv = UITableView()
         tv.showsVerticalScrollIndicator = false
@@ -31,10 +30,10 @@ class PostFeedViewController: UIViewController {
         tv.register(PostFeedTableViewCell.self, forCellReuseIdentifier: PostFeedTableViewCell.reuseID)
         tv.allowsSelection = true
         tv.delegate = self
-      
+
         return tv
     }()
-    
+
     // Pull-to-refresh
     private let refreshControl = UIRefreshControl()
     private let bufferedBannerView = BufferedPostsBanner()
@@ -42,34 +41,34 @@ class PostFeedViewController: UIViewController {
     init(vm:FeedViewModel) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
-        
-      
+
+
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     private func setupNavBar() {
         // Cancel button
-      
-        
+
+
         navigationItem.titleView = NavTitleView(title: "Aura")
-       
-       
+
+
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
-        
+
        setupNavBar()
         setupBufferBanner()
         configureDataSource()
-        
+
         bindToViewModel()
         Task { await vm.start() }
-     
+
     }
     func setup() {
         self.view.backgroundColor = .systemBackground
@@ -78,7 +77,7 @@ class PostFeedViewController: UIViewController {
         // Add refresh control
            refreshControl.addTarget(self, action: #selector(handlePullToRefresh), for: .valueChanged)
            postFeedTableView.refreshControl = refreshControl
-        
+
         self.view.addSubview(postFeedTableView)
         NSLayoutConstraint.activate([
             postFeedTableView.topAnchor.constraint(equalTo: self.view.topAnchor),
@@ -95,7 +94,7 @@ class PostFeedViewController: UIViewController {
             bufferedBannerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
             bufferedBannerView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             bufferedBannerView.heightAnchor.constraint(equalToConstant: 40),
-            
+
             bufferedBannerView.widthAnchor.constraint(equalToConstant: 110)
         ])
         bufferedBannerView.isHidden = true
@@ -133,7 +132,7 @@ class PostFeedViewController: UIViewController {
     private func showBanner(with count: Int) {
         bufferedBannerView.configure(count: count)
 
-        
+
         guard !isBannerVisible else { return }
         isBannerVisible = true
 
@@ -161,22 +160,22 @@ class PostFeedViewController: UIViewController {
          self.hideBanner()
          returnToTopRow()
     }
-   
+
     @objc private func handlePullToRefresh() {
         Task {
             await vm.refresh()
             returnToTopRow()
         }
-        
+
     }
-  
-    
+
+
     func returnToTopRow(){
         let indexPath = IndexPath(row: 0, section: 0)
         postFeedTableView.scrollToRow(at: indexPath, at: .top, animated: true)
     }
-    
-    
+
+
     private func toggleFooterSpinner(visible: Bool) {
         if visible {
             let spinner = UIActivityIndicatorView(style: .medium)
@@ -195,8 +194,8 @@ class PostFeedViewController: UIViewController {
                         self?.updateData(posts: posts)
                     }
                     .store(in: &cancellables)
-        
-        
+
+
         vm.$isRefreshing
                 .removeDuplicates()
                 .receive(on: DispatchQueue.main)
@@ -204,8 +203,8 @@ class PostFeedViewController: UIViewController {
                     if !refreshing { self?.refreshControl.endRefreshing() }
                 }
                 .store(in: &cancellables)
-        
-        
+
+
         // 4) Optional loading-more spinner (footer)
         vm.$isLoadingMore
             .removeDuplicates()
@@ -214,14 +213,14 @@ class PostFeedViewController: UIViewController {
                 self?.toggleFooterSpinner(visible: loading)
             }
             .store(in: &cancellables)
-        
+
         vm.$bufferedNewCount
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] count in
                        self?.updateNewPostsBanner(count: count)
                     }
                     .store(in: &cancellables)
-        
+
         // 5) Errors → toast/alert
                 vm.$errorMessage
                     .compactMap { $0 }
@@ -230,7 +229,7 @@ class PostFeedViewController: UIViewController {
                         self?.showToast(msg)
                     }
                     .store(in: &cancellables)
-        
+
         vm.$postTranslations
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
@@ -264,8 +263,8 @@ class PostFeedViewController: UIViewController {
             self.dataSource?.apply(snapshot, animatingDifferences: false)
         }
     }
-  
-    
+
+
     func configureDataSource() {
         dataSource = UITableViewDiffableDataSource<PostFeedSection, Post>(
             tableView: postFeedTableView
@@ -281,9 +280,9 @@ class PostFeedViewController: UIViewController {
         }
         postFeedTableView.dataSource = dataSource
     }
-    
-    
-    
+
+
+
 }
 
 // MARK: - Scrolling → infinite load trigger
@@ -292,7 +291,7 @@ extension PostFeedViewController: UITableViewDelegate {
         let offsetY = scrollView.contentOffset.y
         let threshold = scrollView.contentSize.height - scrollView.bounds.height * 1.8
         if offsetY > threshold {
-           
+
             Task {await vm.loadMore() }
         }
     }
@@ -305,9 +304,9 @@ extension PostFeedViewController: PostCellDelegate {
                 postId: post.id,
                 originalText: post.caption
             )
-     
+
     }
-    
+
     func postCellDidTapLike(_ cell: PostFeedTableViewCell) {
         guard let post = cell.post else { return }
         Task {
@@ -318,20 +317,20 @@ extension PostFeedViewController: PostCellDelegate {
     func postCellDidTapAvatar(_ cell: PostFeedTableViewCell) {
         // push profile VC, using cell.post?.author
         guard let post = cell.post else { return }
-        self.coordinator?.postCellDidTapAvatar(post)
+        self.vm.didTapAvatar(post)
         print("postCellDidTapAvatar")
     }
 
     func postCellDidTapMore(_ cell: PostFeedTableViewCell) {
         // action sheet etc.
         guard let post = cell.post else { return }
-        self.coordinator?.postCellDidTapMore(post)
+        self.vm.didTapMore(post)
     }
 
     func postCellDidTapComment(_ cell: PostFeedTableViewCell) {
         // present comments screen
         guard let post = cell.post else { return }
-        self.coordinator?.postCellDidTapComment(post)
+        self.vm.didTapComment(post)
     }
 
     func postCellDidTapSave(_ cell: PostFeedTableViewCell) {

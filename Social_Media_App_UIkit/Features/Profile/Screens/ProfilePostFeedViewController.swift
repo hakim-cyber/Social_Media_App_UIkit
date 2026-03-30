@@ -10,18 +10,17 @@ import Foundation
 import Combine
 
 class ProfilePostFeedViewController: UIViewController {
-    
+
     nonisolated enum Section: Hashable, Sendable {
         case main
     }
 
     private var cancellables = Set<AnyCancellable>()
-    
+
     var dataSource: UITableViewDiffableDataSource<Section, Post>?
     let vm:ProfileViewModel
     let selectedPost:Post
-    weak var coordinator: FeedCoordinating?
-    
+
     private var pendingScrollPostId: UUID?
     private var didScrollToInitialPost = false
     private lazy var postFeedTableView: UITableView = {
@@ -35,7 +34,7 @@ class ProfilePostFeedViewController: UIViewController {
         tv.register(PostFeedTableViewCell.self, forCellReuseIdentifier: PostFeedTableViewCell.reuseID)
         tv.allowsSelection = true
         tv.delegate = self
-        
+
         return tv
     }()
     init(selectedPost:Post,vm:ProfileViewModel) {
@@ -43,24 +42,24 @@ class ProfilePostFeedViewController: UIViewController {
         self.selectedPost = selectedPost
         super.init(nibName: nil, bundle: nil)
         self.pendingScrollPostId = selectedPost.id
-      
+
     }
-   
-    
+
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     private func setupNavBar() {
-     
+
         switch self.vm.selectedTab {
         case .posts:
             setNavigationTitle(title: "Posts", subtitle: vm.profile?.username ?? ""  )
         case .liked:
             setNavigationTitle(title: "Liked Posts", subtitle: vm.profile?.username ?? ""  )
-           
+
         case .saved:
             setNavigationTitle(title: "Saved Posts", subtitle: vm.profile?.username ?? ""  )
-          
+
         }
     }
     func setNavigationTitle(title: String, subtitle: String) {
@@ -88,12 +87,12 @@ class ProfilePostFeedViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
-        
+
        setupNavBar()
         configureDataSource()
         updateData(posts: vm.activePosts)
         bindToViewModel()
-     
+
     }
     private func scrollToPendingPostIfNeeded() {
         guard !didScrollToInitialPost, let id = pendingScrollPostId else { return }
@@ -111,7 +110,7 @@ class ProfilePostFeedViewController: UIViewController {
     }
     func setup() {
         self.view.backgroundColor = .systemBackground
-        
+
         self.view.addSubview(postFeedTableView)
         NSLayoutConstraint.activate([
             postFeedTableView.topAnchor.constraint(equalTo: self.view.topAnchor),
@@ -120,14 +119,14 @@ class ProfilePostFeedViewController: UIViewController {
             postFeedTableView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor)
         ])
     }
-   
-    
+
+
     func returnToTopRow(){
         let indexPath = IndexPath(row: 0, section: 0)
         postFeedTableView.scrollToRow(at: indexPath, at: .top, animated: true)
     }
-    
-    
+
+
     private func toggleFooterSpinner(visible: Bool) {
         if visible {
             let spinner = UIActivityIndicatorView(style: .medium)
@@ -149,7 +148,7 @@ class ProfilePostFeedViewController: UIViewController {
                        self.updateData(posts: newPosts)
                    }
                    .store(in: &cancellables)
-            
+
         case .liked:
             vm.$likedPosts
                    .receive(on: DispatchQueue.main)
@@ -159,7 +158,7 @@ class ProfilePostFeedViewController: UIViewController {
                    }
                    .store(in: &cancellables)
 
-              
+
         case .saved:
             vm.$savedPosts
                 .receive(on: DispatchQueue.main)
@@ -204,8 +203,8 @@ class ProfilePostFeedViewController: UIViewController {
                    }
         }
     }
-  
-    
+
+
     func configureDataSource() {
         dataSource = UITableViewDiffableDataSource<Section, Post>(
             tableView: postFeedTableView
@@ -221,10 +220,10 @@ class ProfilePostFeedViewController: UIViewController {
         }
         postFeedTableView.dataSource = dataSource
     }
-    
-    
-    
-    
+
+
+
+
 }
 
 // MARK: - Scrolling → infinite load trigger
@@ -233,7 +232,7 @@ extension ProfilePostFeedViewController: UITableViewDelegate {
         let offsetY = scrollView.contentOffset.y
         let threshold = scrollView.contentSize.height - scrollView.bounds.height * 1.8
         if offsetY > threshold {
-           
+
             vm.loadMoreIfNeeded()
         }
     }
@@ -245,7 +244,7 @@ extension ProfilePostFeedViewController: PostCellDelegate {
         print("did tap translate")
         self.vm.togglePostTranslation(postId: post.id, originalText: post.caption)
     }
-    
+
     func postCellDidTapLike(_ cell: PostFeedTableViewCell) {
         guard let post = cell.post else { return }
         Task {
@@ -256,20 +255,20 @@ extension ProfilePostFeedViewController: PostCellDelegate {
     func postCellDidTapAvatar(_ cell: PostFeedTableViewCell) {
         // push profile VC, using cell.post?.author
         guard let post = cell.post else { return }
-        self.coordinator?.postCellDidTapAvatar(post)
+        vm.didTapPostAvatar(post)
         print("postCellDidTapAvatar")
     }
 
     func postCellDidTapMore(_ cell: PostFeedTableViewCell) {
         // action sheet etc.
         guard let post = cell.post else { return }
-        self.coordinator?.postCellDidTapMore(post)
+        vm.didTapPostMore(post)
     }
 
     func postCellDidTapComment(_ cell: PostFeedTableViewCell) {
         // present comments screen
         guard let post = cell.post else { return }
-        self.coordinator?.postCellDidTapComment(post)
+        vm.didTapPostComment(post)
     }
 
     func postCellDidTapSave(_ cell: PostFeedTableViewCell) {

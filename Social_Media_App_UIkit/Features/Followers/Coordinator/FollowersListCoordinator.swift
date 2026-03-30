@@ -7,6 +7,7 @@
 
 import UIKit
 import Supabase
+import Combine
 final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -19,6 +20,7 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
     var navigationController: UINavigationController
 
     private var viewModel: FollowersListViewModel?
+    private var cancellables = Set<AnyCancellable>()
     private let user: UserProfile
     private let isCurrentUser: Bool
     private let target: FollowerListTarget
@@ -36,11 +38,11 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
 
     func start(animated: Bool) {
         let vm = FollowersListViewModel(target: target, selectedUser: user,isCurrentUser: isCurrentUser)
-       let vc = FollowersListViewController(vm: vm)
-        vc.coordinator = self
         self.viewModel = vm
+        bind(vm)
+        let vc = FollowersListViewController(vm: vm)
         self.navigationController.pushViewController(vc, animated: true)
-        
+
     }
 
     func showProfile(author: UserFollowItem) {
@@ -52,17 +54,17 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
                    target: .me
                )
             }else{
-                
+
                  coord = ProfileCoordinator(
                     navigationController: self.navigationController,
                     target: .user(id: author.id)
                 )
-                
+
             }
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.startPush(animated: true)
-        
+
     }
     deinit {
         print("FeedCoordinator deinit")
@@ -72,22 +74,29 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
         print("FeedCoordinator finished")
         parentCoordinator?.childDidFinish(self)
     }
-}
 
-protocol FollowerListCoordinating: AnyObject {
-    func didTapProfile(user: UserFollowItem)
-    func didTapMore(user: UserFollowItem)
-}
-extension FollowersListCoordinator:FollowerListCoordinating{
-    func didTapProfile(user: UserFollowItem) {
-        self.showProfile(author: user)
+    private func bind(_ vm: FollowersListViewModel) {
+        cancellables.removeAll()
+        vm.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                self?.handle(route)
+            }
+            .store(in: &cancellables)
     }
-    func didTapMore(user: UserFollowItem) {
-        
-        MoreSheetPresenter.showFollower(user, from: self.navigationController) {[weak self] in
-            guard let self else {return}
-            print("delete \(self.viewModel == nil)")
-            self.viewModel?.removeFollower(userId: user.id)
+
+    private func handle(_ route: FollowerListRoute) {
+        switch route {
+        case .openProfile(let user):
+            showProfile(author: user)
+        case .showMore(let user):
+            showMoreActions(for: user)
+        }
+    }
+
+    private func showMoreActions(for user: UserFollowItem) {
+        MoreSheetPresenter.showFollower(user, from: self.navigationController) { [weak self] in
+            self?.viewModel?.removeFollower(userId: user.id)
         }
     }
 }

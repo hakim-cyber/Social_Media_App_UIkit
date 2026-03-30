@@ -11,26 +11,32 @@ enum FollowerListTarget{
     case following
     case followers
 }
+
+enum FollowerListRoute {
+    case openProfile(UserFollowItem)
+    case showMore(UserFollowItem)
+}
+
 class FollowersListViewModel{
     @Published  var target: FollowerListTarget = .following
-    
+
     @Published private(set) var followerCount:Int = 0
     @Published private(set) var followingCount:Int = 0
-    
+
     @Published private(set) var errorMessage: String? = nil
-    
-    
+
+
     @Published private(set) var followings: [UserFollowItem] = []
     @Published private(set) var followers: [UserFollowItem] = []
-    
-    
+
+
     private var followingsCursor: FollowerListCursor?
     private var followersCursor: FollowerListCursor?
-    
+
     @Published private(set) var isLoadingFollowings = false
     @Published private(set) var isLoadingFollowers = false
-    
-    
+
+
     var activeFollow: [UserFollowItem] {
         switch target {
         case .following:
@@ -38,16 +44,17 @@ class FollowersListViewModel{
         case .followers:
             return followers
         }
-            
+
         }
-    
+
     private let pageSize =  20
-    
+
     let selectedUser:UserProfile
     let isCurrentUser:Bool
-    
+
     private var followingUsers = Set<UUID>()
-  
+    let route = PassthroughSubject<FollowerListRoute, Never>()
+
     let followService:FollowService
     init(
            target: FollowerListTarget,
@@ -59,6 +66,12 @@ class FollowersListViewModel{
            self.selectedUser = selectedUser
            self.isCurrentUser = isCurrentUser
            self.followService = followService
+    }
+    func didTapProfile(_ user: UserFollowItem) {
+        route.send(.openProfile(user))
+    }
+    func didTapMore(_ user: UserFollowItem) {
+        route.send(.showMore(user))
     }
     // button actions
     private func updateList(_ userID: UUID, _ update: (inout UserFollowItem) -> Void) {
@@ -95,7 +108,7 @@ class FollowersListViewModel{
                     self.updateList(userId) { user in
                         user = old
                     }
-                    
+
                 }
                 if self.isCurrentUser{
                     self.followingCount -= !desiredState ? -1 : 1
@@ -111,7 +124,7 @@ class FollowersListViewModel{
         followingUsers.insert(userId)
 
         // 🔹 Save old values (for rollback)
-      
+
 
         // 🔹 Optimistic UI update
         updateList(userId) { user in
@@ -137,19 +150,19 @@ class FollowersListViewModel{
                 }
             } catch {
                 // 🔴 Rollback on failure
-              
+
                     self.updateList(userId) { user in
                         user = old
                     }
                 if self.isCurrentUser{
                     self.followerCount += 1
                 }
-                
+
                 self.errorMessage = "Remove Follower failed"
             }
         }
     }
-   
+
     func loadMoreIfNeeded() {
         switch target {
         case .following:
@@ -165,28 +178,28 @@ class FollowersListViewModel{
     func loadSelectedInitialData() async{
         switch target {
         case .following:
-            
+
                 await  loadInitialFollowings()
-            
+
         case .followers:
-          
+
                 await  loadInitiaFollowers()
-            
+
         }
     }
     func start() async{
         self.followerCount = selectedUser.follower_count ?? 0
         self.followingCount = selectedUser.following_count ?? 0
         await loadSelectedInitialData()
-         
+
     }
     func loadInitiaFollowers() async{
         let userID = selectedUser.id
         guard !self.isLoadingFollowers else{return}
-      
+
         isLoadingFollowers = true
         defer{isLoadingFollowers = false}
-        
+
         do{
             let page:FollowerListResponse = try await followService.getFollowers(userID:userID, limit: pageSize )
             self.followers = page.users
@@ -195,13 +208,13 @@ class FollowersListViewModel{
             errorMessage = "Failed to load followers \(error.localizedDescription)"
         }
     }
-    
+
     func loadMoreFollowers()async{
         let userID = selectedUser.id
         guard !isLoadingFollowers,let cursor = followersCursor else{return}
         isLoadingFollowers = true
         defer{isLoadingFollowers = false}
-        
+
         do{
             let page:FollowerListResponse = try await  followService.getFollowers(userID:userID, limit: pageSize,beforeCursor: cursor)
             appendDedup(page.users, to: &followers)
@@ -213,10 +226,10 @@ class FollowersListViewModel{
     func loadInitialFollowings() async{
         let userID = selectedUser.id
         guard !self.isLoadingFollowings else{return}
-      
+
         isLoadingFollowings = true
         defer{isLoadingFollowings = false}
-        
+
         do{
             let page:FollowerListResponse = try await followService.getFollowings(userID:userID, limit: pageSize )
             self.followings = page.users
@@ -225,13 +238,13 @@ class FollowersListViewModel{
             errorMessage = "Failed to load followings \(error.localizedDescription)"
         }
     }
-    
+
     func loadMoreFollowings()async{
         let userID = selectedUser.id
         guard !isLoadingFollowings,let cursor = followingsCursor else{return}
         isLoadingFollowings = true
         defer{isLoadingFollowings = false}
-        
+
         do{
             let page:FollowerListResponse = try await  followService.getFollowings(userID:userID, limit: pageSize,beforeCursor: cursor)
             appendDedup(page.users, to: &followings)
@@ -240,11 +253,10 @@ class FollowersListViewModel{
             errorMessage = "Failed to load more followings  \(error.localizedDescription)"
         }
     }
-  
+
     private func appendDedup(_ new: [UserFollowItem], to array: inout [UserFollowItem]) {
         let existing = Set(array.map(\.id))
         let filtered = new.filter { !existing.contains($0.id) }
         array.append(contentsOf: filtered)
     }
-    
 }

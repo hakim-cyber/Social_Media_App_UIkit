@@ -19,20 +19,36 @@ enum ProfileTab: Hashable {
     case saved
 }
 
+enum ProfileRoute {
+    case editProfile
+    case message
+    case more
+    case shareProfile
+    case openPost(Post)
+    case followers
+    case following
+}
+
+enum ProfilePostRoute {
+    case openProfile(UserSummary)
+    case showPostMore(Post)
+    case showComments(Post)
+}
+
 class ProfileViewModel:ObservableObject{
     @Published private(set) var selectedTab: ProfileTab = .posts
-    
+
     @Published private(set) var profile: UserProfile?
     @Published private(set) var isFollowing: Bool = false
     @Published private(set) var errorMessage: String? = nil
-    
-    
+
+
     @Published private var tryingToFollow: Bool = false
-    
+
     @Published private(set) var posts: [Post] = []
     @Published private(set) var likedPosts: [Post] = []
     @Published private(set) var savedPosts: [Post] = []
-    
+
     private var userPostsCursor: FeedCursor?
     private var likedPostsCursor: FeedCursor?
     private var savedPostsCursor: FeedCursor?
@@ -42,10 +58,10 @@ class ProfileViewModel:ObservableObject{
     @Published private(set) var isLoadingSavedPosts = false
     private var hasLoadedOnce = false
     private var isBootstrapping = false
-    
-   
+
+
     @Published private(set) var profileCount: ProfileCounts = .init(liked: 0, saved: 0)
-    
+
     var activePosts: [Post] {
             switch selectedTab {
             case .posts: return posts
@@ -53,25 +69,27 @@ class ProfileViewModel:ObservableObject{
             case .saved: return savedPosts
             }
         }
-    
+
     private let pageSize =  20
-    
-    
+
+
     private var likingPosts = Set<UUID>()
     private var savingPosts = Set<UUID>()
     @Published private(set) var postTranslations: [UUID: TranslationState] = [:]
-    
-    
+    let route = PassthroughSubject<ProfileRoute, Never>()
+    let postRoute = PassthroughSubject<ProfilePostRoute, Never>()
+
+
     let target: ProfileTarget
     var userID:UUID?
     let isCurrentUser:Bool
-    
+
     let profileService: ProfileService
     let followService: FollowService
     let postQueryService:PostQueryService = .init()
     private let postService = PostActionService()
     private let sessionManager: SessionManaging
-    
+
     init(
            target: ProfileTarget,
            profileService: ProfileService = .init(),
@@ -90,9 +108,9 @@ class ProfileViewModel:ObservableObject{
            self.profileService = profileService
            self.followService = followService
         self.sessionManager = sessionManager
-      
-          
-           
+
+
+
     }
     @MainActor
     func togglePostTranslation(postId: UUID, originalText: String) {
@@ -121,18 +139,18 @@ class ProfileViewModel:ObservableObject{
             guard let self else { return }
             do{
                 let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
-               
+
                     var updated = self.postTranslations[postId] ?? TranslationState()
                     updated.translatedText = translatedText
                     updated.isShowingTranslation = true
                     updated.isLoading = false
                     self.postTranslations[postId] = updated
-                
+
             }catch{
-               
+
                     self.postTranslations[postId] = nil
                 self.errorMessage = "Error translating post. Please try again later."
-                
+
             }
         }
     }
@@ -160,7 +178,7 @@ class ProfileViewModel:ObservableObject{
                   await  loadMorePosts()
                 }
             case .liked:
-              
+
                 Task{
                   await  loadMoreLikedPosts()
                 }
@@ -173,7 +191,7 @@ class ProfileViewModel:ObservableObject{
             }
         }
 
-    
+
     func loadIfNeeded() async{
         guard !hasLoadedOnce, !isBootstrapping else { return }
 
@@ -229,6 +247,36 @@ class ProfileViewModel:ObservableObject{
     func updateProfile(profile:UserProfile){
         self.profile = profile
     }
+    func didTapEditProfile() {
+        route.send(.editProfile)
+    }
+    func didTapMessage() {
+        route.send(.message)
+    }
+    func didTapMore() {
+        route.send(.more)
+    }
+    func didTapShareProfile() {
+        route.send(.shareProfile)
+    }
+    func didTapFollowers() {
+        route.send(.followers)
+    }
+    func didTapFollowing() {
+        route.send(.following)
+    }
+    func didSelectPost(_ post: Post) {
+        route.send(.openPost(post))
+    }
+    func didTapPostAvatar(_ post: Post) {
+        postRoute.send(.openProfile(post.author))
+    }
+    func didTapPostMore(_ post: Post) {
+        postRoute.send(.showPostMore(post))
+    }
+    func didTapPostComment(_ post: Post) {
+        postRoute.send(.showComments(post))
+    }
     func logout() async {
         do {
             try await sessionManager.logout()
@@ -241,11 +289,11 @@ class ProfileViewModel:ObservableObject{
             self.errorMessage = "User not found"
             return
         }
-        
+
         do{
             let profile = try await profileService.fetchUserProfile(id: userID)
             self.profile = profile
-            
+
             if !self.isCurrentUser {
                isFollowing = try await followService.isFollowing(userId: userID)
             }
@@ -256,10 +304,10 @@ class ProfileViewModel:ObservableObject{
     func loadInitialPosts() async{
         guard let userID else{return}
         guard !self.isLoadingUserPosts else{return}
-      
+
         isLoadingUserPosts = true
         defer{isLoadingUserPosts = false}
-        
+
         do{
             let page:FeedResponse = try await postQueryService.fetchPostsForUser(userID:userID, limit: pageSize )
             self.posts = page.posts
@@ -268,13 +316,13 @@ class ProfileViewModel:ObservableObject{
             errorMessage = "Failed to load user posts \(error.localizedDescription)"
         }
     }
-    
+
     func loadMorePosts()async{
         guard let userID else{return}
         guard !isLoadingUserPosts,let cursor = userPostsCursor else{return}
         isLoadingUserPosts = true
         defer{isLoadingUserPosts = false}
-        
+
         do{
             let page:FeedResponse = try await  postQueryService.fetchPostsForUser(userID:userID, limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
             appendDedup(page.posts, to: &posts)
@@ -288,7 +336,7 @@ class ProfileViewModel:ObservableObject{
         guard !isLoadingSavedPosts else{return}
         isLoadingSavedPosts = true
         defer{isLoadingSavedPosts = false}
-        
+
         do{
             let page:FeedResponse = try await postQueryService.fetchSavedPosts(limit: pageSize)
             savedPosts = page.posts
@@ -297,13 +345,13 @@ class ProfileViewModel:ObservableObject{
             errorMessage = "Failed to load saved posts \(error.localizedDescription)"
         }
     }
-    
+
     func loadMoreSavedPosts()async{
         guard isCurrentUser else{return}
         guard !isLoadingSavedPosts,let cursor = savedPostsCursor else{return}
         isLoadingSavedPosts = true
         defer{isLoadingSavedPosts = false}
-        
+
         do{
             let page:FeedResponse = try await postQueryService.fetchSavedPosts(limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
             appendDedup(page.posts, to: &savedPosts)
@@ -317,7 +365,7 @@ class ProfileViewModel:ObservableObject{
         guard !isLoadingLikedPosts else{return}
         isLoadingLikedPosts = true
         defer{isLoadingLikedPosts = false}
-        
+
         do{
             let page:FeedResponse = try await postQueryService.fetchLikedPosts(userID: userID, limit: pageSize)
             likedPosts = page.posts
@@ -326,13 +374,13 @@ class ProfileViewModel:ObservableObject{
             errorMessage = "Failed to load liked posts \(error.localizedDescription)"
         }
     }
-    
+
     func loadMoreLikedPosts()async{
         guard let userID else{return}
         guard !isLoadingLikedPosts,let cursor = likedPostsCursor else{return}
         isLoadingLikedPosts = true
         defer{isLoadingLikedPosts = false}
-        
+
         do{
             let page:FeedResponse = try await postQueryService.fetchLikedPosts(userID: userID, limit: pageSize,beforeCreatedAt: cursor.createdAt,beforeId:  cursor.postId)
             appendDedup(page.posts, to: &likedPosts)
@@ -341,14 +389,14 @@ class ProfileViewModel:ObservableObject{
             errorMessage = "Failed to load more liked posts \(error.localizedDescription)"
         }
     }
-    
-    
+
+
     func toggleFollow() {
         guard let targetUserID = userID else{return}
            guard !tryingToFollow else { return }
-          
+
         self.isFollowing.toggle()
-        
+
            Task { [weak self] in
                guard let self else { return }
                self.tryingToFollow = true
@@ -357,7 +405,7 @@ class ProfileViewModel:ObservableObject{
                do {
                    let resp:FollowResponse = try await self.followService.toggleFollow(userId: targetUserID)
                    print(resp)
-                  
+
                    if resp.is_following == self.isFollowing {
                        self.profile?.follower_count = resp.target_follower_count
                    }else{
@@ -371,15 +419,15 @@ class ProfileViewModel:ObservableObject{
                }
            }
        }
-   
-    
-    
+
+
+
     private func appendDedup(_ new: [Post], to array: inout [Post]) {
         let existing = Set(array.map(\.id))
         let filtered = new.filter { !existing.contains($0.id) }
         array.append(contentsOf: filtered)
     }
-    
+
     // button actions
     private func updatePost(_ postId: UUID, _ update: (inout Post) -> Void) {
         if let i = posts.firstIndex(where: { $0.id == postId }) {
@@ -447,7 +495,7 @@ class ProfileViewModel:ObservableObject{
         }
     }
     func deletePost(post postId: UUID) {
-          
+
 
            Task { [weak self] in
                guard let self else { return }
@@ -459,7 +507,7 @@ class ProfileViewModel:ObservableObject{
                        self.savedPosts.removeAll { $0.id == resp.post_id }
                    }
                } catch {
-                 
+
                    self.errorMessage = "Delete post failed, please try again."
                }
            }
@@ -468,7 +516,7 @@ class ProfileViewModel:ObservableObject{
 //extension ProfileViewModel{
 //    func loadMockData() ->[Post]{
 //           var items: [Post] = []
-//   
+//
 //           let authors: [UserSummary] = [
 //               UserSummary(id: UUID(),
 //                           username: "hakim_cyber",
@@ -486,11 +534,11 @@ class ProfileViewModel:ObservableObject{
 //                           avatarURL: URL(string: "https://picsum.photos/62"),
 //                           isVerified: false),
 //           ]
-//   
+//
 //           // Generate 20 mock posts
 //           for i in 0..<20 {
 //               let author = authors[i % authors.count]
-//   
+//
 //               let post = Post(
 //                   id: UUID(),
 //                   caption: "Mock caption #\(i). Designing UI without backend.",
@@ -503,10 +551,10 @@ class ProfileViewModel:ObservableObject{
 //                   isLiked: false,
 //                   isSaved: false
 //               )
-//   
+//
 //               items.append(post)
 //           }
-//   
+//
 //           return items
 //       }
 //}

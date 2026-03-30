@@ -11,6 +11,9 @@ import Combine
 
 import Supabase
 
+enum CommentRoute {
+    case openProfile(UserSummary)
+}
 
 @MainActor
 class CommentViewModel{
@@ -20,19 +23,23 @@ class CommentViewModel{
     @Published private(set) var isRefreshing = false
     @Published private(set) var errorMessage: String? = nil
     @Published  private(set) var currentUserSummary:UserSummary?
-    
+
     private let postId:UUID
     private let service: CommentService
     private var nextCursor:CommentCursor?
     private let pageSize = 20
-    
+
     @Published private(set) var commentTranslations: [UUID: TranslationState] = [:]
-    
+    let route = PassthroughSubject<CommentRoute, Never>()
+
     let userService:UserService = .init()
     init(postId:UUID,service:CommentService,commentsCount:Int){
         self.postId = postId
         self.service = service
         self.commmentsCount = commentsCount
+    }
+    func didTapAvatar(_ comment: PostComment) {
+        route.send(.openProfile(comment.author))
     }
     @MainActor
     func toggleTranslation(postId: UUID, originalText: String) {
@@ -61,33 +68,33 @@ class CommentViewModel{
             guard let self else { return }
             do{
                 let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
-               
+
                     var updated = self.commentTranslations[postId] ?? TranslationState()
                     updated.translatedText = translatedText
                     updated.isShowingTranslation = true
                     updated.isLoading = false
                     self.commentTranslations[postId] = updated
-                
+
             }catch{
-               
+
                     self.commentTranslations[postId] = nil
                 self.errorMessage = "Error translating comment. Please try again later."
-                
+
             }
         }
     }
 
-    
+
     func start()async{
         await loadInitial()
         await loadUserProfileMain()
     }
-    
+
     func loadInitial() async{
         guard !isRefreshing else{return}
         isRefreshing = true
         defer{isRefreshing = false}
-        
+
         do{
             let page:CommentPageResponse = try await service.fetchComments(postId: postId,limit: pageSize)
             comments = page.comments
@@ -96,12 +103,12 @@ class CommentViewModel{
             errorMessage = "Failed to load comments \(error.localizedDescription)"
         }
     }
-    
+
     func loadMore()async{
         guard !isLoadingMore,let cursor = nextCursor else{return}
         isLoadingMore = true
         defer{isLoadingMore = false}
-        
+
         do{
             let page:CommentPageResponse = try await service.fetchComments(postId: postId,limit: pageSize,beforeCursor: cursor)
             appendDedup(page.comments, to: &comments)
@@ -110,7 +117,7 @@ class CommentViewModel{
             errorMessage = "Failed to load more comments \(error.localizedDescription)"
         }
     }
-    
+
     func loadUserProfileMain()async{
         if let userID = UserSessionService.shared.currentUser?.id{
             do{
@@ -125,18 +132,18 @@ class CommentViewModel{
             errorMessage = "Error fetching current users profile ( cant find session)"
         }
     }
-    
-    
+
+
     func createComment(_ text:String)async {
         do{
             let response:CommentCreateResponse = try await service.createComment(text: text, postID: postId)
             let comment = PostComment(id: response.id, text: response.text, created_at: response.created_at, post_id: response.post_id, author: response.author)
             self.commmentsCount = response.comment_count
             self.comments.insert(comment, at: 0)
-           
+
         }catch{
             errorMessage = "Failed to create new comment. Please try again."
-           
+
         }
     }
     func deleteComment(_ commentId:UUID)async{
@@ -147,17 +154,17 @@ class CommentViewModel{
                     self.commmentsCount -= 1
                 }
             } catch {
-              
+
                 self.errorMessage = "Delete comment failed, please try again."
             }
-        
+
     }
     private func appendDedup(_ new: [PostComment], to array: inout [PostComment]) {
         let existing = Set(array.map(\.id))
         let filtered = new.filter { !existing.contains($0.id) }
         array.append(contentsOf: filtered)
     }
-    
+
 }
 #if DEBUG
 extension CommentViewModel {
@@ -229,7 +236,7 @@ extension CommentViewModel {
                 )
             ),
         ]
-        
+
         commmentsCount = comments.count
         nextCursor = nil
         errorMessage = nil

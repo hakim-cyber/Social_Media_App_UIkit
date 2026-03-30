@@ -26,18 +26,16 @@ import Foundation
 import Combine
 
 class FollowersListViewController: UIViewController {
-    
+
     nonisolated enum Section: Hashable, Sendable {
         case main
     }
 
     private var cancellables = Set<AnyCancellable>()
-    
+
     var dataSource: UITableViewDiffableDataSource<Section, UserFollowItem>?
     let vm:FollowersListViewModel
-  
-    weak var coordinator: FollowerListCoordinating?
-   
+
     private lazy var tableView: UITableView = {
         let tv = UITableView()
         tv.showsVerticalScrollIndicator = false
@@ -50,47 +48,47 @@ class FollowersListViewController: UIViewController {
         tv.allowsSelection = true
         tv.delegate = self
         tv.contentInset.top = 12
-        
+
         return tv
     }()
     private let refreshControl = UIRefreshControl()
     private  let tabView :TabPickerView<FollowerListTarget>
     init(vm:FollowersListViewModel) {
         self.vm = vm
-        
+
         self.tabView = .init(items:
                             [
                                 .init(id: .followers, selectedIcon: nil, unselectedIcon: nil,title: "Followers"),
                                 .init(id: .following, selectedIcon: nil, unselectedIcon: nil,title: "Following")
                             ], selectedID: vm.target)
         super.init(nibName: nil, bundle: nil)
-    
-      
+
+
     }
-   
-    
+
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     private func setupNavBar() {
         self.navigationItem.title = vm.selectedUser.username
-        
+
     }
-   
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
-        
+
        setupNavBar()
         configureDataSource()
-       
+
         bindToViewModel()
        Task { await vm.start() }
-     
+
     }
-   
+
     func setup() {
         setupTabView()
         setupTableView()
@@ -114,7 +112,7 @@ class FollowersListViewController: UIViewController {
             returnToTopRow()
             self.refreshControl.endRefreshing()
         }
-        
+
     }
     func setupTabView(){
         self.view.addSubview(tabView)
@@ -130,14 +128,14 @@ class FollowersListViewController: UIViewController {
             ]
         )
     }
-   
-    
+
+
     func returnToTopRow(){
         let indexPath = IndexPath(row: 0, section: 0)
         tableView.scrollToRow(at: indexPath, at: .top, animated: true)
     }
-    
-    
+
+
     private func toggleFooterSpinner(visible: Bool) {
         if visible {
             let spinner = UIActivityIndicatorView(style: .medium)
@@ -150,7 +148,7 @@ class FollowersListViewController: UIViewController {
     }
 
     func bindToViewModel() {
-        
+
         vm.$target
                .removeDuplicates()
                .receive(on: DispatchQueue.main)
@@ -161,9 +159,9 @@ class FollowersListViewController: UIViewController {
                    Task{
                      await  self.vm.loadSelectedInitialData()
                    }
-               
+
 //                   self.reconfigureDataSafely()
-                  
+
                }
                .store(in: &cancellables)
         vm.$followers
@@ -184,8 +182,8 @@ class FollowersListViewController: UIViewController {
                    }
                }
                .store(in: &cancellables)
-        
-       
+
+
                 vm.$errorMessage
                     .compactMap { $0 }
                     .receive(on: DispatchQueue.main)
@@ -198,10 +196,10 @@ class FollowersListViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newCount in
                 guard let self else { return }
-              
+
                 self.tabView.setTitle("Followers \(newCount.shortFormatted)", for: .followers)
-                
-            
+
+
             }
             .store(in: &cancellables)
         vm.$followingCount
@@ -209,13 +207,13 @@ class FollowersListViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newCount in
                 guard let self else { return }
-              
+
                 self.tabView.setTitle("Following \(newCount.shortFormatted)", for: .following)
-            
+
             }
             .store(in: &cancellables)
     }
-   
+
     func apply(follows: [UserFollowItem]) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, UserFollowItem>()
         snapshot.appendSections([.main])
@@ -223,11 +221,11 @@ class FollowersListViewController: UIViewController {
         DispatchQueue.main.async {
             snapshot.reloadItems(follows)
             self.dataSource?.apply(snapshot, animatingDifferences: false)
-        
+
         }
     }
-  
-    
+
+
     func configureDataSource() {
         dataSource = UITableViewDiffableDataSource<Section, UserFollowItem>(
             tableView: tableView
@@ -244,13 +242,13 @@ class FollowersListViewController: UIViewController {
         tableView.dataSource = dataSource
     }
 //    func reconfigureDataSafely() {
-//      
+//
 //            // iOS < 15 fallback: update visible cells
 //            for case let cell as FollowerListCell in tableView.visibleCells {
 //                cell.applyTarget(target:  vm.target)
 //            }
 //            return
-//        
+//
 //
 //        guard var snapshot = dataSource?.snapshot() else { return }
 //
@@ -262,10 +260,10 @@ class FollowersListViewController: UIViewController {
 //        dataSource?.apply(snapshot, animatingDifferences: false)
 //    }
 //
-//    
-    
-    
-    
+//
+
+
+
 }
 
 // MARK: - Scrolling → infinite load trigger
@@ -282,22 +280,19 @@ extension FollowersListViewController: UITableViewDelegate {
 extension FollowersListViewController:FollowerListCellDelegate{
     func didTapProfile(cell: FollowerListCell) {
         guard let user = cell.user else {return}
-        coordinator?.didTapProfile(user: user)
+        vm.didTapProfile(user)
     }
-    
+
     func didTapFollow(cell: FollowerListCell) {
         guard let user = cell.user else {return}
         self.vm.toggleFollow(for: user.id, desiredState: !user.isFollowing)
-        
+
     }
-    
+
     func didTapMore(cell: FollowerListCell) {
         guard let user = cell.user else {return}
-        self.coordinator?.didTapMore(user: user)
+        vm.didTapMore(user)
     }
-    
-    
-}
-#Preview {
-    PostFeedViewController(vm:FeedViewModel(service: .init(), realtime: .init()))
+
+
 }

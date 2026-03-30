@@ -7,6 +7,8 @@
 
 import UIKit
 import Supabase
+import Combine
+
 final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -22,8 +24,10 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     private let realtime: FeedRealtime
 
     private var viewModel: FeedViewModel?
- 
+    private var cancellables = Set<AnyCancellable>()
+
     private weak var commentsNavController: UINavigationController?
+    private var commentRouteCancellable: AnyCancellable?
     init(
         navigationController: UINavigationController,
         feedService: FeedService = .init(),
@@ -38,8 +42,21 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
         let vm = FeedViewModel(service: feedService, realtime: realtime)
         self.viewModel = vm
 
+        vm.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                switch route {
+                case .openProfile(let userId):
+                    self?.showProfile(id: userId)
+                case .showPostMore(let post):
+                    self?.postCellDidTapMore(post)
+                case .showComments(let post):
+                    self?.postCellDidTapComment(post)
+                }
+            }
+            .store(in: &cancellables)
         let vc = PostFeedViewController(vm: vm)
-        vc.coordinator = self   // via protocol
+
 
         navigationController.setViewControllers([vc], animated: animated)
     }
@@ -75,15 +92,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     }
 }
 
-// what view needs to see
-protocol FeedCoordinating: AnyObject {
-  
-    func postCellDidTapComment(_ post:Post)
-    func postCellDidTapAvatar(_ post:Post)
-    func postCellDidTapMore(_ post:Post)
-}
-
-extension FeedCoordinator: FeedCoordinating {
+extension FeedCoordinator {
     func postCellDidTapMore(_ post: Post) {
         MoreSheetPresenter.showPost(
             post,
@@ -93,11 +102,11 @@ extension FeedCoordinator: FeedCoordinating {
             },
             onCopy: {/*[weak self] in*/
                // for now like this later change so it gives real url
-                
+
                 UIPasteboard.general.string = post.author.username
             },
             onReport: {
-              
+
             },
             onDelete: {[weak self] in
                 self?.viewModel?.deletePost(post: post.id)
@@ -105,20 +114,20 @@ extension FeedCoordinator: FeedCoordinating {
         )
 
     }
-    
-  
 
-   
+
+
+
     func postCellDidTapComment(_ post: Post) {
         let viewModel = CommentViewModel(postId: post.id,
                                         service: CommentService(),
                                         commentsCount: post.commentCount)
+        bindCommentRoutes(viewModel)
 
         let commentsVC = PostCommentViewController(vm: viewModel)
-        commentsVC.coordinator = self
         let navController = UINavigationController(rootViewController: commentsVC)
         navController.modalPresentationStyle = .formSheet
-      
+
         commentsNavController = navController
         if let sheet = navController.sheetPresentationController {
             sheet.detents = [
@@ -140,48 +149,45 @@ extension FeedCoordinator: FeedCoordinating {
 
         navigationController.present(navController, animated: true)
     }
-    
+
     func postCellDidTapAvatar(_ post: Post) {
         showProfile(id: post.author.id)
     }
-    
+
 }
 
 extension FeedCoordinator {
     func childDidFinish(_ child: Coordinator?) {
         guard let child else{return}
-       
+
         removeChild(child)
     }
 }
 
-
-protocol CommentCoordinating: AnyObject {
-    func commentCellDidTapDelete(comment: PostComment)
-    func commentCellDidTapAvatar(comment: PostComment)
-}
-
-extension FeedCoordinator: CommentCoordinating {
-    func commentCellDidTapDelete(comment: PostComment) {
-    }
-    func commentCellDidTapAvatar(comment: PostComment) {
-        // go to profile
-        showProfile(id: comment.author.id)
-        print("Show Profile")
-    }
-}
-
 extension FeedCoordinator{
+    private func bindCommentRoutes(_ viewModel: CommentViewModel) {
+        commentRouteCancellable = viewModel.route
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] route in
+                switch route {
+                case .openProfile(let author):
+                    self?.showProfile(id: author.id)
+                }
+            }
+    }
+
     private func dismissPresentedIfNeeded(animated: Bool = true, completion: @escaping () -> Void) {
         // If you keep an explicit ref (recommended)
         if let nav = commentsNavController {
             commentsNavController = nil
+            commentRouteCancellable = nil
             nav.dismiss(animated: animated, completion: completion)
             return
         }
 
         // Fallback: dismiss whatever is presented from the feed nav
         if let presented = navigationController.presentedViewController {
+            commentRouteCancellable = nil
             presented.dismiss(animated: animated, completion: completion)
             return
         }

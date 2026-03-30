@@ -12,19 +12,18 @@ import Combine
 
 class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionViewDelegate {
     nonisolated enum Section: Hashable { case grid }
-    
+
     private var cancellables = Set<AnyCancellable>()
-    
-    
+
+
     let vm:ProfileViewModel
-    weak var coordinator: ProfileCoordinating?
-    
+
     private let outerScroll = UIScrollView()
     private let contentView = UIView()
 
-    
+
     // Views
-   
+
     let profileHeaderView:ProfileHeaderView
     private let tabsView :ProfileTabsReusableView
     private lazy var postsCollectionView: UICollectionView = {
@@ -34,23 +33,23 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         cv.register(ProfilePostCell.self, forCellWithReuseIdentifier: ProfilePostCell.reuseID)
         return cv
     }()
-    
+
     private var dataSource: UICollectionViewDiffableDataSource<Section, UUID>?
     private var postById: [UUID: Post] = [:]
-    
+
     private var collectionHeightConstraint: NSLayoutConstraint!
-    
+
     private let refreshControl = UIRefreshControl()
     init(vm:ProfileViewModel) {
-        
+
         self.vm = vm
         self.profileHeaderView = ProfileHeaderView(isCurrentUser: vm.isCurrentUser)
         self.tabsView = ProfileTabsReusableView(frame: .zero, isCurrentUser: vm.isCurrentUser)
         super.init(nibName: nil, bundle: nil)
-        
-        
+
+
     }
-    
+
     private func makeTwoColumnLayout(spacing: CGFloat = 12) -> UICollectionViewFlowLayout {
         let layout = UICollectionViewFlowLayout()
         layout.minimumInteritemSpacing = spacing
@@ -67,17 +66,17 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             moreButton.tintColor = electricPurple
             navigationItem.rightBarButtonItem = moreButton
         }
-        
+
         navigationItem.title = vm.profile?.username ?? ""
-        
+
     }
     @objc func tapMore(){
-        self.coordinator?.didTapMore()
+        vm.didTapMore()
     }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -112,7 +111,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             await self?.vm.loadIfNeeded()
         }
     }
-        
+
     private func configureDataSource() {
            dataSource = UICollectionViewDiffableDataSource<Section, UUID>(
                collectionView: postsCollectionView
@@ -124,7 +123,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                    for: indexPath
                ) as! ProfilePostCell
                if  let post = self.postById[id]{
-                   
+
                    cell.configure(post: post)
                }else{
                    cell.configure(post: .mockPost)
@@ -150,26 +149,26 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         view.layoutIfNeeded()
     }
     func setup() {
-        
+
         outerScroll.delegate = self
         view.backgroundColor = .systemBackground
         outerScroll.backgroundColor = .clear
         contentView.backgroundColor = .clear
         outerScroll.showsVerticalScrollIndicator = false
-        
-      
+
+
         outerScroll.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(outerScroll)
         outerScroll.addSubview(contentView)
-        
+
         NSLayoutConstraint.activate([
             outerScroll.topAnchor.constraint(equalTo: view.topAnchor),
             outerScroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             outerScroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             outerScroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            
+
+
             // contentView defines scroll content size (vertical)
                contentView.topAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.topAnchor),
                contentView.bottomAnchor.constraint(equalTo: outerScroll.contentLayoutGuide.bottomAnchor),
@@ -177,12 +176,12 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                // ✅ THIS is the key fix: pin contentView horizontally to the *frameLayoutGuide*
                contentView.leadingAnchor.constraint(equalTo: outerScroll.leadingAnchor),
                contentView.trailingAnchor.constraint(equalTo: outerScroll.trailingAnchor),
-            
+
             contentView.widthAnchor.constraint(equalTo: outerScroll.frameLayoutGuide.widthAnchor)
             ])
         setupHeaderView()
         setupTabPicker()
-        
+
     }
     func setupHeaderView(){
         profileHeaderView.delegate = self
@@ -192,7 +191,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             self.profileHeaderView.topAnchor.constraint(equalTo: self.contentView.safeAreaLayoutGuide.topAnchor),
             self.profileHeaderView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
             self.profileHeaderView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
-          
+
         ])
     }
     func setupTabPicker(){
@@ -211,15 +210,15 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         postsCollectionView.delegate = self
 
         outerScroll.delegate = self
-       
-     
-      
-       
-      
+
+
+
+
+
         contentView.addSubview(tabsView)
         contentView.addSubview(postsCollectionView)
-        
-        
+
+
         collectionHeightConstraint = postsCollectionView.heightAnchor.constraint(equalToConstant: 1)
 
         NSLayoutConstraint.activate([
@@ -246,7 +245,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
         if visibleBottom >= contentHeight - threshold {
             vm.loadMoreIfNeeded()
             print("Load more")
-            
+
         }
     }
     func bindToViewModel() {
@@ -294,12 +293,12 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     .sink { [weak self] profile in
                         self?.profileHeaderView.setProfileData(profile: profile)
                         self?.tabsView.tabPicker.setTitle(profile.post_count?.shortFormatted ?? "0", for: .posts)
-                       
+
                         self?.navigationItem.title = profile.username
                     }
                     .store(in: &cancellables)
-        
-        
+
+
         vm.$isFollowing
                 .removeDuplicates()
                 .receive(on: DispatchQueue.main)
@@ -307,7 +306,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                     self?.profileHeaderView.setFollowButtonState(isFollowing: following)
                 }
                 .store(in: &cancellables)
-       
+
                 vm.$errorMessage
                     .compactMap { $0 }
                     .receive(on: DispatchQueue.main)
@@ -326,15 +325,15 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             }
             .store(in: &cancellables)
     }
-    
-   
+
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
        updateItemSizeIfNeeded()
         updateCollectionHeight()
     }
-  
-    
+
+
     private func updateItemSizeIfNeeded() {
             guard let layout = postsCollectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
 
@@ -348,7 +347,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
                 layout.invalidateLayout()
             }
         }
-    
+
 }
 
 #Preview {
@@ -357,40 +356,40 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
 
 extension ProfileViewController:ProfileHeaderViewDelegate{
     func didTapFollowerCount() {
-        self.coordinator?.didTapFollowers()
+        vm.didTapFollowers()
     }
-    
+
     func didTapFollowingCount() {
-        self.coordinator?.didTapFollowing()
+        vm.didTapFollowing()
     }
-    
+
     func followButtonTapped() {
         self.vm.toggleFollow()
     }
-    
+
     func messageButtonTapped() {
-        self.coordinator?.didTapMessage()
+        vm.didTapMessage()
         print("messageButtonTapped")
     }
-    
+
     func editProfileButtonTapped() {
-        self.coordinator?.didTapEditProfile()
+        vm.didTapEditProfile()
         print("editProfileButtonTapped")
     }
-    
+
     func shareProfileButtonTapped() {
-        self.coordinator?.didTapShareProfile()
+        vm.didTapShareProfile()
         print("shareProfileButtonTapped")
     }
-    
-    
+
+
 }
 extension ProfileViewController{
     func collectionView(_ collectionView: UICollectionView,
                         didSelectItemAt indexPath: IndexPath) {
         if let selectedPost = vm.activePosts[safe: indexPath.item]{
-            self.coordinator?.didSelectPostCell(post: selectedPost)
+            vm.didSelectPost(selectedPost)
         }
-       
+
     }
 }
