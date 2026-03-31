@@ -75,6 +75,7 @@ class ProfileViewModel:ObservableObject{
 
     private var likingPosts = Set<UUID>()
     private var savingPosts = Set<UUID>()
+    private var cancellables = Set<AnyCancellable>()
     @Published private(set) var postTranslations: [UUID: TranslationState] = [:]
     var onRoute: ((ProfileRoute) -> Void)?
     var onPostRoute: ((ProfilePostRoute) -> Void)?
@@ -88,12 +89,14 @@ class ProfileViewModel:ObservableObject{
     let followService: FollowService
     let postQueryService:PostQueryService = .init()
     private let postService = PostActionService()
+    private let translationController: PostTranslationController
     private let sessionManager: SessionManaging
 
     init(
            target: ProfileTarget,
            profileService: ProfileService = .init(),
            followService: FollowService = .init(),
+           translationController: PostTranslationController,
            sessionManager: SessionManaging = AuthSessionManager()
        ) {
         self.target = target
@@ -107,52 +110,13 @@ class ProfileViewModel:ObservableObject{
         }
            self.profileService = profileService
            self.followService = followService
+        self.translationController = translationController
         self.sessionManager = sessionManager
-
-
-
+        bindTranslationController()
     }
     @MainActor
     func togglePostTranslation(postId: UUID, originalText: String) {
-        var st = postTranslations[postId] ?? TranslationState()
-
-        // 1️⃣ If showing translation → go back to original
-        if st.isShowingTranslation {
-            st.isShowingTranslation = false
-            postTranslations[postId] = st
-            return
-        }
-
-        // 2️⃣ If translation already exists → show instantly
-        if st.translatedText != nil {
-            st.isShowingTranslation = true
-            postTranslations[postId] = st
-            return
-        }
-
-        // 3️⃣ Mock loading state
-        st.isLoading = true
-        postTranslations[postId] = st
-
-        // 4️⃣ Fake async translation
-        Task { [weak self] in
-            guard let self else { return }
-            do{
-                let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
-
-                    var updated = self.postTranslations[postId] ?? TranslationState()
-                    updated.translatedText = translatedText
-                    updated.isShowingTranslation = true
-                    updated.isLoading = false
-                    self.postTranslations[postId] = updated
-
-            }catch{
-
-                    self.postTranslations[postId] = nil
-                self.errorMessage = "Error translating post. Please try again later."
-
-            }
-        }
+        translationController.toggle(postId: postId, text: originalText)
     }
     func getProfileCounts() async  {
         guard let userID else{return}
@@ -512,6 +476,18 @@ class ProfileViewModel:ObservableObject{
                }
            }
        }
+
+    private func bindTranslationController() {
+        translationController.$translations
+            .sink { [weak self] translations in
+                self?.postTranslations = translations
+            }
+            .store(in: &cancellables)
+
+        translationController.onError = { [weak self] message in
+            self?.errorMessage = message
+        }
+    }
 }
 //extension ProfileViewModel{
 //    func loadMockData() ->[Post]{

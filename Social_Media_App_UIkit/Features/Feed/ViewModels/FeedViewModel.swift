@@ -26,6 +26,7 @@ class FeedViewModel{
 
     private let service: FeedService
     private let realtime: FeedRealtime
+    private let translationController: PostTranslationController
     private var state = FeedState()
     private let userService = UserService()
     private let authorCache = AuthorCache()
@@ -33,9 +34,15 @@ class FeedViewModel{
 
 
 
-    init(service: FeedService, realtime: FeedRealtime) {
+    init(
+        service: FeedService,
+        realtime: FeedRealtime,
+        translationController: PostTranslationController 
+    ) {
         self.service = service
         self.realtime = realtime
+        self.translationController = translationController
+        bindTranslationController()
     }
     private(set) var cancellables = Set<AnyCancellable>()
     var onRoute: ((FeedRoute) -> Void)?
@@ -64,45 +71,7 @@ class FeedViewModel{
 
     @MainActor
     func togglePostTranslation(postId: UUID, originalText: String) {
-        var st = postTranslations[postId] ?? TranslationState()
-
-        // 1️⃣ If showing translation → go back to original
-        if st.isShowingTranslation {
-            st.isShowingTranslation = false
-            postTranslations[postId] = st
-            return
-        }
-
-        // 2️⃣ If translation already exists → show instantly
-        if st.translatedText != nil {
-            st.isShowingTranslation = true
-            postTranslations[postId] = st
-            return
-        }
-
-        // 3️⃣ Mock loading state
-        st.isLoading = true
-        postTranslations[postId] = st
-
-        // 4️⃣ Fake async translation
-        Task { [weak self] in
-            guard let self else { return }
-            do{
-                let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
-
-                var updated = self.postTranslations[postId] ?? TranslationState()
-                updated.translatedText = translatedText
-                updated.isShowingTranslation = true
-                updated.isLoading = false
-                self.postTranslations[postId] = updated
-
-            }catch{
-
-                self.postTranslations[postId] = nil
-                self.errorMessage = "Error translating post. Please try again later."
-
-            }
-        }
+        translationController.toggle(postId: postId, text: originalText)
     }
 
     // Call from VC.viewDidLoad in a Task
@@ -443,6 +412,18 @@ class FeedViewModel{
             }
         }
     }
+
+    private func bindTranslationController() {
+        translationController.$translations
+            .sink { [weak self] translations in
+                self?.postTranslations = translations
+            }
+            .store(in: &cancellables)
+
+        translationController.onError = { [weak self] message in
+            self?.errorMessage = message
+        }
+    }
 }
 
 // MARK: - UI-facing lightweight state
@@ -455,72 +436,3 @@ struct FeedState {
     var isLoadingMore = false
     var isRefreshing = false
 }
-
-
-
-
-
-
-
-
-
-// MARK: - MOCK (for UI design & testing)
-//extension FeedViewModel {
-//
-//    /// Fill the feed with mock posts so UI can be designed without backend.
-//    func loadMockData() {
-//        var items: [Post] = []
-//
-//        let authors: [UserSummary] = [
-//            UserSummary(id: UUID(),
-//                        username: "hakim_cyber",
-//                        fullName: "Hakim Aliyev",
-//                        avatarURL: URL(string: "https://picsum.photos/60"),
-//                        isVerified: true),
-//            UserSummary(id: UUID(),
-//                        username: "zarina",
-//                        fullName: "Zarina Aliyeva",
-//                        avatarURL: URL(string: "https://picsum.photos/61"),
-//                        isVerified: true),
-//            UserSummary(id: UUID(),
-//                        username: "swift_dev",
-//                        fullName: "Swift Developer",
-//                        avatarURL: URL(string: "https://picsum.photos/62"),
-//                        isVerified: false),
-//        ]
-//
-//        // Generate 20 mock posts
-//        for i in 0..<20 {
-//            let author = authors[i % authors.count]
-//
-//            let post = Post(
-//                id: UUID(),
-//                caption: "Mock caption #\(i). Designing UI without backend.",
-//                imageURL: URL(string: "https://www.gettyimages.com/photos/white-color")!  ,
-//                location: i % 3 == 0 ? "Istanbul" : nil,
-//                likeCount: Int.random(in: 30...999),
-//                commentCount: Int.random(in: 0...100),
-//                createdAt: Date().addingTimeInterval(-Double(i * 300)), // spaced by 5min
-//                author: author,
-//                isLiked: false,
-//                isSaved: false
-//            )
-//
-//            items.append(post)
-//        }
-//
-//        // Update state
-//        state.posts = items
-//        posts = items
-//
-//        // Cursor info (fake)
-//        if let first = items.first {
-//            state.topCursor = FeedCursor(createdAt: first.createdAt, postId: first.id)
-//        }
-//        if let last = items.last {
-//            state.nextCursor = FeedCursor(createdAt: last.createdAt, postId: last.id)
-//        }
-//
-//        state.seen = Set(items.map { $0.id })
-//    }
-//}

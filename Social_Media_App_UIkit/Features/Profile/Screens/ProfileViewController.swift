@@ -351,7 +351,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
 }
 
 #Preview {
-    ProfileViewController(vm: .init(target: .user(id: UUID())))
+    ProfileViewController(vm: .init(target: .user(id: UUID()), translationController: .init()))
 }
 
 extension ProfileViewController:ProfileHeaderViewDelegate{

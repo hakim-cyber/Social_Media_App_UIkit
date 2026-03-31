@@ -36,7 +36,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     }
 
     func start(animated: Bool) {
-        let vm = FeedViewModel(service: feedService, realtime: realtime)
+        let vm = FeedViewModel(service: feedService, realtime: realtime,translationController: .init())
         self.viewModel = vm
         vm.onRoute = { [weak self] route in
             DispatchQueue.main.async {

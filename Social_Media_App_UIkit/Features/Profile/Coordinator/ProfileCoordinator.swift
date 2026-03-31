@@ -54,7 +54,7 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
         startRooot(animated: animated)
     }
     private func startRooot(animated: Bool) {
-        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
+        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService, translationController: .init())
         self.viewModel = vm
         bind(vm)
 
@@ -62,7 +62,7 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
         navigationController.setViewControllers([vc], animated: animated)
     }
     func startPush(animated: Bool) {
-        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService)
+        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService, translationController: .init())
         self.viewModel = vm
         bind(vm)
 
