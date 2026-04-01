@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import Foundation
 enum FollowerListTarget{
     case following
     case followers
@@ -17,7 +18,8 @@ enum FollowerListRoute {
     case showMore(UserFollowItem)
 }
 
-class FollowersListViewModel{
+@MainActor
+final class FollowersListViewModel {
     @Published  var target: FollowerListTarget = .following
 
     @Published private(set) var followerCount:Int = 0
@@ -51,20 +53,23 @@ class FollowersListViewModel{
 
     let selectedUser:UserProfile
     let isCurrentUser:Bool
+    let currentUserId: UUID?
 
     private var followingUsers = Set<UUID>()
     var onRoute: ((FollowerListRoute) -> Void)?
 
-    let followService:FollowService
+    let followService: any FollowServicing
     init(
            target: FollowerListTarget,
            selectedUser:UserProfile,
            isCurrentUser:Bool = false,
-           followService:FollowService = .init()
+           currentUserId: UUID?,
+           followService: any FollowServicing
        ) {
         self.target = target
            self.selectedUser = selectedUser
            self.isCurrentUser = isCurrentUser
+           self.currentUserId = currentUserId
            self.followService = followService
     }
     func didTapProfile(_ user: UserFollowItem) {
@@ -201,7 +206,11 @@ class FollowersListViewModel{
         defer{isLoadingFollowers = false}
 
         do{
-            let page:FollowerListResponse = try await followService.getFollowers(userID:userID, limit: pageSize )
+            let page: FollowerListResponse = try await followService.getFollowers(
+                userID: userID,
+                limit: pageSize,
+                beforeCursor: nil
+            )
             self.followers = page.users
             followersCursor = page.nextCursor
         }catch{
@@ -231,7 +240,11 @@ class FollowersListViewModel{
         defer{isLoadingFollowings = false}
 
         do{
-            let page:FollowerListResponse = try await followService.getFollowings(userID:userID, limit: pageSize )
+            let page: FollowerListResponse = try await followService.getFollowings(
+                userID: userID,
+                limit: pageSize,
+                beforeCursor: nil
+            )
             self.followings = page.users
             followingsCursor = page.nextCursor
         }catch{

@@ -12,7 +12,13 @@ protocol SessionManaging {
 }
 
 struct AuthSessionManager: SessionManaging {
+    private let authService: any AuthServicing
+
+    init(authService: any AuthServicing) {
+        self.authService = authService
+    }
+
     func logout() async throws {
-        try await AuthService.shared.logout()
+        try await authService.logout()
     }
 }

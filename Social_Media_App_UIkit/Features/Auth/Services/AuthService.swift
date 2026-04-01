@@ -24,19 +24,6 @@ protocol AuthServicing {
 
 @MainActor
 final class AuthService: AuthServicing {
-    private static var configuredShared: AuthService?
-
-    static var shared: AuthService {
-        guard let configuredShared else {
-            fatalError("AuthService.shared accessed before AppContainer configured it.")
-        }
-        return configuredShared
-    }
-
-    static func configureShared(_ service: AuthService) {
-        configuredShared = service
-    }
-
     private let supabase: SupabaseClient
     private let sessionStore: SessionStoreProtocol
     private let passwordResetRedirectURL: URL

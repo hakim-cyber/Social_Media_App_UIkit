@@ -8,8 +8,20 @@ import Supabase
 import Foundation
 import Combine
 
-final class FeedService {
-    private let client = SupabaseManager.shared.client
+protocol FeedServicing {
+    func loadGlobalFeed(
+        limit: Int,
+        beforeCreatedAt: Date?,
+        beforeId: UUID?
+    ) async throws -> FeedResponse
+}
+
+final class FeedService: FeedServicing {
+    private let client: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.client = client
+    }
     
     func loadGlobalFeed(
         limit: Int = 20,

@@ -5,22 +5,24 @@
 //  Created by aplle on 9/28/25.
 //
 
-import UIKit
-import Supabase
+import Foundation
 
-final class OnboardingService {
+protocol OnboardingServicing {
+    var hasSeenWelcome: Bool { get }
+    func setHasSeenWelcome()
+    func resetHasSeenWelcome()
+}
+
+final class OnboardingService: OnboardingServicing {
     private let defaults: UserDefaults
 
-       init(defaults: UserDefaults) {
-           self.defaults = defaults
-       }
+    init(defaults: UserDefaults) {
+        self.defaults = defaults
+    }
     
     private enum Keys {
         static let hasSeenWelcome = "hasSeenWelcome"
     }
-    
-    
-    
     var hasSeenWelcome: Bool {
         defaults.bool(forKey: Keys.hasSeenWelcome)
     }

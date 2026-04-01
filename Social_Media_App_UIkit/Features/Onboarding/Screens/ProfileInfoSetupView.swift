@@ -318,8 +318,3 @@ class ProfileInfoSetupView: UIViewController {
             return regex?.firstMatch(in: trimmed, options: [], range: range) != nil
         }
 }
-
-#Preview{
-    ProfileInfoSetupView(viewModel: OnboardingSetupViewModel(profileService: .init()))
-}
-

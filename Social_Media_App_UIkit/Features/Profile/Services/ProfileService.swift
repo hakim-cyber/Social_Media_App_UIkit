@@ -9,15 +9,32 @@ import Foundation
 import Supabase
 import UIKit
 
+protocol ProfileServicing {
+    func checkIfUserHasProfile() async throws -> Bool
+    func fetchUserProfile(id: UUID) async throws -> UserProfile
+    func fetchProfileCounts(userId: UUID) async throws -> ProfileCounts
+    func createNewProfile(
+        username: String,
+        fullName: String,
+        bio: String?,
+        avatarImage: UIImage?
+    ) async throws -> UserProfile
+    func updateProfile(
+        username: String,
+        fullName: String,
+        bio: String?,
+        avatarImage: UIImage?
+    ) async throws -> UserProfile
+}
 
-class ProfileService {
+final class ProfileService: ProfileServicing {
     private let supabase: SupabaseClient
-        private let avatarService: ProfileAvatarService
+    private let avatarService: any ProfileAvatarServicing
 
-        init(client: SupabaseClient, avatarService: ProfileAvatarService) {
-            self.supabase = client
-            self.avatarService = avatarService
-        }
+    init(client: SupabaseClient, avatarService: any ProfileAvatarServicing) {
+        self.supabase = client
+        self.avatarService = avatarService
+    }
     func checkIfUserHasProfile() async throws -> Bool {
         // Ensure we have a logged-in user
         guard let userId = supabase.auth.currentUser?.id else {

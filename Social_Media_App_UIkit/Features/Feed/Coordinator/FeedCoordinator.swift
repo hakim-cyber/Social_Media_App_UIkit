@@ -19,26 +19,30 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
     // MARK: - Coordinator
     var navigationController: UINavigationController
 
-    private let feedService: FeedService
-    private let realtime: FeedRealtime
-
-    private var viewModel: FeedViewModel?
+    private let dependencies: MainFeedDependencies
+    private let profileDependencies: MainProfileDependencies
+    private lazy var viewModel = FeedViewModel(
+        service: dependencies.feedService,
+        realtime: FeedRealtime(client: dependencies.supabaseClient),
+        translationController: PostTranslationController(service: dependencies.translationService),
+        userService: dependencies.userService,
+        postService: dependencies.postActionService
+    )
 
     private weak var commentsNavController: UINavigationController?
+
     init(
         navigationController: UINavigationController,
-        feedService: FeedService = .init(),
-        realtime: FeedRealtime = .init()
+        dependencies: MainFeedDependencies,
+        profileDependencies: MainProfileDependencies
     ) {
         self.navigationController = navigationController
-        self.feedService = feedService
-        self.realtime = realtime
+        self.dependencies = dependencies
+        self.profileDependencies = profileDependencies
     }
 
     func start(animated: Bool) {
-        let vm = FeedViewModel(service: feedService, realtime: realtime,translationController: .init())
-        self.viewModel = vm
-        vm.onRoute = { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
             DispatchQueue.main.async {
                 switch route {
                 case .openProfile(let userId):
@@ -50,7 +54,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
                 }
             }
         }
-        let vc = PostFeedViewController(vm: vm)
+        let vc = PostFeedViewController(vm: viewModel)
 
 
         navigationController.setViewControllers([vc], animated: animated)
@@ -60,7 +64,7 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
         dismissPresentedIfNeeded { [weak self] in
             guard let self else { return }
 
-            let currentId = UserSessionService.shared.currentUser?.id
+            let currentId = self.dependencies.sessionStore.currentUser?.id
 
             if currentId == id,
                let main = self.parentCoordinator as? MainCoordinator {
@@ -70,6 +74,8 @@ final class FeedCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoord
 
             let coord = ProfileCoordinator(
                 navigationController: self.navigationController,
+                dependencies: self.profileDependencies,
+                feedDependencies: self.dependencies,
                 target: .user(id: id)
             )
             coord.parentCoordinator = self
@@ -92,8 +98,9 @@ extension FeedCoordinator {
         MoreSheetPresenter.showPost(
             post,
             from: self.navigationController,
+            canDeletePost: post.author.id == dependencies.sessionStore.currentUser?.id,
             onSave: {[weak self] in
-                self?.viewModel?.toggleSave(for: post.id, desiredState: !post.isSaved)
+                self?.viewModel.toggleSave(for: post.id, desiredState: !post.isSaved)
             },
             onCopy: {/*[weak self] in*/
                // for now like this later change so it gives real url
@@ -104,7 +111,7 @@ extension FeedCoordinator {
 
             },
             onDelete: {[weak self] in
-                self?.viewModel?.deletePost(post: post.id)
+                self?.viewModel.deletePost(post: post.id)
             }
         )
 
@@ -114,9 +121,14 @@ extension FeedCoordinator {
 
 
     func postCellDidTapComment(_ post: Post) {
-        let viewModel = CommentViewModel(postId: post.id,
-                                        service: CommentService(),
-                                        commentsCount: post.commentCount)
+        let viewModel = CommentViewModel(
+            postId: post.id,
+            service: dependencies.commentService,
+            commentsCount: post.commentCount,
+            userService: dependencies.userService,
+            translationService: dependencies.translationService,
+            sessionStore: dependencies.sessionStore
+        )
         bindCommentRoutes(viewModel)
 
         let commentsVC = PostCommentViewController(vm: viewModel)

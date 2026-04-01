@@ -264,7 +264,11 @@ class PostCommentViewController: UIViewController {
             ) as! PostCommentTableViewCell
 
            cell.delegate = self
-            cell.configure(with: comment, translation: self?.vm.commentTranslations[comment.id])
+            cell.configure(
+                with: comment,
+                translation: self?.vm.commentTranslations[comment.id],
+                currentUserId: self?.vm.currentUserId
+            )
             return cell
         }
         postCommentTableView.dataSource = dataSource

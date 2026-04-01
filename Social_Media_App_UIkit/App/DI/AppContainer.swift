@@ -5,7 +5,6 @@
 //  Created by aplle on 4/1/26.
 //
 
-
 import Foundation
 import Supabase
 
@@ -15,12 +14,22 @@ final class AppContainer {
 
     let sessionStore: SessionStoreProtocol
     let sessionService: UserSessionService
-    let onboardingService: OnboardingService
-    let storageService: SupabaseStorageService
-    let profileAvatarService: ProfileAvatarService
-    let profileService: ProfileService
-    let authService: AuthServicing
-    let socialAuthService: SocialAuthServicing
+    let onboardingService: any OnboardingServicing
+    let storageService: any StorageUploading
+    let profileAvatarService: any ProfileAvatarServicing
+    let profileService: any ProfileServicing
+    let authService: any AuthServicing
+    let socialAuthService: any SocialAuthServicing
+
+    let translationService: any TranslationService
+    let usernameValidator: any UsernameValidating
+    let userService: any UserServicing
+    let postQueryService: any PostQueryServicing
+    let postActionService: any PostActionServicing
+    let commentService: any CommentServicing
+    let followService: any FollowServicing
+    let searchService: any SearchServicing
+    let feedService: any FeedServicing
 
     init(configuration: AppConfiguration) {
         self.configuration = configuration
@@ -57,12 +66,69 @@ final class AppContainer {
             passwordResetRedirectURL: URL(string: "myapp://auth-callback/account/update-password")!
         )
         self.authService = authService
-        AuthService.configureShared(authService)
 
         self.socialAuthService = SocialAuthService(
             authService: authService,
             googleSignInFlow: GoogleSignInHelper(),
             appleSignInFlow: AppleSignInHelper()
+        )
+
+        self.translationService = DeepLTranslationService(apiKey: configuration.deepLAPIKey)
+        self.usernameValidator = UsernameValidator(client: client)
+        self.userService = UserService(client: client)
+        self.postQueryService = PostQueryService(client: client)
+        self.postActionService = PostActionService(
+            client: client,
+            storageService: storageService
+        )
+        self.commentService = CommentService(client: client)
+        self.followService = FollowService(client: client)
+        self.searchService = SearchService(client: client)
+        self.feedService = FeedService(client: client)
+    }
+}
+
+extension AppContainer {
+    var authFlowDependencies: AuthFlowDependencies {
+        AuthFlowDependencies(
+            onboardingService: onboardingService,
+            authService: authService,
+            socialAuthService: socialAuthService
+        )
+    }
+
+    var mainFlowDependencies: MainFlowDependencies {
+        MainFlowDependencies(
+            onboarding: MainOnboardingDependencies(
+                profileService: profileService,
+                usernameValidator: usernameValidator
+            ),
+            feed: MainFeedDependencies(
+                sessionStore: sessionStore,
+                supabaseClient: supabaseClient,
+                feedService: feedService,
+                commentService: commentService,
+                userService: userService,
+                postActionService: postActionService,
+                translationService: translationService
+            ),
+            search: MainSearchDependencies(
+                sessionStore: sessionStore,
+                searchService: searchService
+            ),
+            profile: MainProfileDependencies(
+                sessionStore: sessionStore,
+                profileService: profileService,
+                followService: followService,
+                postQueryService: postQueryService,
+                postActionService: postActionService,
+                translationService: translationService,
+                usernameValidator: usernameValidator,
+                authService: authService
+            ),
+            createPost: MainCreatePostDependencies(
+                postActionService: postActionService
+            )
         )
     }
 }

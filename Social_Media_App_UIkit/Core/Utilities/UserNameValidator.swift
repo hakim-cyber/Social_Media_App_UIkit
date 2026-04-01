@@ -8,10 +8,18 @@
 import Foundation
 import Supabase
 
+protocol UsernameValidating {
+    func isValidFormat(_ username: String) -> (Bool, String?)
+    func isAvailable(_ username: String) async throws -> Bool
+    func validate(_ username: String) async -> (Bool, String?)
+}
 
+struct UsernameValidator: UsernameValidating {
+    private let supabase: SupabaseClient
 
- struct UsernameValidator {
-    private let supabase = SupabaseManager.shared.client
+    init(client: SupabaseClient) {
+        self.supabase = client
+    }
     
     // Validate format
     func isValidFormat(_ username: String) -> (Bool, String?) {

@@ -7,10 +7,33 @@
 import Supabase
 import Foundation
 
-final class PostQueryService{
-    private let supabase = SupabaseManager.shared.client
-    
-    
+protocol PostQueryServicing {
+    func fetchPostsForUser(
+        userID: UUID,
+        limit: Int,
+        beforeCreatedAt: Date?,
+        beforeId: UUID?
+    ) async throws -> FeedResponse
+    func fetchSavedPosts(
+        limit: Int,
+        beforeCreatedAt: Date?,
+        beforeId: UUID?
+    ) async throws -> FeedResponse
+    func fetchLikedPosts(
+        userID: UUID,
+        limit: Int,
+        beforeCreatedAt: Date?,
+        beforeId: UUID?
+    ) async throws -> FeedResponse
+}
+
+final class PostQueryService: PostQueryServicing {
+    private let supabase: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.supabase = client
+    }
+
     func fetchPostsForUser(
         userID: UUID,
         limit: Int = 20,
@@ -103,5 +126,4 @@ final class PostQueryService{
     }
   
 }
-
 

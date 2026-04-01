@@ -7,16 +7,20 @@
 import Supabase
 import UIKit
 
+protocol ProfileAvatarServicing {
+    func upload(_ image: UIImage, userId: UUID) async throws -> (path: String, publicURL: String)
+    func removeAvatar(from publicURL: String?) async
+    func rollbackUpload(path: String?) async
+}
 
-final class ProfileAvatarService {
-   
-        private let supabase: SupabaseClient
-        private let storage: SupabaseStorageService
+final class ProfileAvatarService: ProfileAvatarServicing {
+    private let supabase: SupabaseClient
+    private let storage: any StorageUploading
 
-        init(client: SupabaseClient, storage: SupabaseStorageService) {
-            self.supabase = client
-            self.storage = storage
-        }
+    init(client: SupabaseClient, storage: any StorageUploading) {
+        self.supabase = client
+        self.storage = storage
+    }
     
     func upload(_ image: UIImage, userId: UUID) async throws -> (path: String, publicURL: String) {
         let uniqueName = "\(UUID().uuidString).jpg"

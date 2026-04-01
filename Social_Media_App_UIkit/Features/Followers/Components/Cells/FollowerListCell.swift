@@ -120,13 +120,18 @@ final class FollowerListCell: UITableViewCell {
     }
 
     // MARK: - Public configure
-    func configure(with user: UserFollowItem,target:FollowerListTarget,isCurrentUser:Bool ) {
+    func configure(
+        with user: UserFollowItem,
+        target: FollowerListTarget,
+        isCurrentUser: Bool,
+        currentUserId: UUID?
+    ) {
         self.target = target
         self.user = user
         self.isCurrentUser = isCurrentUser
       
         if let avatarURL = user.avatarURL { avatarImageView.setImage(url: avatarURL) }
-        if user.id  == UserSessionService.shared.currentUser?.id{
+        if user.id == currentUserId {
             followButton.isHidden = true
         }else{
             followButton.isHidden = false

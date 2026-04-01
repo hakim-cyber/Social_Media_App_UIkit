@@ -8,7 +8,13 @@
 import Foundation
 import Combine
 
-final class PostTranslationController: ObservableObject {
+protocol PostTranslationControlling: AnyObject {
+    var translationsPublisher: AnyPublisher<[UUID: TranslationState], Never> { get }
+    var onError: ((String) -> Void)? { get set }
+    func toggle(postId: UUID, text: String)
+}
+
+final class PostTranslationController: ObservableObject, PostTranslationControlling {
     @Published private(set) var translations: [UUID: TranslationState] = [:]
 
     var onError: ((String) -> Void)?
@@ -16,10 +22,11 @@ final class PostTranslationController: ObservableObject {
     private let service: any TranslationService
     private let targetLanguage: String
 
-    init(
-        service: any TranslationService = DeepLTranslationService.shared,
-        targetLanguage: String = "EN"
-    ) {
+    var translationsPublisher: AnyPublisher<[UUID: TranslationState], Never> {
+        $translations.eraseToAnyPublisher()
+    }
+
+    init(service: any TranslationService, targetLanguage: String = "EN") {
         self.service = service
         self.targetLanguage = targetLanguage
     }

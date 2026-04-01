@@ -19,6 +19,7 @@ final class ProfileHeaderView: UIView {
 
     var isCurrentUser:Bool = false
     weak var delegate:ProfileHeaderViewDelegate?
+    private let avatarZoomPresenter: any AvatarZoomPresenting
     // Views
     let profileInfoContainerView:UIView = UIView()
     let profileInfoContainerStackView:UIStackView = UIStackView()
@@ -49,8 +50,13 @@ final class ProfileHeaderView: UIView {
     let button1:CustomStyledButton = .init(style: .primary, text: "Follow")
     let button2:CustomStyledButton = .init(style: .secondary, text: "Message")
     
-     init(frame: CGRect = .zero,isCurrentUser:Bool) {
+     init(
+        frame: CGRect = .zero,
+        isCurrentUser: Bool,
+        avatarZoomPresenter: any AvatarZoomPresenting = AvatarZoomPresenter()
+     ) {
         self.isCurrentUser = isCurrentUser
+        self.avatarZoomPresenter = avatarZoomPresenter
            super.init(frame: frame)
           setup()
        }
@@ -266,7 +272,7 @@ final class ProfileHeaderView: UIView {
     
     @objc private func didLongPressAvatar(_ g: UILongPressGestureRecognizer) {
         guard g.state == .began else { return }
-        AvatarZoomPresenter.shared.present(from: avatarImageView, image: avatarImageView.image)
+        avatarZoomPresenter.present(from: avatarImageView, image: avatarImageView.image)
     }
     func setupStatsStackView(){
         let hStack = profileStatsStackView

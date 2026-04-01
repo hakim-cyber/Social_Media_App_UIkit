@@ -15,6 +15,7 @@ enum CreatePostRoute {
     case finished(Post)
 }
 
+@MainActor
 final class CreatePostViewModel: ObservableObject {
     var selectedImage:UIImage?
     @Published private(set) var selectedLocation: String?
@@ -22,7 +23,11 @@ final class CreatePostViewModel: ObservableObject {
     @Published private(set) var errorMessage: String? = nil
 
     var onRoute: ((CreatePostRoute) -> Void)?
-    private let postService = PostActionService()
+    private let postService: any PostActionServicing
+
+    init(postService: any PostActionServicing) {
+        self.postService = postService
+    }
 
     func createPost(caption: String) async {
         guard !isLoading else { return }

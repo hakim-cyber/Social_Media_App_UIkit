@@ -16,7 +16,7 @@ enum CommentRoute {
 }
 
 @MainActor
-class CommentViewModel{
+final class CommentViewModel {
     @Published private(set) var comments: [PostComment] = []
     @Published private(set) var commmentsCount = 0
     @Published private(set) var isLoadingMore = false
@@ -25,18 +25,35 @@ class CommentViewModel{
     @Published  private(set) var currentUserSummary:UserSummary?
 
     private let postId:UUID
-    private let service: CommentService
+    private let service: any CommentServicing
     private var nextCursor:CommentCursor?
     private let pageSize = 20
 
     @Published private(set) var commentTranslations: [UUID: TranslationState] = [:]
     var onRoute: ((CommentRoute) -> Void)?
 
-    let userService:UserService = .init()
-    init(postId:UUID,service:CommentService,commentsCount:Int){
+    private let userService: any UserServicing
+    private let translationService: any TranslationService
+    private let sessionStore: SessionStoreProtocol
+
+    var currentUserId: UUID? {
+        sessionStore.currentUser?.id
+    }
+
+    init(
+        postId: UUID,
+        service: any CommentServicing,
+        commentsCount: Int,
+        userService: any UserServicing,
+        translationService: any TranslationService,
+        sessionStore: SessionStoreProtocol
+    ) {
         self.postId = postId
         self.service = service
         self.commmentsCount = commentsCount
+        self.userService = userService
+        self.translationService = translationService
+        self.sessionStore = sessionStore
     }
     func didTapAvatar(_ comment: PostComment) {
         onRoute?(.openProfile(comment.author))
@@ -67,7 +84,11 @@ class CommentViewModel{
         Task { [weak self] in
             guard let self else { return }
             do{
-                let translatedText = try await   DeepLTranslationService.shared.translate(text: originalText, targetLang: "EN")
+                let translatedText = try await translationService.translate(
+                    text: originalText,
+                    targetLang: "EN",
+                    sourceLang: nil
+                )
 
                     var updated = self.commentTranslations[postId] ?? TranslationState()
                     updated.translatedText = translatedText
@@ -96,7 +117,11 @@ class CommentViewModel{
         defer{isRefreshing = false}
 
         do{
-            let page:CommentPageResponse = try await service.fetchComments(postId: postId,limit: pageSize)
+            let page: CommentPageResponse = try await service.fetchComments(
+                postId: postId,
+                limit: pageSize,
+                beforeCursor: nil
+            )
             comments = page.comments
             nextCursor = page.nextCursor
         }catch{
@@ -119,7 +144,7 @@ class CommentViewModel{
     }
 
     func loadUserProfileMain()async{
-        if let userID = UserSessionService.shared.currentUser?.id{
+        if let userID = sessionStore.currentUser?.id {
             do{
                 let userSummary:UserSummary = try await  userService.fetchUserSummary(id: userID)
                 currentUserSummary = userSummary

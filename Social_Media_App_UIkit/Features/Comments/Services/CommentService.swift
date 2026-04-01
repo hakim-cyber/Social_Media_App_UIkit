@@ -8,12 +8,22 @@
 import Supabase
 import Foundation
 
+protocol CommentServicing {
+    func createComment(text: String, postID: UUID) async throws -> CommentCreateResponse
+    func fetchComments(
+        postId: UUID,
+        limit: Int,
+        beforeCursor: CommentCursor?
+    ) async throws -> CommentPageResponse
+    func deleteComment(commentId: UUID) async throws -> CommentDeleteResponse
+}
 
-final class CommentService{
-    
-    private let supabase = SupabaseManager.shared.client
-    
-    
+final class CommentService: CommentServicing {
+    private let supabase: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.supabase = client
+    }
     
     func createComment(text: String, postID: UUID) async throws -> CommentCreateResponse {
         let response : CommentCreateResponse = try await supabase

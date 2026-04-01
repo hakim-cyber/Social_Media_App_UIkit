@@ -200,7 +200,3 @@ class ForgotPasswordChangeVIew: UIViewController {
     
     
 }
-
-#Preview {
-    LoginViewController(viewModel: .init())
-}

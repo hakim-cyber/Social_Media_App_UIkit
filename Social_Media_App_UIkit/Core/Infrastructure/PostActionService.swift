@@ -8,12 +8,21 @@
 import UIKit
 import Supabase
 
+protocol PostActionServicing {
+    func createPost(caption: String?, image: UIImage, location: String?) async throws -> Post
+    func deletePost(postId: UUID) async throws -> PostDeleteResponse
+    func addLikeToPost(postId: UUID) async throws -> LikeResponse
+    func savePost(postId: UUID) async throws -> SavePostResponse
+}
 
+final class PostActionService: PostActionServicing {
+    private let supabase: SupabaseClient
+    private let storageService: any StorageUploading
 
-final class PostActionService{
-    private let supabase = SupabaseManager.shared.client
-    
-  
+    init(client: SupabaseClient, storageService: any StorageUploading) {
+        self.supabase = client
+        self.storageService = storageService
+    }
 }
 
 
@@ -23,8 +32,7 @@ extension  PostActionService {
    
     /// Upload a post image; typically immutable (upsert=false). Prefer unique filename.
     func uploadPostImage(_ image: UIImage, userId: UUID) async throws -> (path: String, url: String) {
-        let svc = SupabaseStorageService()
-        let res = try await svc.uploadImage(
+        let res = try await storageService.uploadImage(
             image,
             userId: userId,
             bucket: .postImages,

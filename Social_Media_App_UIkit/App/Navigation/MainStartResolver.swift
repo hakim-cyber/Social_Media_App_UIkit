@@ -17,9 +17,9 @@ protocol MainStartResolving {
 }
 
 struct MainStartResolver: MainStartResolving {
-    private let profileService: ProfileService
+    private let profileService: any ProfileServicing
 
-    init(profileService: ProfileService) {
+    init(profileService: any ProfileServicing) {
         self.profileService = profileService
     }
 

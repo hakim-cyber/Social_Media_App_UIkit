@@ -113,9 +113,7 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     private func startAuthFlow() {
         let auth = AuthCoordinator(
             navigationController: navigationController,
-            onboardingService: container.onboardingService,
-            authService: container.authService,
-            socialAuthService: container.socialAuthService
+            dependencies: container.authFlowDependencies
         )
 
         authCoordinator = auth
@@ -129,7 +127,9 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     }
 
     private func startMainFlow() {
-        let main = MainCoordinator(onboardingService: container.onboardingService,profileService: container.profileService)
+        let main = MainCoordinator(
+            dependencies: container.mainFlowDependencies
+        )
 
         mainCoordinator = main
         addChild(main)

@@ -9,6 +9,7 @@ import Foundation
 
 
 import UIKit
+
 final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator, ChildCoordinator,UINavigationControllerDelegate {
 
     // MARK: - ParentCoordinator
@@ -20,23 +21,30 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
     // MARK: - Coordinator
     var navigationController: UINavigationController
 
-    private let profileService: ProfileService
-    private let followService: FollowService
-
-
-    private var viewModel: ProfileViewModel?
+    private let dependencies: MainProfileDependencies
+    private let feedDependencies: MainFeedDependencies
     private let target: ProfileTarget
+    private lazy var viewModel = ProfileViewModel(
+        target: target,
+        sessionStore: dependencies.sessionStore,
+        profileService: dependencies.profileService,
+        followService: dependencies.followService,
+        postQueryService: dependencies.postQueryService,
+        postService: dependencies.postActionService,
+        translationController: PostTranslationController(service: dependencies.translationService),
+        sessionManager: AuthSessionManager(authService: dependencies.authService)
+    )
 
     private weak var profileVC: UIViewController?
     init(
         navigationController: UINavigationController,
-        profileService: ProfileService = .init(),
-        followService: FollowService = .init(),
+        dependencies: MainProfileDependencies,
+        feedDependencies: MainFeedDependencies,
         target:ProfileTarget
     ) {
         self.navigationController = navigationController
-        self.followService = followService
-        self.profileService = profileService
+        self.dependencies = dependencies
+        self.feedDependencies = feedDependencies
         self.target = target
     }
 
@@ -54,19 +62,15 @@ final class ProfileCoordinator:NSObject, NavigationCoordinator,ParentCoordinator
         startRooot(animated: animated)
     }
     private func startRooot(animated: Bool) {
-        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService, translationController: .init())
-        self.viewModel = vm
-        bind(vm)
+        bind(viewModel)
 
-        let vc = ProfileViewController(vm: vm)
+        let vc = ProfileViewController(vm: viewModel)
         navigationController.setViewControllers([vc], animated: animated)
     }
     func startPush(animated: Bool) {
-        let vm = ProfileViewModel(target: target, profileService: profileService, followService: followService, translationController: .init())
-        self.viewModel = vm
-        bind(vm)
+        bind(viewModel)
 
-        let vc = ProfileViewController(vm: vm)
+        let vc = ProfileViewController(vm: viewModel)
         profileVC = vc
         navigationController.delegate = self
         navigationController.pushViewController(vc, animated: animated)
@@ -112,46 +116,68 @@ extension ProfileCoordinator {
     }
 
     private func showMoreActions() {
-        guard let profile = viewModel?.profile else { return }
+        guard let profile = viewModel.profile else { return }
         MoreSheetPresenter.showProfile(profile, from: self.navigationController) { [weak self] in
             Task {
-                await self?.viewModel?.logout()
+                await self?.viewModel.logout()
             }
         }
     }
 
     private func showFollowers() {
-        guard let profile = viewModel?.profile else { return }
-        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false, target: .followers)
+        guard let profile = viewModel.profile else { return }
+        let coord = FollowersListCoordinator(
+            navigationController: navigationController,
+            dependencies: dependencies,
+            feedDependencies: feedDependencies,
+            user: profile,
+            isCurrentUser: viewModel.isCurrentUser,
+            target: .followers
+        )
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)
     }
 
     private func showFollowings() {
-        guard let profile = viewModel?.profile else { return }
-        let coord = FollowersListCoordinator(navigationController: navigationController, user: profile, isCurrentUser: target == .me ? true : false,target: .following)
+        guard let profile = viewModel.profile else { return }
+        let coord = FollowersListCoordinator(
+            navigationController: navigationController,
+            dependencies: dependencies,
+            feedDependencies: feedDependencies,
+            user: profile,
+            isCurrentUser: viewModel.isCurrentUser,
+            target: .following
+        )
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.start(animated: true)
     }
 
     private func showEditProfile() {
-        guard let profile = viewModel?.profile else { return }
-        let vm = EditProfileViewModel(profileService: profileService)
+        guard let profile = viewModel.profile else { return }
+        let vm = EditProfileViewModel(
+            profileService: dependencies.profileService,
+            userNameValidator: dependencies.usernameValidator
+        )
 
         vm.configure(with: profile)
         vm.onProfileUpdated = { [weak self] newUser in
             self?.navigationController.popViewController(animated: true)
-            self?.viewModel?.updateProfile(profile: newUser)
+            self?.viewModel.updateProfile(profile: newUser)
         }
         let vc = ProfileEditViewController(viewModel: vm)
         self.navigationController.pushViewController(vc, animated: true)
     }
 
     private func showSelectedPost(_ post: Post) {
-        guard let viewModel else{return}
-       let coord = ProfilePostFeedCordinator(navigationController: navigationController, viewModel: viewModel, selectedPost: post)
+        let coord = ProfilePostFeedCordinator(
+            navigationController: navigationController,
+            profileDependencies: dependencies,
+            feedDependencies: feedDependencies,
+            viewModel: viewModel,
+            selectedPost: post
+        )
 
         coord.parentCoordinator = self
         self.addChild(coord)
@@ -159,7 +185,7 @@ extension ProfileCoordinator {
     }
 
     private func shareProfile() {
-        guard let profile = viewModel?.profile else { return }
+        guard let profile = viewModel.profile else { return }
 
         let urlString = "myapp://u/\(profile.id.uuidString)"
         UIPasteboard.general.string = urlString

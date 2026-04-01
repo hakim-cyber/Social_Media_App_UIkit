@@ -15,23 +15,23 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
 
     /// This is the modal nav controller we present full-screen.
     var navigationController: UINavigationController
-    private var viewModel: CreatePostViewModel?
+    private let dependencies: MainCreatePostDependencies
+    private lazy var viewModel = CreatePostViewModel(postService: dependencies.postActionService)
 
-    init(presenter: UIViewController) {
+    init(presenter: UIViewController, dependencies: MainCreatePostDependencies) {
         self.presenter = presenter
         self.navigationController = UINavigationController()
+        self.dependencies = dependencies
     }
 
     func start(animated: Bool) {
-        let vm = CreatePostViewModel()
-        viewModel = vm
-        vm.onRoute = { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
             DispatchQueue.main.async {
                 self?.handleCreatePostRoute(route: route)
             }
         }
 
-        let vc = PostCreationViewController(vm: vm)
+        let vc = PostCreationViewController(vm: viewModel)
 
         navigationController.setViewControllers([vc], animated: false)
         navigationController.modalPresentationStyle = .fullScreen
@@ -42,8 +42,7 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
     private func finish() {
         navigationController.dismiss(animated: true) { [weak self] in
             guard let self else { return }
-            self.viewModel?.onRoute = nil
-            self.viewModel = nil
+            self.viewModel.onRoute = nil
             self.parentCoordinator?.childDidFinish(self)
         }
     }
@@ -57,7 +56,7 @@ final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
 
         let picker = LocationTextPickerViewController()
         picker.onSelect = { [weak self] locationString in
-            self?.viewModel?.setSelectedLocation(locationString)
+            self?.viewModel.setSelectedLocation(locationString)
         }
         let nav = UINavigationController(rootViewController: picker)
         navigationController.present(nav, animated: true)

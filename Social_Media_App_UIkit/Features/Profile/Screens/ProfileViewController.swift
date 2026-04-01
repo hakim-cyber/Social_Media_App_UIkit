@@ -40,10 +40,16 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     private var collectionHeightConstraint: NSLayoutConstraint!
 
     private let refreshControl = UIRefreshControl()
-    init(vm:ProfileViewModel) {
+    init(
+        vm: ProfileViewModel,
+        avatarZoomPresenter: any AvatarZoomPresenting = AvatarZoomPresenter()
+    ) {
 
         self.vm = vm
-        self.profileHeaderView = ProfileHeaderView(isCurrentUser: vm.isCurrentUser)
+        self.profileHeaderView = ProfileHeaderView(
+            isCurrentUser: vm.isCurrentUser,
+            avatarZoomPresenter: avatarZoomPresenter
+        )
         self.tabsView = ProfileTabsReusableView(frame: .zero, isCurrentUser: vm.isCurrentUser)
         super.init(nibName: nil, bundle: nil)
 
@@ -348,10 +354,6 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
             }
         }
 
-}
-
-#Preview {
-    ProfileViewController(vm: .init(target: .user(id: UUID()), translationController: .init()))
 }
 
 extension ProfileViewController:ProfileHeaderViewDelegate{

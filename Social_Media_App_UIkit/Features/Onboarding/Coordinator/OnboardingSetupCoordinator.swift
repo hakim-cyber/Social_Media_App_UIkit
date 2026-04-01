@@ -7,18 +7,22 @@
 
 import UIKit
 
-
 final class OnboardingSetupCoordinator : NavigationCoordinator, ChildCoordinator {
    
     weak var parentCoordinator: ParentCoordinator?
     var navigationController: UINavigationController
-    let profileService: ProfileService
-    let viewModel:OnboardingSetupViewModel
-    init(navigationController: UINavigationController,profileService:ProfileService) {
+    private let dependencies: MainOnboardingDependencies
+    private lazy var viewModel = OnboardingSetupViewModel(
+        profileService: dependencies.profileService,
+        userNameValidator: dependencies.usernameValidator
+    )
+
+    init(
+        navigationController: UINavigationController,
+        dependencies: MainOnboardingDependencies
+    ) {
         self.navigationController = navigationController
-        self.profileService = profileService
-        self.viewModel = .init(profileService: profileService)
-      
+        self.dependencies = dependencies
     }
  
     func start(animated: Bool) {

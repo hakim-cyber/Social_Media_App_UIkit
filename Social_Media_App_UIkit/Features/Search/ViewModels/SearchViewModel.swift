@@ -11,21 +11,22 @@ import SwiftUI
 enum SearchRoute{
     case openProfile(UUID)
 }
-class SearchViewModel:ObservableObject{
+
+@MainActor
+final class SearchViewModel: ObservableObject {
     @Published var query: String = ""
     @Published private(set) var results: [UserSummary] = []
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var errorMessage: String?
 
     var onRoute: ((SearchRoute) -> Void)?
-    let searchService: SearchService
+    let searchService: any SearchServicing
 
     private let limit = 10
 
     init(
-        searchService: SearchService = .init(),
+        searchService: any SearchServicing
     ) {
-
         self.searchService = searchService
     }
 

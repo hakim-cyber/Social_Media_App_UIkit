@@ -14,7 +14,7 @@ enum FeedRoute {
     case showComments(Post)
 }
 @MainActor
-class FeedViewModel{
+final class FeedViewModel {
     // MARK: - Published to VC
     @Published private(set) var posts: [Post] = []
     @Published private(set) var isRefreshing = false
@@ -24,24 +24,30 @@ class FeedViewModel{
 
 
 
-    private let service: FeedService
-    private let realtime: FeedRealtime
-    private let translationController: PostTranslationController
+    private let service: any FeedServicing
+    private let realtime: any FeedRealtimeServicing
+    private let translationController: any PostTranslationControlling
     private var state = FeedState()
-    private let userService = UserService()
-    private let authorCache = AuthorCache()
-    private let postService = PostActionService()
+    private let userService: any UserServicing
+    private let authorCache: AuthorCache
+    private let postService: any PostActionServicing
 
 
 
     init(
-        service: FeedService,
-        realtime: FeedRealtime,
-        translationController: PostTranslationController 
+        service: any FeedServicing,
+        realtime: any FeedRealtimeServicing,
+        translationController: any PostTranslationControlling,
+        userService: any UserServicing,
+        authorCache: AuthorCache = AuthorCache(),
+        postService: any PostActionServicing
     ) {
         self.service = service
         self.realtime = realtime
         self.translationController = translationController
+        self.userService = userService
+        self.authorCache = authorCache
+        self.postService = postService
         bindTranslationController()
     }
     private(set) var cancellables = Set<AnyCancellable>()
@@ -189,7 +195,11 @@ class FeedViewModel{
         }
 
         do{
-            let response = try await service.loadGlobalFeed(limit: pageSize)
+            let response = try await service.loadGlobalFeed(
+                limit: pageSize,
+                beforeCreatedAt: nil,
+                beforeId: nil
+            )
 
             state.posts = response.posts
             state.seen = Set(response.posts.map(\.id))
@@ -259,7 +269,11 @@ class FeedViewModel{
         }
 
         do {
-            let response = try await service.loadGlobalFeed(limit: pageSize)
+            let response = try await service.loadGlobalFeed(
+                limit: pageSize,
+                beforeCreatedAt: nil,
+                beforeId: nil
+            )
 
             // Replace posts
             state.posts = response.posts
@@ -414,7 +428,7 @@ class FeedViewModel{
     }
 
     private func bindTranslationController() {
-        translationController.$translations
+        translationController.translationsPublisher
             .sink { [weak self] translations in
                 self?.postTranslations = translations
             }

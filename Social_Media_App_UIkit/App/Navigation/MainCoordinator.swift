@@ -6,29 +6,25 @@
 //
 
 import UIKit
+import Supabase
 
-final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
-    
-    // MARK: - ParentCoordinator
+final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
+
     var childCoordinators: [Coordinator] = []
 
-    // MARK: - Shared services
-    let onboardingService: OnboardingService
-    let profileService: ProfileService
-    private let startResolver: MainStartResolving
+    private let onboardingDependencies: MainOnboardingDependencies
+    private let feedDependencies: MainFeedDependencies
+    private let searchDependencies: MainSearchDependencies
+    private let profileDependencies: MainProfileDependencies
+    private let createPostDependencies: MainCreatePostDependencies
+    private let startResolver: any MainStartResolving
 
-    // MARK: - Root
-    /// This is the REAL root of the main app (AppCoordinator sets this as window.rootViewController)
     let tabBarController = UITabBarController()
 
-    // Nav controllers per tab
     private let feedNav = UINavigationController()
     private let profileNav = UINavigationController()
     private let searchNav = UINavigationController()
-    // later: private let notifNav = UINavigationController()
-    // later: private let profileNav = UINavigationController()
 
-    // Child coordinators
     private var feedCoordinator: FeedCoordinator?
     private var profileCoordinator: ProfileCoordinator?
     private var searchCoordinator: SearchProfileCoordinator?
@@ -39,19 +35,18 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
     let searchTabIndex: Int = 1
     let profileTabIndex: Int = 3
 
-    // MARK: - Init
-
     init(
-        onboardingService: OnboardingService,
-        profileService: ProfileService = .init(),
-        startResolver: MainStartResolving? = nil
+        dependencies: MainFlowDependencies,
+        startResolver: (any MainStartResolving)? = nil
     ) {
-        self.onboardingService = onboardingService
-        self.profileService = profileService
-        self.startResolver = startResolver ?? MainStartResolver(profileService: profileService)
+        self.onboardingDependencies = dependencies.onboarding
+        self.feedDependencies = dependencies.feed
+        self.searchDependencies = dependencies.search
+        self.profileDependencies = dependencies.profile
+        self.createPostDependencies = dependencies.createPost
+        self.startResolver = startResolver ?? MainStartResolver(profileService: dependencies.profile.profileService)
     }
 
-    // Main entry point
     func start(animated: Bool) {
         Task { [weak self] in
             guard let self else { return }
@@ -68,11 +63,8 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
         }
     }
 
-    // MARK: - Tabs setup
-
     private func setupTabs() {
-        // FEED TAB
-        let feedCoordinator = FeedCoordinator(navigationController: feedNav)
+        let feedCoordinator = makeFeedCoordinator(navigationController: feedNav)
         feedCoordinator.parentCoordinator = self
         addChild(feedCoordinator)
         feedCoordinator.start(animated: false)
@@ -84,12 +76,7 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
             selectedImage: UIImage(systemName: "house.fill")
         )
 
-       
-        
-        
-        
-
-        let searchCoordinator = SearchProfileCoordinator(navigationController: searchNav)
+        let searchCoordinator = makeSearchCoordinator(navigationController: searchNav)
         searchCoordinator.parentCoordinator = self
         addChild(searchCoordinator)
         searchCoordinator.start(animated: false)
@@ -100,8 +87,11 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
             image: UIImage(systemName: "magnifyingglass"),
             selectedImage: UIImage(systemName: "magnifyingglass")
         )
-        
-        let profileCoordinator = ProfileCoordinator(navigationController: profileNav, target: .me)
+
+        let profileCoordinator = makeProfileCoordinator(
+            navigationController: profileNav,
+            target: .me
+        )
         profileCoordinator.parentCoordinator = self
         addChild(profileCoordinator)
         profileCoordinator.start(animated: false)
@@ -112,81 +102,60 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
             image: UIImage(systemName: "person"),
             selectedImage: UIImage(systemName: "person.fill")
         )
-        
-        
-        // CREATE (special separated tab)
-           let createNav = UINavigationController()
-        
-           let createItem = UITabBarItem(tabBarSystemItem: .search, tag: 99)
-           createItem.image = UIImage(systemName: "plus")
-           createItem.selectedImage = UIImage(systemName: "plus")
-           createItem.title = nil
-           createNav.tabBarItem = createItem
-     
-        // Add more tabs later: searchNav, notifNav, profileNav...
-        tabBarController.viewControllers = [
-            feedNav  ,searchNav,createNav,profileNav,
-        ]
+
+        let createNav = UINavigationController()
+        let createItem = UITabBarItem(tabBarSystemItem: .search, tag: 99)
+        createItem.image = UIImage(systemName: "plus")
+        createItem.selectedImage = UIImage(systemName: "plus")
+        createItem.title = nil
+        createNav.tabBarItem = createItem
+
+        tabBarController.viewControllers = [feedNav, searchNav, createNav, profileNav]
         tabBarController.delegate = self
         if #available(iOS 26.0, *) {
             tabBarController.tabBarMinimizeBehavior = .onScrollDown
         } else {
             createItem.title = "Post"
-            // Fallback on earlier versions
         }
     }
 
     func showMainView(animated: Bool = true) {
         setupTabs()
-      
     }
 
     func switchToMyProfile() {
         tabBarController.selectedIndex = profileTabIndex
-        (profileNav).popToRootViewController(animated: false)
+        profileNav.popToRootViewController(animated: false)
     }
-    func showProfile(for userId:UUID){
-        self.feedCoordinator?.showProfile(id: userId)
+
+    func showProfile(for userId: UUID) {
+        feedCoordinator?.showProfile(id: userId)
     }
-    // MARK: - Onboarding flow
 
     private func showOnboardingSetup() {
-        // Present onboarding modally over the tabBarController
-        // (tabBarController is already root of the window)
-
         let nav = UINavigationController()
         nav.modalPresentationStyle = .fullScreen
         onboardingNav = nav
 
-        let onboarding = OnboardingSetupCoordinator(
-            navigationController: nav,
-            profileService: profileService
-        )
+        let onboarding = makeOnboardingSetupCoordinator(navigationController: nav)
         onboarding.parentCoordinator = self
         addChild(onboarding)
         onboardingCoordinator = onboarding
 
         onboarding.start(animated: false)
-
-        // Present from the tab bar (which is root)
         tabBarController.present(nav, animated: true)
     }
 
-    // MARK: - ParentCoordinator
-
     func childDidFinish(_ child: Coordinator?) {
-        childCoordinators.removeAll(where: {$0 === child})
-        
-        // When onboarding finishes → dismiss its nav and show tabs
+        childCoordinators.removeAll(where: { $0 === child })
+
         if child === onboardingCoordinator {
             onboardingCoordinator = nil
-            
             onboardingNav?.dismiss(animated: true)
             onboardingNav = nil
-            
             showMainView()
         }
-        
+
         if child === feedCoordinator {
             feedCoordinator = nil
         }
@@ -194,27 +163,72 @@ final class MainCoordinator: NSObject,Coordinator, ParentCoordinator {
             createPostCoordinator = nil
         }
     }
+
     private func presentCreateFlow() {
         guard let presenter = tabBarController.presentedViewController ?? tabBarController.selectedViewController else {
             return
         }
 
-        let coord = CreatePostCoordinator(presenter: presenter)
+        let coord = makeCreatePostCoordinator(presenter: presenter)
         coord.parentCoordinator = self
-        addChild(coord)                 // important: retain
-        self.createPostCoordinator = coord
-
+        addChild(coord)
+        createPostCoordinator = coord
         coord.start(animated: true)
     }
 }
 
-extension MainCoordinator: UITabBarControllerDelegate {
+private extension MainCoordinator {
+    func makeProfileCoordinator(
+        navigationController: UINavigationController,
+        target: ProfileTarget
+    ) -> ProfileCoordinator {
+        ProfileCoordinator(
+            navigationController: navigationController,
+            dependencies: profileDependencies,
+            feedDependencies: feedDependencies,
+            target: target
+        )
+    }
 
+    func makeFeedCoordinator(navigationController: UINavigationController) -> FeedCoordinator {
+        FeedCoordinator(
+            navigationController: navigationController,
+            dependencies: feedDependencies,
+            profileDependencies: profileDependencies
+        )
+    }
+
+    func makeSearchCoordinator(navigationController: UINavigationController) -> SearchProfileCoordinator {
+        SearchProfileCoordinator(
+            navigationController: navigationController,
+            dependencies: searchDependencies,
+            profileDependencies: profileDependencies,
+            feedDependencies: feedDependencies
+        )
+    }
+
+    func makeOnboardingSetupCoordinator(
+        navigationController: UINavigationController
+    ) -> OnboardingSetupCoordinator {
+        OnboardingSetupCoordinator(
+            navigationController: navigationController,
+            dependencies: onboardingDependencies
+        )
+    }
+
+    func makeCreatePostCoordinator(presenter: UIViewController) -> CreatePostCoordinator {
+        CreatePostCoordinator(
+            presenter: presenter,
+            dependencies: createPostDependencies
+        )
+    }
+}
+
+extension MainCoordinator: UITabBarControllerDelegate {
     func tabBarController(
         _ tabBarController: UITabBarController,
         shouldSelect viewController: UIViewController
     ) -> Bool {
-
         if viewController.tabBarItem.tag == 99 {
             presentCreateFlow()
             return false

@@ -35,7 +35,8 @@ enum ProfilePostRoute {
     case showComments(Post)
 }
 
-class ProfileViewModel:ObservableObject{
+@MainActor
+final class ProfileViewModel: ObservableObject {
     @Published private(set) var selectedTab: ProfileTab = .posts
 
     @Published private(set) var profile: UserProfile?
@@ -85,31 +86,38 @@ class ProfileViewModel:ObservableObject{
     var userID:UUID?
     let isCurrentUser:Bool
 
-    let profileService: ProfileService
-    let followService: FollowService
-    let postQueryService:PostQueryService = .init()
-    private let postService = PostActionService()
-    private let translationController: PostTranslationController
-    private let sessionManager: SessionManaging
+    private let sessionStore: SessionStoreProtocol
+    let profileService: any ProfileServicing
+    let followService: any FollowServicing
+    let postQueryService: any PostQueryServicing
+    private let postService: any PostActionServicing
+    private let translationController: any PostTranslationControlling
+    private let sessionManager: any SessionManaging
 
     init(
-           target: ProfileTarget,
-           profileService: ProfileService = .init(),
-           followService: FollowService = .init(),
-           translationController: PostTranslationController,
-           sessionManager: SessionManaging = AuthSessionManager()
-       ) {
+        target: ProfileTarget,
+        sessionStore: SessionStoreProtocol,
+        profileService: any ProfileServicing,
+        followService: any FollowServicing,
+        postQueryService: any PostQueryServicing,
+        postService: any PostActionServicing,
+        translationController: any PostTranslationControlling,
+        sessionManager: any SessionManaging
+    ) {
         self.target = target
+        self.sessionStore = sessionStore
         switch target {
         case .me:
-            self.userID = UserSessionService.shared.currentUser?.id
+            self.userID = sessionStore.currentUser?.id
             isCurrentUser = true
         case .user(let id):
             self.userID = id
             isCurrentUser = false
         }
-           self.profileService = profileService
-           self.followService = followService
+        self.profileService = profileService
+        self.followService = followService
+        self.postQueryService = postQueryService
+        self.postService = postService
         self.translationController = translationController
         self.sessionManager = sessionManager
         bindTranslationController()
@@ -273,7 +281,12 @@ class ProfileViewModel:ObservableObject{
         defer{isLoadingUserPosts = false}
 
         do{
-            let page:FeedResponse = try await postQueryService.fetchPostsForUser(userID:userID, limit: pageSize )
+            let page: FeedResponse = try await postQueryService.fetchPostsForUser(
+                userID: userID,
+                limit: pageSize,
+                beforeCreatedAt: nil,
+                beforeId: nil
+            )
             self.posts = page.posts
             userPostsCursor = page.nextCursor
         }catch{
@@ -302,7 +315,11 @@ class ProfileViewModel:ObservableObject{
         defer{isLoadingSavedPosts = false}
 
         do{
-            let page:FeedResponse = try await postQueryService.fetchSavedPosts(limit: pageSize)
+            let page: FeedResponse = try await postQueryService.fetchSavedPosts(
+                limit: pageSize,
+                beforeCreatedAt: nil,
+                beforeId: nil
+            )
             savedPosts = page.posts
             savedPostsCursor = page.nextCursor
         }catch{
@@ -331,7 +348,12 @@ class ProfileViewModel:ObservableObject{
         defer{isLoadingLikedPosts = false}
 
         do{
-            let page:FeedResponse = try await postQueryService.fetchLikedPosts(userID: userID, limit: pageSize)
+            let page: FeedResponse = try await postQueryService.fetchLikedPosts(
+                userID: userID,
+                limit: pageSize,
+                beforeCreatedAt: nil,
+                beforeId: nil
+            )
             likedPosts = page.posts
             likedPostsCursor = page.nextCursor
         }catch{
@@ -478,7 +500,7 @@ class ProfileViewModel:ObservableObject{
        }
 
     private func bindTranslationController() {
-        translationController.$translations
+        translationController.translationsPublisher
             .sink { [weak self] translations in
                 self?.postTranslations = translations
             }

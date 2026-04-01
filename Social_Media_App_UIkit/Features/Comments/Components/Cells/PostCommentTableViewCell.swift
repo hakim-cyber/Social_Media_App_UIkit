@@ -111,7 +111,11 @@ final class PostCommentTableViewCell: UITableViewCell {
     }
 
     // MARK: - Public configure
-    func configure(with comment: PostComment, translation: TranslationState?) {
+    func configure(
+        with comment: PostComment,
+        translation: TranslationState?,
+        currentUserId: UUID?
+    ) {
         self.comment = comment
         self.translationState = translation
         if let avatarURL = comment.author.avatarURL { avatarImageView.setImage(url: avatarURL) }
@@ -125,7 +129,7 @@ final class PostCommentTableViewCell: UITableViewCell {
         translateButton.isToggled = translation?.isShowingTranslation ?? false
         translateButton.isLoading = translation?.isLoading ?? false
         
-        isOwnComment = (comment.author.id == UserSessionService.shared.currentUser?.id)
+        isOwnComment = (comment.author.id == currentUserId)
     }
   
 

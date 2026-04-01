@@ -278,7 +278,3 @@ extension ProfilePostFeedViewController: PostCellDelegate {
         }
     }
 }
-
-#Preview {
-    PostFeedViewController(vm:FeedViewModel(service: .init(), realtime: .init(), translationController: .init()))
-}

@@ -20,18 +20,25 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
     // MARK: - Coordinator
     var navigationController: UINavigationController
 
-    private var viewModel: SearchViewModel?
+    private let dependencies: MainSearchDependencies
+    private let profileDependencies: MainProfileDependencies
+    private let feedDependencies: MainFeedDependencies
+    private lazy var viewModel = SearchViewModel(searchService: dependencies.searchService)
 
     init(
         navigationController: UINavigationController,
+        dependencies: MainSearchDependencies,
+        profileDependencies: MainProfileDependencies,
+        feedDependencies: MainFeedDependencies
     ) {
         self.navigationController = navigationController
-
+        self.dependencies = dependencies
+        self.profileDependencies = profileDependencies
+        self.feedDependencies = feedDependencies
     }
 
     func start(animated: Bool) {
-        let vm = SearchViewModel()
-        vm.onRoute = { [weak self] route in
+        viewModel.onRoute = { [weak self] route in
             DispatchQueue.main.async {
                 switch route {
                 case .openProfile(let id):
@@ -41,33 +48,28 @@ final class SearchProfileCoordinator: NavigationCoordinator,ParentCoordinator, C
         }
 
 
-        let view = SearchProfileView(vm: vm)
-                let host = UIHostingController(rootView: view)
-        self.viewModel = vm
-
-
-            navigationController.setViewControllers([host], animated: animated)
-
-
+        let view = SearchProfileView(vm: self.viewModel)
+        let host = UIHostingController(rootView: view)
+        navigationController.setViewControllers([host], animated: animated)
     }
     func showProfile(userId: UUID) {
+        let currentId = dependencies.sessionStore.currentUser?.id
 
-            let currentId = UserSessionService.shared.currentUser?.id
+        if currentId == userId,
+           let main = self.parentCoordinator as? MainCoordinator {
+            main.switchToMyProfile()
+            return
+        }
 
-            if currentId == userId,
-               let main = self.parentCoordinator as? MainCoordinator {
-                main.switchToMyProfile()
-                return
-            }
-
-            let coord = ProfileCoordinator(
-                navigationController: self.navigationController,
-                target: .user(id: userId)
-            )
-            coord.parentCoordinator = self
-            self.addChild(coord)
-            coord.startPush(animated: true)
-
+        let coord = ProfileCoordinator(
+            navigationController: self.navigationController,
+            dependencies: profileDependencies,
+            feedDependencies: feedDependencies,
+            target: .user(id: userId)
+        )
+        coord.parentCoordinator = self
+        self.addChild(coord)
+        coord.startPush(animated: true)
     }
     deinit {
 

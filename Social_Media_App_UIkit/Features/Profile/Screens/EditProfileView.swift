@@ -385,7 +385,3 @@ class ProfileEditViewController: UIViewController {
     }
    
 }
-
-#Preview(){
-    ProfileImageSelectView(viewModel: OnboardingSetupViewModel(profileService: .init()))
-}

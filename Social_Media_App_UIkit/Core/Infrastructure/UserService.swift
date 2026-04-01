@@ -7,10 +7,14 @@
 import Foundation
 import Supabase
 
-final class UserService {
+protocol UserServicing {
+    func fetchUserSummary(id: UUID) async throws -> UserSummary
+}
+
+final class UserService: UserServicing {
     private let client: SupabaseClient
 
-    init(client: SupabaseClient = SupabaseManager.shared.client) {
+    init(client: SupabaseClient) {
         self.client = client
     }
 

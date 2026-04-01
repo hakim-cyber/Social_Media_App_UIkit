@@ -7,6 +7,7 @@
 
 import UIKit
 import Supabase
+
 final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -18,47 +19,60 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
     // MARK: - Coordinator
     var navigationController: UINavigationController
 
-    private var viewModel: FollowersListViewModel?
+    private let dependencies: MainProfileDependencies
+    private let feedDependencies: MainFeedDependencies
     private let user: UserProfile
     private let isCurrentUser: Bool
     private let target: FollowerListTarget
+    private lazy var viewModel = FollowersListViewModel(
+        target: target,
+        selectedUser: user,
+        isCurrentUser: isCurrentUser,
+        currentUserId: dependencies.sessionStore.currentUser?.id,
+        followService: dependencies.followService
+    )
+
     init(
         navigationController: UINavigationController,
-        user:UserProfile,
-        isCurrentUser:Bool,
-        target:FollowerListTarget
+        dependencies: MainProfileDependencies,
+        feedDependencies: MainFeedDependencies,
+        user: UserProfile,
+        isCurrentUser: Bool,
+        target: FollowerListTarget
     ) {
         self.navigationController = navigationController
-        self.isCurrentUser = isCurrentUser
+        self.dependencies = dependencies
+        self.feedDependencies = feedDependencies
         self.user = user
+        self.isCurrentUser = isCurrentUser
         self.target = target
     }
 
     func start(animated: Bool) {
-        let vm = FollowersListViewModel(target: target, selectedUser: user,isCurrentUser: isCurrentUser)
-        self.viewModel = vm
-        bind(vm)
-        let vc = FollowersListViewController(vm: vm)
+        bind(viewModel)
+        let vc = FollowersListViewController(vm: viewModel)
         self.navigationController.pushViewController(vc, animated: true)
 
     }
 
     func showProfile(author: UserFollowItem) {
-            let currentId = UserSessionService.shared.currentUser?.id
-        let coord:ProfileCoordinator
-            if currentId == author.id{
-                coord = ProfileCoordinator(
-                   navigationController: self.navigationController,
-                   target: .me
-               )
-            }else{
-
-                 coord = ProfileCoordinator(
-                    navigationController: self.navigationController,
-                    target: .user(id: author.id)
-                )
-
-            }
+        let currentId = dependencies.sessionStore.currentUser?.id
+        let coord: ProfileCoordinator
+        if currentId == author.id {
+            coord = ProfileCoordinator(
+                navigationController: self.navigationController,
+                dependencies: dependencies,
+                feedDependencies: feedDependencies,
+                target: .me
+            )
+        } else {
+            coord = ProfileCoordinator(
+                navigationController: self.navigationController,
+                dependencies: dependencies,
+                feedDependencies: feedDependencies,
+                target: .user(id: author.id)
+            )
+        }
         coord.parentCoordinator = self
         self.addChild(coord)
         coord.startPush(animated: true)
@@ -92,7 +106,7 @@ final class FollowersListCoordinator: NavigationCoordinator,ParentCoordinator, C
 
     private func showMoreActions(for user: UserFollowItem) {
         MoreSheetPresenter.showFollower(user, from: self.navigationController) { [weak self] in
-            self?.viewModel?.removeFollower(userId: user.id)
+            self?.viewModel.removeFollower(userId: user.id)
         }
     }
 }

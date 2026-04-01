@@ -8,17 +8,23 @@
 import UIKit
 import Combine
 
-class OnboardingSetupViewModel{
+@MainActor
+final class OnboardingSetupViewModel {
     weak var delegate: OnboardingSetupViewModelDelegate?
-    let profileService:ProfileService
-    init(profileService:ProfileService){
+    let profileService: any ProfileServicing
+    private let userNameValidator: any UsernameValidating
+
+    init(
+        profileService: any ProfileServicing,
+        userNameValidator: any UsernameValidating
+    ) {
         self.profileService = profileService
+        self.userNameValidator = userNameValidator
     }
-   var image: UIImage?
-    var userName:String = ""
-    var name:String = ""
-    var bio:String = ""
-    let userNameValidator:UsernameValidator = .init()
+    var image: UIImage?
+    var userName: String = ""
+    var name: String = ""
+    var bio: String = ""
     @Published var error:String? = nil
     @Published var loading:Bool = false
     
@@ -46,10 +52,15 @@ class OnboardingSetupViewModel{
         createUserProfile()
     }
     func createUserProfile(){
-        Task{
+        Task {
             do{
                 self.loading = true
-             let newProfile = try await profileService.createNewProfile(username: userName, fullName: name, bio: bio, avatarImage: image)
+             let newProfile = try await profileService.createNewProfile(
+                username: userName,
+                fullName: name,
+                bio: bio,
+                avatarImage: image
+             )
                 delegate?.finishedInfoSetup()
                 self.loading = false
                 print("nice finished creation \(newProfile)")

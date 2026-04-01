@@ -8,9 +8,11 @@
 
 import UIKit
 
-final class AvatarZoomPresenter {
+protocol AvatarZoomPresenting: AnyObject {
+    func present(from sourceView: UIView, image: UIImage?)
+}
 
-    static let shared = AvatarZoomPresenter()
+final class AvatarZoomPresenter: AvatarZoomPresenting {
 
     private var overlay: UIView?
     private var zoomImageView: UIImageView?

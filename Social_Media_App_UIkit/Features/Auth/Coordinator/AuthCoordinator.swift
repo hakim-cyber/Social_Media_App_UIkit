@@ -9,24 +9,18 @@ import UIKit
 
 final class AuthCoordinator: NavigationCoordinator {
     var navigationController: UINavigationController
-    let onboardingService: OnboardingService
-    private let authService: AuthServicing
-    private let socialAuthService: SocialAuthServicing
+    private let dependencies: AuthFlowDependencies
 
     init(
         navigationController: UINavigationController,
-        onboardingService: OnboardingService,
-        authService: AuthServicing,
-        socialAuthService: SocialAuthServicing
+        dependencies: AuthFlowDependencies
     ) {
         self.navigationController = navigationController
-        self.onboardingService = onboardingService
-        self.authService = authService
-        self.socialAuthService = socialAuthService
+        self.dependencies = dependencies
     }
 
     func start(animated: Bool = true) {
-        if !onboardingService.hasSeenWelcome {
+        if !dependencies.onboardingService.hasSeenWelcome {
             showWelcomeScreen()
         }else{
             showLoginScreen()
@@ -38,7 +32,7 @@ final class AuthCoordinator: NavigationCoordinator {
        func showWelcomeScreen() {
            let welcomeVC = WelcomeViewController()
            welcomeVC.onUnlock = { [weak self] in
-               self?.onboardingService.setHasSeenWelcome()
+               self?.dependencies.onboardingService.setHasSeenWelcome()
                self?.showLoginScreen()
            }
            navigationController.setViewControllers([welcomeVC], animated: true)
@@ -46,8 +40,8 @@ final class AuthCoordinator: NavigationCoordinator {
 
 	       func showLoginScreen() {
 	           let viewModel = LoginViewModel(
-                authService: authService,
-                socialAuthService: socialAuthService
+                authService: dependencies.authService,
+                socialAuthService: dependencies.socialAuthService
             )
 	           viewModel.onRoute = { [weak self] route in
 	               DispatchQueue.main.async {
@@ -60,8 +54,8 @@ final class AuthCoordinator: NavigationCoordinator {
        }
 	    func showSignUpScreen(email:String){
 	        let viewModel = RegisterViewModel(
-            authService: authService,
-            socialAuthService: socialAuthService
+            authService: dependencies.authService,
+            socialAuthService: dependencies.socialAuthService
         )
 	        viewModel.onRoute = { [weak self] route in
 	            DispatchQueue.main.async {
@@ -75,7 +69,7 @@ final class AuthCoordinator: NavigationCoordinator {
 
 
 	    func showForgotPasswordEmailScreen(email:String) {
-	        let viewModel = ForgotPasswordViewModel(authService: authService)
+	        let viewModel = ForgotPasswordViewModel(authService: dependencies.authService)
 	        viewModel.email = email
 	        viewModel.onRoute = { [weak self] route in
 	            DispatchQueue.main.async {
@@ -87,7 +81,7 @@ final class AuthCoordinator: NavigationCoordinator {
     }
 
 	    func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
-	        let viewModel = ForgotPasswordViewModel(authService: authService)
+	        let viewModel = ForgotPasswordViewModel(authService: dependencies.authService)
 	        viewModel.onRoute = { [weak self] route in
 	            DispatchQueue.main.async {
 	                self?.handleForgotPasswordRoute(route, finished: finished)

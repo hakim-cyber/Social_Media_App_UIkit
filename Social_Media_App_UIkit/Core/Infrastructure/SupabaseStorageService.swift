@@ -16,14 +16,28 @@ struct UploadResult: Sendable {
     let path: String        // e.g. "<uid>/avatar.jpg" or "<uid>/post_<uuid>.jpg"
     let url: URL            // public or signed URL based on config
 }
-struct SupabaseStorageService {
-    private let client: SupabaseClient
-       private let storage: SupabaseStorageClient
 
-       init(client: SupabaseClient) {
-           self.client = client
-           self.storage = client.storage
-       }
+protocol StorageUploading {
+    func uploadImage(
+        _ image: UIImage,
+        userId: UUID,
+        bucket: StorageBucket,
+        fileName: String?,
+        jpegQuality: CGFloat,
+        upsert: Bool,
+        publicBucket: Bool,
+        signedURLExpiry: TimeInterval
+    ) async throws -> UploadResult
+}
+
+struct SupabaseStorageService: StorageUploading {
+    private let client: SupabaseClient
+    private let storage: SupabaseStorageClient
+
+    init(client: SupabaseClient) {
+        self.client = client
+        self.storage = client.storage
+    }
 
     /// Uploads a UIImage to a Storage bucket under {userId}/... and returns (path, url).
     /// - Parameters:
@@ -80,5 +94,32 @@ struct SupabaseStorageService {
          
             return .init(path: path, url: signed)
         }
+    }
+}
+
+
+extension StorageUploading {
+
+    func uploadImage(
+        _ image: UIImage,
+        userId: UUID,
+        bucket: StorageBucket,
+        fileName: String? = nil,
+        jpegQuality: CGFloat = 0.8,
+        upsert: Bool,
+        publicBucket: Bool,
+        signedURLExpiry: TimeInterval = 60 * 60
+    ) async throws -> UploadResult {
+
+        try await uploadImage(
+            image,
+            userId: userId,
+            bucket: bucket,
+            fileName: fileName,
+            jpegQuality: jpegQuality,
+            upsert: upsert,
+            publicBucket: publicBucket,
+            signedURLExpiry: signedURLExpiry
+        )
     }
 }

@@ -8,21 +8,26 @@
 import Foundation
 import Supabase
 
-final class FeedRealtime {
+protocol FeedRealtimeServicing: AnyObject {
+    func subscribe(handlers: FeedRealtime.Handlers) async throws
+    func unsubscribe() async
+}
+
+final class FeedRealtime: FeedRealtimeServicing {
     struct Handlers {
         var onInsert: (RawPost) -> Void
         var onUpdate: (RawPost) -> Void
         var onDelete: (UUID) -> Void
     }
 
-    private let client = SupabaseManager.shared.client
+    private let client: SupabaseClient
     private var channel: RealtimeChannelV2?
     private var insertTask: Task<Void, Never>?
     private var updateTask: Task<Void, Never>?
     private var deleteTask: Task<Void, Never>?
 
-    init() {
-      
+    init(client: SupabaseClient) {
+        self.client = client
     }
 
     func subscribe(handlers: Handlers) async throws {
@@ -130,4 +135,3 @@ extension JSONDecoder {
         return d
     }
 }
-

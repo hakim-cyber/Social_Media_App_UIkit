@@ -8,8 +8,16 @@
 import Supabase
 import Foundation
 
-class SearchService{
- private let supabase = SupabaseManager.shared.client
+protocol SearchServicing {
+    func searchUsers(query: String, limit: Int) async throws -> [UserSummary]
+}
+
+final class SearchService: SearchServicing {
+    private let supabase: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.supabase = client
+    }
         
     func searchUsers(
            query: String,

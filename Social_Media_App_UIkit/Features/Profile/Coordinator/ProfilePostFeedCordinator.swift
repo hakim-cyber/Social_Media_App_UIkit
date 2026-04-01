@@ -9,6 +9,7 @@ import Foundation
 
 import UIKit
 import Supabase
+
 final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, ChildCoordinator {
 
     // MARK: - ParentCoordinator
@@ -20,15 +21,21 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
     // MARK: - Coordinator
     var navigationController: UINavigationController
 
+    private let profileDependencies: MainProfileDependencies
+    private let feedDependencies: MainFeedDependencies
     private let viewModel: ProfileViewModel
     private let seletedPost: Post
     private weak var commentsNavController: UINavigationController?
     init(
         navigationController: UINavigationController,
+        profileDependencies: MainProfileDependencies,
+        feedDependencies: MainFeedDependencies,
         viewModel:ProfileViewModel,
         selectedPost:Post
     ) {
         self.navigationController = navigationController
+        self.profileDependencies = profileDependencies
+        self.feedDependencies = feedDependencies
         self.viewModel = viewModel
         self.seletedPost = selectedPost
     }
@@ -44,11 +51,13 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
         dismissPresentedIfNeeded { [weak self] in
             guard let self else { return }
 
-            let currentId = UserSessionService.shared.currentUser?.id
+            let currentId = profileDependencies.sessionStore.currentUser?.id
 
             if currentId == author.id{
                let coord = ProfileCoordinator(
                    navigationController: self.navigationController,
+                   dependencies: self.profileDependencies,
+                   feedDependencies: self.feedDependencies,
                    target: .me
                )
                coord.parentCoordinator = self
@@ -58,6 +67,8 @@ final class ProfilePostFeedCordinator: NavigationCoordinator,ParentCoordinator, 
 
                 let coord = ProfileCoordinator(
                     navigationController: self.navigationController,
+                    dependencies: self.profileDependencies,
+                    feedDependencies: self.feedDependencies,
                     target: .user(id: author.id)
                 )
                 coord.parentCoordinator = self
@@ -99,6 +110,7 @@ extension ProfilePostFeedCordinator {
         MoreSheetPresenter.showPost(
             post,
             from: self.navigationController,
+            canDeletePost: post.author.id == profileDependencies.sessionStore.currentUser?.id,
             onSave: {[weak self] in
                 self?.viewModel.toggleSave(for: post.id, desiredState: !post.isSaved)
             },
@@ -117,9 +129,14 @@ extension ProfilePostFeedCordinator {
     }
 
     private func showComments(for post: Post) {
-        let viewModel = CommentViewModel(postId: post.id,
-                                        service: CommentService(),
-                                        commentsCount: post.commentCount)
+        let viewModel = CommentViewModel(
+            postId: post.id,
+            service: feedDependencies.commentService,
+            commentsCount: post.commentCount,
+            userService: feedDependencies.userService,
+            translationService: feedDependencies.translationService,
+            sessionStore: feedDependencies.sessionStore
+        )
         bindCommentRoutes(viewModel)
 
         let commentsVC = PostCommentViewController(vm: viewModel)

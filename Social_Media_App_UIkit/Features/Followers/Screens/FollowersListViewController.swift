@@ -236,7 +236,12 @@ class FollowersListViewController: UIViewController {
             ) as! FollowerListCell
 
             cell.delegate = self
-            cell.configure(with: follow, target: self?.vm.target ?? .following,isCurrentUser: self?.vm.isCurrentUser ?? false)
+            cell.configure(
+                with: follow,
+                target: self?.vm.target ?? .following,
+                isCurrentUser: self?.vm.isCurrentUser ?? false,
+                currentUserId: self?.vm.currentUserId
+            )
             return cell
         }
         tableView.dataSource = dataSource

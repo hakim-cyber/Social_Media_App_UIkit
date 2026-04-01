@@ -192,7 +192,3 @@ class ForgetPasswordEmailViewController: UIViewController {
     
     
 }
-
-#Preview {
-    LoginViewController(viewModel: .init())
-}

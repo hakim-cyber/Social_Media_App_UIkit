@@ -207,11 +207,6 @@ class PostCreationViewController: UIViewController {
 
 }
 
-#Preview(){
-    UINavigationController(rootViewController: PostCreationViewController(vm: CreatePostViewModel()))
-}
-
-
 extension PostCreationViewController:UIImagePickerControllerDelegate,UINavigationControllerDelegate{
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {

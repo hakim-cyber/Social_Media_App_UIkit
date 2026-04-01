@@ -8,8 +8,28 @@
 import Foundation
 import Supabase
 
-class FollowService{
-    private let supabase = SupabaseManager.shared.client
+protocol FollowServicing {
+    func isFollowing(userId: UUID) async throws -> Bool
+    func toggleFollow(userId: UUID) async throws -> FollowResponse
+    func getFollowers(
+        userID: UUID,
+        limit: Int,
+        beforeCursor: FollowerListCursor?
+    ) async throws -> FollowerListResponse
+    func getFollowings(
+        userID: UUID,
+        limit: Int,
+        beforeCursor: FollowerListCursor?
+    ) async throws -> FollowerListResponse
+    func deleteFollower(targetUserID: UUID) async throws -> RemoveFollowResponse
+}
+
+final class FollowService: FollowServicing {
+    private let supabase: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.supabase = client
+    }
     
     
     func isFollowing(userId: UUID) async throws -> Bool {
@@ -108,5 +128,4 @@ class FollowService{
         return response
     }
 }
-
 

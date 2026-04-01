@@ -43,6 +43,7 @@ extension MoreSheetPresenter {
     static func showPost(
         _ post: Post,
         from vc: UIViewController,
+        canDeletePost: Bool,
         onSave: (() -> Void)? = nil,
         onCopy: (() -> Void)? = nil,
         onReport: (() -> Void)? = nil,
@@ -95,7 +96,7 @@ extension MoreSheetPresenter {
         )
 
         // Owner-only action
-        if post.author.id == UserSessionService.shared.currentUser?.id {
+        if canDeletePost {
             actions.append(
                 .init(
                     id: "delete",

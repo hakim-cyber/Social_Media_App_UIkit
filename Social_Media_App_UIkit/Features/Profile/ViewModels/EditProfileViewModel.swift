@@ -7,43 +7,25 @@
 
 import UIKit
 import Combine
+import Foundation
 
-class EditProfileViewModel{
-    var onProfileUpdated: ((UserProfile) -> Void)?
-    let profileService:ProfileService
-    init(profileService:ProfileService){
-        self.profileService = profileService
+protocol RemoteImageLoading {
+    func loadImage(from urlString: String) async throws -> UIImage
+}
+
+final class RemoteImageLoader: RemoteImageLoading {
+    private let urlSession: URLSession
+
+    init(urlSession: URLSession = .shared) {
+        self.urlSession = urlSession
     }
-    @Published  var image: UIImage?
-    var userName:String = ""
-    var name:String = ""
-    var bio:String = ""
-    let userNameValidator:UsernameValidator = .init()
-    @Published var error:String? = nil
-    @Published var loading:Bool = false
-    
-    func configure(with profile: UserProfile) {
-            self.userName = profile.username
-            self.name = profile.full_name
-            self.bio = profile.bio ?? ""
-        Task{
-            do {
-                if let stringUrl = profile.avatar_url{
-                    image = try await loadImage(from:stringUrl)
-                }
-              
-            } catch {
-                print("Failed to load avatar image:", error)
-            }
-        }
-            // image stays nil until user picks new one
-        }
+
     func loadImage(from urlString: String) async throws -> UIImage {
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
 
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let (data, response) = try await urlSession.data(from: url)
 
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw URLError(.badServerResponse)
@@ -55,6 +37,47 @@ class EditProfileViewModel{
 
         return image
     }
+}
+
+@MainActor
+final class EditProfileViewModel {
+    var onProfileUpdated: ((UserProfile) -> Void)?
+    let profileService: any ProfileServicing
+    private let userNameValidator: any UsernameValidating
+    private let imageLoader: any RemoteImageLoading
+
+    init(
+        profileService: any ProfileServicing,
+        userNameValidator: any UsernameValidating,
+        imageLoader: any RemoteImageLoading = RemoteImageLoader()
+    ) {
+        self.profileService = profileService
+        self.userNameValidator = userNameValidator
+        self.imageLoader = imageLoader
+    }
+    @Published  var image: UIImage?
+    var userName:String = ""
+    var name:String = ""
+    var bio:String = ""
+    @Published var error:String? = nil
+    @Published var loading:Bool = false
+    
+    func configure(with profile: UserProfile) {
+            self.userName = profile.username
+            self.name = profile.full_name
+            self.bio = profile.bio ?? ""
+        Task{
+            do {
+                if let stringUrl = profile.avatar_url{
+                    image = try await imageLoader.loadImage(from: stringUrl)
+                }
+              
+            } catch {
+                print("Failed to load avatar image:", error)
+            }
+        }
+            // image stays nil until user picks new one
+        }
     func checkUsername(userName:String)async->Bool{
       let (valid,error) = await userNameValidator.validate(userName)
         if !valid{

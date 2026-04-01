@@ -149,7 +149,3 @@ class ProfileImageSelectView: UIViewController {
     }
     
 }
-
-#Preview(){
-    ProfileImageSelectView(viewModel: OnboardingSetupViewModel(profileService: .init()))
-}
