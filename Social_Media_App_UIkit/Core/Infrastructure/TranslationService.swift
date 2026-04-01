@@ -12,14 +12,13 @@ protocol TranslationService{
     func translate(text: String, targetLang: String, sourceLang: String? ) async throws -> String
 }
 class DeepLTranslationService:TranslationService{
-    static let shared = DeepLTranslationService(apiKey: "da18445f-d3ac-4813-abbd-a82c27a4f6d6:fx")
+   
     enum DeepLError: Error { case badURL, badResponse(Int), empty }
 
       private let apiKey: String
-      private let baseURL: String  // free vs pro endpoint
+      private let baseURL: String  
 
-      /// Free:  https://api-free.deepl.com
-      /// Pro:   https://api.deepl.com
+     
       init(apiKey: String, isFreePlan: Bool = true) {
           self.apiKey = apiKey
           self.baseURL = isFreePlan ? "https://api-free.deepl.com" : "https://api.deepl.com"

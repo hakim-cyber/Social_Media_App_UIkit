@@ -9,13 +9,17 @@ import UIKit
 import Supabase
 
 final class OnboardingService {
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
+
+       init(defaults: UserDefaults) {
+           self.defaults = defaults
+       }
     
     private enum Keys {
         static let hasSeenWelcome = "hasSeenWelcome"
     }
     
-    private let supabase = SupabaseManager.shared.client
+    
     
     var hasSeenWelcome: Bool {
         defaults.bool(forKey: Keys.hasSeenWelcome)

@@ -17,13 +17,13 @@ struct UploadResult: Sendable {
     let url: URL            // public or signed URL based on config
 }
 struct SupabaseStorageService {
-    private let client = SupabaseManager.shared.client
-    private let storage: SupabaseStorageClient
+    private let client: SupabaseClient
+       private let storage: SupabaseStorageClient
 
-    init() {
-        self.storage = client.storage
-       
-    }
+       init(client: SupabaseClient) {
+           self.client = client
+           self.storage = client.storage
+       }
 
     /// Uploads a UIImage to a Storage bucket under {userId}/... and returns (path, url).
     /// - Parameters:

@@ -1,49 +1,59 @@
-//
-//  UserSessionService.swift
-//  Social_Media_App_UIkit
-//
-//  Created by aplle on 9/20/25.
-//
 import Foundation
-import Supabase
 import Combine
-final class UserSessionService {
-    static let shared = UserSessionService()
-    private init() {
-        loadSessionFromSupabase()
+import Supabase
+
+@MainActor
+protocol SessionStoreProtocol: AnyObject {
+    var currentUser: User? { get }
+    var isLoggedIn: Bool { get }
+    var isLoggedInPublisher: AnyPublisher<Bool, Never> { get }
+
+    func setSession(user: User, accessToken: String, refreshToken: String)
+    func clearSession()
+}
+
+@MainActor
+final class UserSessionService: ObservableObject, SessionStoreProtocol {
+    @Published private(set) var currentUser: User?
+    @Published private(set) var isLoggedIn: Bool = false
+
+    private(set) var accessToken: String?
+    private(set) var refreshToken: String?
+
+    var isLoggedInPublisher: AnyPublisher<Bool, Never> {
+        $isLoggedIn
+            .removeDuplicates()
+            .eraseToAnyPublisher()
     }
-    
-    @Published var currentUser: User?
-    @Published var accessToken: String?
-      @Published var refreshToken: String?
-      @Published var isLoggedIn: Bool = false
-    
-    private let supabase = SupabaseManager.shared.client
- 
-    // MARK: - Load session from Supabase
-    private func loadSessionFromSupabase() {
-        if let user =  supabase.auth.currentUser {
-            self.currentUser = user
-            self.isLoggedIn = true
-        } else {
-            self.currentUser = nil
-            self.isLoggedIn = false
+
+    private let supabase: SupabaseClient
+
+    init(client: SupabaseClient) {
+        self.supabase = client
+        syncFromSupabase()
+    }
+
+    private func syncFromSupabase() {
+        guard let user = supabase.auth.currentUser else {
+            clearSession()
+            return
         }
+
+        currentUser = user
+        isLoggedIn = true
     }
-    // MARK: - Set new session
-       func setSession(user: User, accessToken: String, refreshToken: String) {
-           self.currentUser = user
-           self.accessToken = accessToken
-           self.refreshToken = refreshToken
-           self.isLoggedIn = true
-          
-       }
-    
-    // MARK: - Clear session (Logout)
-       func clearSession() {
-           currentUser = nil
-           accessToken = nil
-           refreshToken = nil
-           isLoggedIn = false
-       }
+
+    func setSession(user: User, accessToken: String, refreshToken: String) {
+        self.currentUser = user
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.isLoggedIn = true
+    }
+
+    func clearSession() {
+        currentUser = nil
+        accessToken = nil
+        refreshToken = nil
+        isLoggedIn = false
+    }
 }

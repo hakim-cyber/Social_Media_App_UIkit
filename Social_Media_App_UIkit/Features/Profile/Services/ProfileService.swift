@@ -11,9 +11,13 @@ import UIKit
 
 
 class ProfileService {
-    private let supabase = SupabaseManager.shared.client
-    private let avatarService = ProfileAvatarService()
-    
+    private let supabase: SupabaseClient
+        private let avatarService: ProfileAvatarService
+
+        init(client: SupabaseClient, avatarService: ProfileAvatarService) {
+            self.supabase = client
+            self.avatarService = avatarService
+        }
     func checkIfUserHasProfile() async throws -> Bool {
         // Ensure we have a logged-in user
         guard let userId = supabase.auth.currentUser?.id else {

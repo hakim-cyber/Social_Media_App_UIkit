@@ -15,7 +15,8 @@ enum RegisterRoute {
     case showConfirmAlert(email: String, type: ConfirmAlerrType)
 }
 
-class RegisterViewModel:ObservableObject{
+@MainActor
+final class RegisterViewModel: ObservableObject {
     @Published var email:String = ""
     @Published var password:String = ""
     @Published var confirmPassword:String = ""
@@ -24,19 +25,21 @@ class RegisterViewModel:ObservableObject{
     @Published var isLoading: Bool = false
     var onRoute: ((RegisterRoute) -> Void)?
 
-  // returns email to show in alert
+    private let authService: AuthServicing
+    private let socialAuthService: SocialAuthServicing
+
+    init(authService: AuthServicing, socialAuthService: SocialAuthServicing) {
+        self.authService = authService
+        self.socialAuthService = socialAuthService
+    }
+
     func signUp(){
-        // Reset previous error
-
         loginError = nil
-
-        // Validate email
         guard email.isValidEmail else {
             newError(AuthError.invalidEmail)
-           return
+            return
         }
 
-        // Validate password
         guard !password.isEmpty else {
             newError(AuthError.invalidPasswordEmpty)
             return
@@ -53,64 +56,53 @@ class RegisterViewModel:ObservableObject{
         }
 
         isLoading = true
-        Task{
-            do{
-                let user =  try await  AuthService.shared.signUp(email: email, password: password)
-                if let email = user.email{
+        Task {
+            do {
+                let user = try await authService.signUp(email: email, password: password)
+                if let email = user.email {
                     onRoute?(.showConfirmAlert(email: email, type: .emailVerification))
                 }
-            }catch{
-                print(error)
-               newError(error)
-
+            } catch {
+                newError(error)
             }
             isLoading = false
         }
-
-
     }
 
-    func signInWithGoogle(viewController:UIViewController){
+    func signInWithGoogle(viewController: UIViewController){
         isLoading = true
-        AuthService.shared.signInWithGoogleUI(viewController: viewController) {  [weak self]  result in
-            guard let self = self else { return }
-            switch result {
-            case .success(_):
-                self.loginError = nil
-            case .failure(let error):
-                self.newError(error)
+        Task {
+            do {
+                _ = try await socialAuthService.signInWithGoogle(from: viewController)
+                loginError = nil
+            } catch {
+                newError(error)
             }
-            self.isLoading = false
-        }
-
-    }
-    // MARK: - Apple Sign In
-    func signInWithApple(presentationContextProvider:ASAuthorizationControllerPresentationContextProviding){
-        isLoading = true
-
-        AuthService.shared.signInWithAppleUI(presentationContextProvider: presentationContextProvider){[weak self] result in
-            guard let self = self else { return }
-
-            switch result {
-            case .success(_):
-                self.loginError = nil
-            case .failure(let error):
-                self.newError(error)
-            }
-            self.isLoading = false
+            isLoading = false
         }
     }
 
-
-    // MARK: - Helper functions
+    func signInWithApple(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding){
+        isLoading = true
+        Task {
+            do {
+                _ = try await socialAuthService.signInWithApple(
+                    presentationContextProvider: presentationContextProvider
+                )
+                loginError = nil
+            } catch {
+                newError(error)
+            }
+            isLoading = false
+        }
+    }
 
     func newError(_ error:Error){
         if let error = error as? AuthError {
             self.loginError = error
-        }else{
-          let error =  AuthError.mapSupabaseError(error)
+        } else {
+            let error = AuthError.mapSupabaseError(error)
             self.loginError = error
         }
     }
-
 }

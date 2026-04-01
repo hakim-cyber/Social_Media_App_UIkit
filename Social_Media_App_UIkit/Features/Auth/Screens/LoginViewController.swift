@@ -317,7 +317,12 @@ class LoginViewController: UIViewController {
 }
 
 #Preview {
-    LoginViewController(viewModel: LoginViewModel())
+    LoginViewController(
+        viewModel: LoginViewModel(
+            authService: PreviewAuthService(),
+            socialAuthService: PreviewSocialAuthService()
+        )
+    )
 }
 
 

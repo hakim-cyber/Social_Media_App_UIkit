@@ -16,7 +16,7 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     private var cancellables = Set<AnyCancellable>()
     private var hasStarted = false
 
-    let onboardingService: OnboardingService = .init()
+    private let container: AppContainer
 
     private var authCoordinator: AuthCoordinator?
     private var mainCoordinator: MainCoordinator?
@@ -35,8 +35,9 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     private var currentRootFlow: RootFlow?
     private var didPresentPasswordReset = false
 
-    init(window: UIWindow) {
+    init(window: UIWindow, container: AppContainer) {
         self.window = window
+        self.container = container
         self.navigationController = UINavigationController()
     }
 
@@ -51,7 +52,7 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     }
 
     private func listenToAuthChanges() {
-        UserSessionService.shared.$isLoggedIn
+        container.sessionStore.isLoggedInPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] signedIn in
                 guard let self else { return }
@@ -112,7 +113,9 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     private func startAuthFlow() {
         let auth = AuthCoordinator(
             navigationController: navigationController,
-            onboardingService: onboardingService
+            onboardingService: container.onboardingService,
+            authService: container.authService,
+            socialAuthService: container.socialAuthService
         )
 
         authCoordinator = auth
@@ -126,7 +129,7 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
     }
 
     private func startMainFlow() {
-        let main = MainCoordinator(onboardingService: onboardingService)
+        let main = MainCoordinator(onboardingService: container.onboardingService,profileService: container.profileService)
 
         mainCoordinator = main
         addChild(main)
@@ -161,7 +164,7 @@ final class AppCoordinator: NavigationCoordinator, ParentCoordinator {
                 self.rootMode = .normal
                 self.didPresentPasswordReset = false
 
-                let target: RootFlow = UserSessionService.shared.isLoggedIn ? .main : .auth
+                let target: RootFlow = self.container.sessionStore.isLoggedIn ? .main : .auth
                 self.transition(to: target)
             }
         }

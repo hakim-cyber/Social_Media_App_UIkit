@@ -14,7 +14,8 @@ enum LoginRoute {
     case forgotPassword(email: String)
 }
 
-class LoginViewModel:ObservableObject{
+@MainActor
+final class LoginViewModel: ObservableObject {
     @Published var email:String = ""
     @Published var password:String = ""
 
@@ -22,18 +23,21 @@ class LoginViewModel:ObservableObject{
     @Published var isLoading: Bool = false
     var onRoute: ((LoginRoute) -> Void)?
 
+    private let authService: AuthServicing
+    private let socialAuthService: SocialAuthServicing
+
+    init(authService: AuthServicing, socialAuthService: SocialAuthServicing) {
+        self.authService = authService
+        self.socialAuthService = socialAuthService
+    }
+
     func login() {
-        // Reset previous error
-
         loginError = nil
-
-        // Validate email
         guard email.isValidEmail else {
             newError(AuthError.invalidEmail)
             return
         }
 
-        // Validate password
         guard !password.isEmpty else {
             newError(AuthError.invalidPasswordEmpty)
             return
@@ -44,69 +48,59 @@ class LoginViewModel:ObservableObject{
             return
         }
         isLoading = true
-        Task{
-            do{
-                let _ =  try await  AuthService.shared.signIn(email: email, password: password)
-
-            }catch{
-                print(error)
-               newError(error)
-
+        Task {
+            do {
+                _ = try await authService.signIn(email: email, password: password)
+            } catch {
+                newError(error)
             }
             isLoading = false
         }
-
     }
-
 
     func forgotPassword(){
         onRoute?(.forgotPassword(email: email))
     }
-    func signInWithGoogle(viewController:UIViewController){
+
+    func signInWithGoogle(viewController: UIViewController) {
         isLoading = true
-        AuthService.shared.signInWithGoogleUI(viewController: viewController) {  [weak self]  result in
-            guard let self = self else { return }
-            switch result {
-            case .success(_):
-                self.loginError = nil
-            case .failure(let error):
-                self.newError(error)
+        Task {
+            do {
+                _ = try await socialAuthService.signInWithGoogle(from: viewController)
+                loginError = nil
+            } catch {
+                newError(error)
             }
-            self.isLoading = false
-        }
-
-    }
-    // MARK: - Apple Sign In
-    func signInWithApple(presentationContextProvider:ASAuthorizationControllerPresentationContextProviding){
-        isLoading = true
-
-        AuthService.shared.signInWithAppleUI(presentationContextProvider: presentationContextProvider){[weak self] result in
-            guard let self = self else { return }
-
-            switch result {
-            case .success(_):
-                self.loginError = nil
-            case .failure(let error):
-                self.newError(error)
-            }
-            self.isLoading = false
+            isLoading = false
         }
     }
 
+    
+    func signInWithApple(presentationContextProvider: ASAuthorizationControllerPresentationContextProviding) {
+        isLoading = true
+        Task {
+            do {
+                _ = try await socialAuthService.signInWithApple(
+                    presentationContextProvider: presentationContextProvider
+                )
+                loginError = nil
+            } catch {
+                newError(error)
+            }
+            isLoading = false
+        }
+    }
 
     func goToSignUP(){
         onRoute?(.signUp(email: email))
     }
 
-    // MARK: - Helper functions
-
-    func newError(_ error:Error){
+    func newError(_ error: Error){
         if let error = error as? AuthError {
             self.loginError = error
-        }else{
-          let error =  AuthError.mapSupabaseError(error)
+        } else {
+            let error = AuthError.mapSupabaseError(error)
             self.loginError = error
         }
     }
-
 }

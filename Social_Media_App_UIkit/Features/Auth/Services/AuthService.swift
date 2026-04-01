@@ -7,168 +7,136 @@
 
 import Foundation
 import Supabase
-import AuthenticationServices
 
-final class AuthService {
-    static let shared = AuthService()
-    private init() {}
-    
-  
-    private let supabase = SupabaseManager.shared.client
-    
-    
-    // MARK: - Refresh token
+@MainActor
+protocol AuthServicing {
+    func refreshSessionIfNeeded() async throws
+    func signIn(email: String, password: String) async throws -> User
+    func signUp(email: String, password: String) async throws -> User
+    func signInWithApple(idToken: String, nonce: String) async throws -> User
+    func signInWithGoogle(idToken: String) async throws -> User
+    func restoreSession(from url: URL) async throws -> User
+    func sendPasswordReset(email: String) async throws
+    func changePassword(currentPassword: String, newPassword: String) async throws
+    func updatePassword(newPassword: String) async throws -> User
+    func logout() async throws
+}
+
+@MainActor
+final class AuthService: AuthServicing {
+    private static var configuredShared: AuthService?
+
+    static var shared: AuthService {
+        guard let configuredShared else {
+            fatalError("AuthService.shared accessed before AppContainer configured it.")
+        }
+        return configuredShared
+    }
+
+    static func configureShared(_ service: AuthService) {
+        configuredShared = service
+    }
+
+    private let supabase: SupabaseClient
+    private let sessionStore: SessionStoreProtocol
+    private let passwordResetRedirectURL: URL
+
+    init(
+        client: SupabaseClient,
+        sessionStore: SessionStoreProtocol,
+        passwordResetRedirectURL: URL
+    ) {
+        self.supabase = client
+        self.sessionStore = sessionStore
+        self.passwordResetRedirectURL = passwordResetRedirectURL
+    }
+
     func refreshSessionIfNeeded() async throws {
         let session = try await supabase.auth.refreshSession()
-        UserSessionService.shared.setSession(
+        sessionStore.setSession(
             user: session.user,
             accessToken: session.accessToken,
             refreshToken: session.refreshToken
         )
     }
-    
-    // MARK: - Logout
+
     func logout() async throws {
-      try await  supabase.auth.signOut()
-        UserSessionService.shared.clearSession()
+        try await supabase.auth.signOut()
+        sessionStore.clearSession()
     }
-}
 
-// MARK: - Sign in/up with email
-extension AuthService {
-    
-    
     func signIn(email: String, password: String) async throws -> User {
-        
         let session = try await supabase.auth.signIn(email: email, password: password)
-        print(session)
-        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+        sessionStore.setSession(
+            user: session.user,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
         return session.user
     }
+
     func signUp(email: String, password: String) async throws -> User {
-        
         let session = try await supabase.auth.signUp(email: email, password: password)
-        print(session.session)
-        
-//        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
         return session.user
     }
-}
 
-// MARK: - Apple Sign In
-extension AuthService {
-    
-    func signInWithApple(idToken:String,nonce:String)async throws -> User{
-        let session = try await supabase.auth.signInWithIdToken(credentials: .init(provider: .apple, idToken: idToken,nonce:nonce))
-        
-        
-        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
+    func signInWithApple(idToken: String, nonce: String) async throws -> User {
+        let session = try await supabase.auth.signInWithIdToken(
+            credentials: .init(provider: .apple, idToken: idToken, nonce: nonce)
+        )
+        sessionStore.setSession(
+            user: session.user,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
         return session.user
     }
-    
-}
-// MARK: - Google Sign In
-extension AuthService {
-    
-    func signInWithGoogle(idToken:String)async throws -> User{
-        let session = try await supabase.auth.signInWithIdToken(credentials: .init(provider: .google, idToken: idToken))
-        
-        
-        UserSessionService.shared.setSession(user: session.user, accessToken: session.accessToken, refreshToken: session.refreshToken)
-        print("succes google")
-        print(session.user)
+
+ 
+    func signInWithGoogle(idToken: String) async throws -> User {
+        let session = try await supabase.auth.signInWithIdToken(
+            credentials: .init(provider: .google, idToken: idToken)
+        )
+        sessionStore.setSession(
+            user: session.user,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
         return session.user
     }
-    
-    
-}
 
-
-// MARK: - Google/Apple Sign In UI Functions
-
-extension AuthService{
-    func signInWithGoogleUI(
-        viewController: UIViewController,
-        completion: @escaping (Result<User, Error>) -> Void
-    ) {
-        GoogleSignInHelper.shared.startGoogleSignIn(viewController: viewController) { [weak self] result in
-            guard let self else { return }
-            Task {
-                do {
-                    let idToken = try result.get()
-                    let user = try await self.signInWithGoogle(idToken: idToken)
-                    completion(.success(user))
-                } catch {
-                    completion(.failure(error))
-                }
-            }
-        }
-    }
-    
-    func signInWithAppleUI(
-        presentationContextProvider: ASAuthorizationControllerPresentationContextProviding,
-        completion: @escaping (Result<User, Error>) -> Void
-    ) {
-        AppleSignInHelper.shared.startSignInWithApple(presentationContextProvider: presentationContextProvider) {[weak self] result in
-            guard let self else { return }
-            Task {
-                do {
-                    let (idToken, nonce) = try result.get()
-                    let user = try await self.signInWithApple(idToken: idToken, nonce: nonce)
-                    completion(.success(user))
-                } catch {
-                    completion(.failure(error))
-                }
-            }
-        }
-    }
-}
-
-
-
-// MARK: - Restore Session From url for handling url
-
-
-extension AuthService{
     func restoreSession(from url: URL) async throws -> User {
-           // Supabase parses the access token from the URL and restores session
-           let session = try await supabase.auth.session(from: url)
-           
-        print("Restored session \(session)")
-           // Save session tokens locally
-           UserSessionService.shared.setSession(
-               user: session.user,
-               accessToken: session.accessToken,
-               refreshToken: session.refreshToken
-           )
-           
-           return session.user
-       }
-}
-
-
-// MARK: - Forgot Pasword
-
-extension AuthService {
-    func sendPasswordReset(email: String) async throws {
-        try await supabase.auth.resetPasswordForEmail(email,redirectTo: URL(string:  "myapp://auth-callback/account/update-password"))
+        let session = try await supabase.auth.session(from: url)
+        sessionStore.setSession(
+            user: session.user,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
+        return session.user
     }
-   
-        func changePassword(currentPassword: String, newPassword: String) async throws {
-            guard let email = UserSessionService.shared.currentUser?.email else {
-                throw AuthError.userNotFound
-            }
-            
-            // Re-authenticate user with current password
-            _ = try await supabase.auth.signIn(email: email, password: currentPassword)
-            
-            // Update password
-            try await self.updatePassword(newPassword: newPassword)
+
+    func sendPasswordReset(email: String) async throws {
+        try await supabase.auth.resetPasswordForEmail(
+            email,
+            redirectTo: passwordResetRedirectURL
+        )
+    }
+
+    func changePassword(currentPassword: String, newPassword: String) async throws {
+        guard let email = sessionStore.currentUser?.email else {
+            throw AuthError.userNotFound
         }
-    
-    
-    func updatePassword(newPassword: String) async throws-> User {
-      let user =  try await supabase.auth.update(user: UserAttributes(password: newPassword))
-        return user
-      }
+
+        let session = try await supabase.auth.signIn(email: email, password: currentPassword)
+        sessionStore.setSession(
+            user: session.user,
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
+        _ = try await updatePassword(newPassword: newPassword)
+    }
+
+    func updatePassword(newPassword: String) async throws -> User {
+        try await supabase.auth.update(user: UserAttributes(password: newPassword))
+    }
 }

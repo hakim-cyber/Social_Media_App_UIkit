@@ -10,10 +10,19 @@ import UIKit
 final class AuthCoordinator: NavigationCoordinator {
     var navigationController: UINavigationController
     let onboardingService: OnboardingService
+    private let authService: AuthServicing
+    private let socialAuthService: SocialAuthServicing
 
-    init(navigationController: UINavigationController,onboardingService:OnboardingService) {
+    init(
+        navigationController: UINavigationController,
+        onboardingService: OnboardingService,
+        authService: AuthServicing,
+        socialAuthService: SocialAuthServicing
+    ) {
         self.navigationController = navigationController
         self.onboardingService = onboardingService
+        self.authService = authService
+        self.socialAuthService = socialAuthService
     }
 
     func start(animated: Bool = true) {
@@ -35,48 +44,54 @@ final class AuthCoordinator: NavigationCoordinator {
            navigationController.setViewControllers([welcomeVC], animated: true)
        }
 
-       func showLoginScreen() {
-           let viewModel = LoginViewModel()
-           viewModel.onRoute = { [weak self] route in
-               DispatchQueue.main.async {
-                   self?.handleLoginRoute(route)
-               }
-           }
+	       func showLoginScreen() {
+	           let viewModel = LoginViewModel(
+                authService: authService,
+                socialAuthService: socialAuthService
+            )
+	           viewModel.onRoute = { [weak self] route in
+	               DispatchQueue.main.async {
+	                   self?.handleLoginRoute(route)
+	               }
+	           }
 
            let vc = LoginViewController(viewModel: viewModel)
            navigationController.setViewControllers([vc], animated: true)
        }
-    func showSignUpScreen(email:String){
-        let viewModel = RegisterViewModel()
-        viewModel.onRoute = { [weak self] route in
-            DispatchQueue.main.async {
-                self?.handleRegisterRoute(route)
-            }
-        }
+	    func showSignUpScreen(email:String){
+	        let viewModel = RegisterViewModel(
+            authService: authService,
+            socialAuthService: socialAuthService
+        )
+	        viewModel.onRoute = { [weak self] route in
+	            DispatchQueue.main.async {
+	                self?.handleRegisterRoute(route)
+	            }
+	        }
         viewModel.email = email
         let vc = RegisterViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
     }
 
 
-    func showForgotPasswordEmailScreen(email:String) {
-        let viewModel = ForgotPasswordViewModel()
-        viewModel.email = email
-        viewModel.onRoute = { [weak self] route in
-            DispatchQueue.main.async {
-                self?.handleForgotPasswordRoute(route)
-            }
+	    func showForgotPasswordEmailScreen(email:String) {
+	        let viewModel = ForgotPasswordViewModel(authService: authService)
+	        viewModel.email = email
+	        viewModel.onRoute = { [weak self] route in
+	            DispatchQueue.main.async {
+	                self?.handleForgotPasswordRoute(route)
+	            }
         }
         let vc = ForgetPasswordEmailViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
     }
 
-    func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
-        let viewModel = ForgotPasswordViewModel()
-        viewModel.onRoute = { [weak self] route in
-            DispatchQueue.main.async {
-                self?.handleForgotPasswordRoute(route, finished: finished)
-            }
+	    func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
+	        let viewModel = ForgotPasswordViewModel(authService: authService)
+	        viewModel.onRoute = { [weak self] route in
+	            DispatchQueue.main.async {
+	                self?.handleForgotPasswordRoute(route, finished: finished)
+	            }
         }
         let resetVC = ForgotPasswordChangeVIew(viewModel: viewModel)
       resetVC.modalPresentationStyle = .automatic

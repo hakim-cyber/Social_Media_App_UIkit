@@ -287,7 +287,12 @@ class RegisterViewController: UIViewController {
 }
 
 #Preview {
-    LoginViewController(viewModel: .init())
+    RegisterViewController(
+        viewModel: RegisterViewModel(
+            authService: PreviewAuthService(),
+            socialAuthService: PreviewSocialAuthService()
+        )
+    )
 }
 
 

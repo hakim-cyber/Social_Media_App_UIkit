@@ -44,5 +44,11 @@
 			</array>
 		</dict>
 	</dict>
+	<key>SUPABASE_URL</key>
+	<string>https://cursfbrdjilploelqmtp.supabase.co</string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cnNmYnJkamlscGxvZWxxbXRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3NDUzNzIsImV4cCI6MjA3NDMyMTM3Mn0.ikTvdSwXfCXpHUc5ViZT0y_etF6Lmhjb-xk-qeBJ-Zg</string>
+	<key>DEEPL_API_KEY</key>
+	<string>da18445f-d3ac-4813-abbd-a82c27a4f6d6:fx</string>
 </dict>
 </plist>

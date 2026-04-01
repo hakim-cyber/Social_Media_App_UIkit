@@ -9,9 +9,15 @@ import UIKit
 
 
 final class ProfileAvatarService {
-    private let supabase = SupabaseManager.shared.client
-    private let storage = SupabaseStorageService()
+   
+        private let supabase: SupabaseClient
+        private let storage: SupabaseStorageService
 
+        init(client: SupabaseClient, storage: SupabaseStorageService) {
+            self.supabase = client
+            self.storage = storage
+        }
+    
     func upload(_ image: UIImage, userId: UUID) async throws -> (path: String, publicURL: String) {
         let uniqueName = "\(UUID().uuidString).jpg"
 

@@ -12,7 +12,8 @@ enum ForgotPasswordRoute {
     case passwordChanged
 }
 
-class ForgotPasswordViewModel {
+@MainActor
+final class ForgotPasswordViewModel {
     @Published var email:String = ""
 
     @Published var newPassword:String = ""
@@ -23,9 +24,13 @@ class ForgotPasswordViewModel {
     @Published var isLoading: Bool = false
     var onRoute: ((ForgotPasswordRoute) -> Void)?
 
+    private let authService: AuthServicing
+
+    init(authService: AuthServicing) {
+        self.authService = authService
+    }
+
     func changePasswordToNewOne()  {
-
-
         guard newPassword.count >= 6 else {
             self.loginError = AuthError.invalidPasswordTooShort
             return
@@ -37,29 +42,28 @@ class ForgotPasswordViewModel {
         }
         isLoading = true
 
-        Task{
-            do{
-                let _ = try await AuthService.shared.updatePassword(newPassword: newPassword)
+        Task {
+            do {
+                let _ = try await authService.updatePassword(newPassword: newPassword)
                 onRoute?(.passwordChanged)
-            }catch{
+            } catch {
                 self.loginError = .custom(error.localizedDescription)
             }
             isLoading = false
         }
-
     }
+
     func sendPasswordReset()  {
-        // Validate email
         guard email.isValidEmail else {
             self.loginError = AuthError.invalidEmail
             return
         }
         self.isLoading = true
-        Task{
-            do{
-                try await AuthService.shared.sendPasswordReset(email: email)
+        Task {
+            do {
+                try await authService.sendPasswordReset(email: email)
                 onRoute?(.showConfirmAlert(email: email, type: .passwordReset))
-            }catch{
+            } catch {
                 self.loginError = .custom(error.localizedDescription)
             }
             isLoading = false

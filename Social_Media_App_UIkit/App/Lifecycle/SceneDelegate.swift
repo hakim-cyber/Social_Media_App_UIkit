@@ -13,24 +13,26 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     var appCoordinator: AppCoordinator?
+    private var container: AppContainer?
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let windowScene = (scene as? UIWindowScene) else { return }
+        guard let windowScene = scene as? UIWindowScene else { return }
 
-               // Setup window
-               let window = UIWindow(windowScene: windowScene)
-        window.tintColor = .electricPurple
-               self.window = window
-               window.makeKeyAndVisible()
-        
-        let appCoordinator = AppCoordinator(window: window)
-               self.appCoordinator = appCoordinator
+           let window = UIWindow(windowScene: windowScene)
+           window.tintColor = .electricPurple
+           self.window = window
+           window.makeKeyAndVisible()
 
-               // Start coordinator
-               appCoordinator.start(animated: false)
+	           let configuration = AppConfiguration.fromBundle()
+	           let container = AppContainer(configuration: configuration)
+               self.container = container
+	           let appCoordinator = AppCoordinator(window: window, container: container)
+
+           self.appCoordinator = appCoordinator
+           appCoordinator.start(animated: false)
     }
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         for context in URLContexts {
@@ -104,16 +106,13 @@ extension SceneDelegate{
         }
     }
     private func handleEmailConfirmationLink(url: URL) async throws {
-        // Restore session and auto-login
-        let _ = try await AuthService.shared.restoreSession(from: url)
-      //  authCoordinator.handleLoginSuccess(user: user)
+        guard let authService = container?.authService else { return }
+        let _ = try await authService.restoreSession(from: url)
     }
 
     private func handleForgotPasswordLink(url: URL) async throws {
-        // Restore session (optional)
-        let user = try await AuthService.shared.restoreSession(from: url)
-        
+        guard let authService = container?.authService else { return }
+        let _ = try await authService.restoreSession(from: url)
         self.appCoordinator?.handleResetPasswordDeepLink()
-     
     }
 }
