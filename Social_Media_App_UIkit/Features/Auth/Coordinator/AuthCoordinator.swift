@@ -117,7 +117,7 @@ extension AuthCoordinator {
             showConfirmAlert(email: email, type: type)
         case .passwordChanged:
             let presenter = navigationController.presentedViewController ?? navigationController
-            showAlert(
+            AppAlertPresenter.showAlert(
                 title: "Changed Your Password",
                 message: "You can now enter with new password.",
                 presenter: presenter
@@ -138,38 +138,19 @@ extension AuthCoordinator {
         switch type {
 
         case .passwordReset:
-            self.showAlert(title: "Check Your Email", message:  "A password reset link has been sent to \(email).") {[weak self] in
+            AppAlertPresenter.showAlert(title: "Check Your Email", message:  "A password reset link has been sent to \(email).",presenter: self.navigationController) {[weak self] in
                 self?.navigationController.popViewController(animated: true)
             }
         case .emailVerification:
-            showAlert(
+            AppAlertPresenter.showAlert(
                 title: "Verify Email",
-                message: "We sent a confirmation link to \(email). Please verify before logging in."
+                message: "We sent a confirmation link to \(email). Please verify before logging in.",
+                presenter: self.navigationController
             ) { [weak self] in
                 self?.navigationController.popViewController(animated: true)
             }
         }
         }
 
-
-        func showAlert(
-            title: String,
-            message: String,
-            okTitle: String = "OK",
-            presenter: UIViewController? = nil,
-            onOk: (() -> Void)? = nil
-        ) {
-            let alert = UIAlertController(
-                title: title,
-                message: message,
-                preferredStyle: .alert
-            )
-
-            alert.addAction(UIAlertAction(title: okTitle, style: .default) { _ in
-                onOk?()
-            })
-
-            (presenter ?? self.navigationController).present(alert, animated: true)
-        }
 
 }

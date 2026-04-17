@@ -49,9 +49,7 @@ extension UIViewController{
     
     
      func showToast(_ msg: String) {
-          let alert = UIAlertController(title: nil, message: msg, preferredStyle: .alert)
-          present(alert, animated: true)
-          DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak alert] in alert?.dismiss(animated: true) }
+         AppAlertPresenter.showAlert(title: nil, message:  msg, presenter: self)
       }
     
     
