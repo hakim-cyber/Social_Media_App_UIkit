@@ -57,65 +57,43 @@ extension MoreSheetPresenter {
             isVerified: post.author.isVerified
         )
 
-        var actions: [MoreSheetConfig.Action] = []
-
-        actions.append(
-            .init(
-                id: "save",
-                title: post.isSaved ? "Remove from saved" : "Save post",
-                subtitle: "Save to look later",
-                icon: UIImage(systemName: post.isSaved ? "bookmark.slash" : "bookmark.fill"),
-                style: .normal,
-                isEnabled: true,
-                handler: { onSave?() }
-            )
-        )
-
-        actions.append(
-            .init(
-                id: "copy",
-                title: "Copy link",
-                subtitle: "Share with your friends",
-                icon: UIImage(systemName: "link"),
-                style: .normal,
-                isEnabled: true,
-                handler: { onCopy?() }
-            )
-        )
-
-        actions.append(
-            .init(
-                id: "report",
-                title: "Report",
-                subtitle: "This will notify moderators",
-                icon: UIImage(systemName: "exclamationmark.bubble"),
-                style: .destructive,
-                isEnabled: true,
-                handler: { onReport?() }
-            )
-        )
-
-        // Owner-only action
+        let builder = MoreSheetConfigBuilder()
+            .setHeader(header)
+            .addAction(
+                        id: "save",
+                        title: post.isSaved ? "Remove from saved" : "Save post",
+                        subtitle: "Save to look later",
+                        icon: UIImage(systemName: post.isSaved ? "bookmark.slash" : "bookmark.fill"),
+                        handler: { onSave?() }
+                    )
+                    .addAction(
+                        id: "copy",
+                        title: "Copy link",
+                        subtitle: "Share with your friends",
+                        icon: UIImage(systemName: "link"),
+                        handler: { onCopy?() }
+                    )
+                    .addAction(
+                        id: "report",
+                        title: "Report",
+                        subtitle: "This will notify moderators",
+                        icon: UIImage(systemName: "exclamationmark.bubble"),
+                        style: .destructive,
+                        handler: { onReport?() }
+                    )
+       
         if canDeletePost {
-            actions.append(
-                .init(
+                builder.addAction(
                     id: "delete",
                     title: "Delete post",
                     subtitle: "This will delete post permanently",
                     icon: UIImage(systemName: "trash.fill"),
                     style: .destructive,
-                    isEnabled: true,
                     handler: { onDelete?() }
                 )
-            )
-        }
+            }
 
-        let config = MoreSheetConfig(
-            header: header,
-            title: nil,
-            message: nil,
-            actions: actions
-        )
+        let config = builder.build()
 
         present(config: config, from: vc)
     }
@@ -131,30 +109,22 @@ extension MoreSheetPresenter {
             fullName: nil,
             isVerified:false
         )
-
-        var actions: [MoreSheetConfig.Action] = []
-
-        // Owner-only action
+        let builder = MoreSheetConfigBuilder()
+            .setHeader(header)
+            .addAction(id: "remove",
+                       title: "Remove",
+                       subtitle: "",
+                       icon: UIImage(systemName: "trash.fill"),
+                       style: .destructive,
+                       isEnabled: true,
+                       handler: { onDelete?() })
+            .setTitle("Remove follower?")
+            .setMessage("We won't tell \(user.username) they were removed from your followers.")
         
-            actions.append(
-                .init(
-                    id: "remove",
-                    title: "Remove",
-                    subtitle: "",
-                    icon: UIImage(systemName: "trash.fill"),
-                    style: .destructive,
-                    isEnabled: true,
-                    handler: { onDelete?() }
-                )
-            )
+       
         
 
-        let config = MoreSheetConfig(
-            header: header,
-            title: "Remove follower?",
-            message: "We won't tell \(user.username) they were removed from your followers.",
-            actions: actions
-        )
+        let config = builder.build()
 
         present(config: config, from: vc)
     }
@@ -169,25 +139,21 @@ extension MoreSheetPresenter {
             fullName: user.full_name,
             isVerified: user.is_verified ?? false
         )
+        let builder = MoreSheetConfigBuilder()
+            .addAction(id: "logout",
+                       title: "Log out",
+                       subtitle: "You can log back in anytime.",
+                       icon: UIImage(systemName: "rectangle.portrait.and.arrow.right"),
+                       style: .destructive,
+                       isEnabled: true,
+                       handler: { onLogOut?() })
+            .setHeader(header)
+            .setTitle("Log out of Aura?")
+            .setMessage( "You’ll need to sign in again to access your account.")
 
-        let actions: [MoreSheetConfig.Action] = [
-            .init(
-                id: "logout",
-                title: "Log out",
-                subtitle: "You can log back in anytime.",
-                icon: UIImage(systemName: "rectangle.portrait.and.arrow.right"),
-                style: .destructive,
-                isEnabled: true,
-                handler: { onLogOut?() }
-            )
-        ]
+       
 
-        let config = MoreSheetConfig(
-            header: header,
-            title: "Log out of Aura?",
-            message: "You’ll need to sign in again to access your account.",
-            actions: actions
-        )
+        let config = builder.build()
 
         present(config: config, from: vc)
     }
