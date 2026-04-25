@@ -8,7 +8,7 @@
 import Combine
 import SwiftUI
 
-enum SearchRoute{
+enum SearchRoute:Equatable{
     case openProfile(UUID)
 }
 
@@ -34,10 +34,8 @@ final class SearchViewModel: ObservableObject {
         onRoute?(.openProfile(user.id))
     }
     func search() async{
-        guard !query.isEmpty else {
-            results = []
-            errorMessage = nil
-            isLoading = false
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+          clean()
             return
         }
 
