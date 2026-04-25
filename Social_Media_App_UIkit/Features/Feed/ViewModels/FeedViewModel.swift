@@ -409,12 +409,8 @@ final class FeedViewModel {
             }
         }
     }
-    func deletePost(post postId: UUID) {
-
-
-        Task { [weak self] in
-            guard let self else { return }
-            do {
+    func deletePost(post postId: UUID) async{
+        do {
                 let resp = try await self.postService.deletePost(postId: postId)
                 if resp.deleted == true{
                     self.state.posts.removeAll(where: { $0.id == resp.post_id })
@@ -424,7 +420,7 @@ final class FeedViewModel {
 
                 self.errorMessage = "Delete post failed, please try again."
             }
-        }
+        
     }
 
     private func bindTranslationController() {

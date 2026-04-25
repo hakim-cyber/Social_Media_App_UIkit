@@ -111,7 +111,9 @@ extension FeedCoordinator {
 
             },
             onDelete: {[weak self] in
-                self?.viewModel.deletePost(post: post.id)
+                Task{
+                   await self?.viewModel.deletePost(post: post.id)
+                }
             }
         )
 
