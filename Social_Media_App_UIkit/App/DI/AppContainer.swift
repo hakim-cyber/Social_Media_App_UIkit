@@ -74,7 +74,10 @@ final class AppContainer {
         )
 
         self.translationService = DeepLTranslationService(apiKey: configuration.deepLAPIKey)
-        self.usernameValidator = UsernameValidator(client: client)
+        
+        let usernameApi = SupabaseUsernameAPI(client: client)
+        self.usernameValidator = UsernameValidator(api: usernameApi)
+        
         self.userService = UserService(client: client)
         self.postQueryService = PostQueryService(client: client)
         self.postActionService = PostActionService(

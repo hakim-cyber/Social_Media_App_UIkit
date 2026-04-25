@@ -31,7 +31,7 @@ final class OnboardingSetupViewModel {
     func checkUsername(userName:String)async->Bool{
       let (valid,error) = await userNameValidator.validate(userName)
         if !valid{
-            self.error = error
+            self.error = error?.localizedDescription
         }else{
             self.error = nil
         }
