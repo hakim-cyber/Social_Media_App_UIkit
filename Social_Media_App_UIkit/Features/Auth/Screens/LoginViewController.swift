@@ -121,7 +121,8 @@ class LoginViewController: UIViewController {
         super.viewDidLoad()
         
         self.view.backgroundColor = .systemBackground
-       
+        self.view.accessibilityIdentifier = A11y.Login.screen
+        
         setLabels()
         setTextFields()
         

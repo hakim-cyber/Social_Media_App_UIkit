@@ -9,9 +9,9 @@ import UIKit
 import GoogleSignIn
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-
+    
     var window: UIWindow?
-
+    
     var appCoordinator: AppCoordinator?
     private var container: AppContainer?
     
@@ -20,19 +20,23 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = scene as? UIWindowScene else { return }
-
-           let window = UIWindow(windowScene: windowScene)
-           window.tintColor = .electricPurple
-           self.window = window
-           window.makeKeyAndVisible()
-
-	           let configuration = AppConfiguration.fromBundle()
-	           let container = AppContainer(configuration: configuration)
-               self.container = container
-	           let appCoordinator = AppCoordinator(window: window, container: container)
-
-           self.appCoordinator = appCoordinator
-           appCoordinator.start(animated: false)
+        
+        let window = UIWindow(windowScene: windowScene)
+        window.tintColor = .electricPurple
+        self.window = window
+        window.makeKeyAndVisible()
+        
+        let configuration = AppConfiguration.fromBundle()
+        let container = AppContainer(configuration: configuration)
+        self.container = container
+        
+       let appLauncher = AppLauncher(container: container)
+        appLauncher.configure() // for ui tests mainly
+        
+        let appCoordinator = AppCoordinator(window: window, container: container)
+        
+        self.appCoordinator = appCoordinator
+        appCoordinator.start(animated: false)
     }
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         for context in URLContexts {
@@ -46,42 +50,42 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             // 2️⃣ Handle Supabase Email Confirmation / Auth Callback
             if url.scheme == "myapp" { // your custom URL scheme
                 Task {
-                            do {
-                                if let deepLink = DeepLinkRouter.parse(url: url) {
-                                    await handleDeepLink(deepLink,url: url)
-                                }
-                            } catch {
-                                print("Deep link handling failed:", error)
-                            }
+                    do {
+                        if let deepLink = DeepLinkRouter.parse(url: url) {
+                            await handleDeepLink(deepLink,url: url)
                         }
+                    } catch {
+                        print("Deep link handling failed:", error)
+                    }
+                }
             }
             
             // 3️⃣ Handle other URLs if needed
         }
     }
-
+    
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
     }
-
+    
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
     }
-
+    
     func sceneWillResignActive(_ scene: UIScene) {
         // Called when the scene will move from an active state to an inactive state.
         // This may occur due to temporary interruptions (ex. an incoming phone call).
     }
-
+    
     func sceneWillEnterForeground(_ scene: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
     }
-
+    
     func sceneDidEnterBackground(_ scene: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
@@ -109,7 +113,7 @@ extension SceneDelegate{
         guard let authService = container?.authService else { return }
         let _ = try await authService.restoreSession(from: url)
     }
-
+    
     private func handleForgotPasswordLink(url: URL) async throws {
         guard let authService = container?.authService else { return }
         let _ = try await authService.restoreSession(from: url)

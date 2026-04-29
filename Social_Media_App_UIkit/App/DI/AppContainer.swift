@@ -13,7 +13,7 @@ final class AppContainer {
     let supabaseClient: SupabaseClient
 
     let sessionStore: SessionStoreProtocol
-    let sessionService: UserSessionService
+   
     let onboardingService: any OnboardingServicing
     let storageService: any StorageUploading
     let profileAvatarService: any ProfileAvatarServicing
@@ -41,7 +41,6 @@ final class AppContainer {
         self.supabaseClient = client
 
         let sessionService = UserSessionService(client: client)
-        self.sessionService = sessionService
         self.sessionStore = sessionService
 
         self.onboardingService = OnboardingService(defaults: .standard)

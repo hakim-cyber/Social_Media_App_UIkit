@@ -29,11 +29,19 @@
 			remoteGlobalIDString = 084495B42E7EC8BD00DB8EA3;
 			remoteInfo = Social_Media_App_UIkit;
 		};
+		084F19542FA08BF70015F635 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 084495AD2E7EC8BD00DB8EA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 084495B42E7EC8BD00DB8EA3;
+			remoteInfo = Social_Media_App_UIkit;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		083DB5482F9A955C00F1F25F /* Social_Media_App_UIkitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Social_Media_App_UIkitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Social_Media_App_UIkit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		084F194E2FA08BF70015F635 /* Social_Media_App_UIkitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Social_Media_App_UIkitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -43,6 +51,14 @@
 				App/Configuration/Info.plist,
 			);
 			target = 084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */;
+		};
+		084F195D2FA27A2E0015F635 /* Exceptions for "Social_Media_App_UIkit" folder in "Social_Media_App_UIkitUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/Configuration/LaunchArguments.swift,
+				Core/Utilities/Accessibility/A11y.swift,
+			);
+			target = 084F194D2FA08BF70015F635 /* Social_Media_App_UIkitUITests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -56,8 +72,14 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				084495C72E7EC8BE00DB8EA3 /* Exceptions for "Social_Media_App_UIkit" folder in "Social_Media_App_UIkit" target */,
+				084F195D2FA27A2E0015F635 /* Exceptions for "Social_Media_App_UIkit" folder in "Social_Media_App_UIkitUITests" target */,
 			);
 			path = Social_Media_App_UIkit;
+			sourceTree = "<group>";
+		};
+		084F194F2FA08BF70015F635 /* Social_Media_App_UIkitUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Social_Media_App_UIkitUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -89,6 +111,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		084F194B2FA08BF70015F635 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -97,6 +126,7 @@
 			children = (
 				084495B72E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */,
 				083DB5492F9A955C00F1F25F /* Social_Media_App_UIkitTests */,
+				084F194F2FA08BF70015F635 /* Social_Media_App_UIkitUITests */,
 				08A2E0522E848E2C007B0875 /* Frameworks */,
 				084495B62E7EC8BD00DB8EA3 /* Products */,
 			);
@@ -107,6 +137,7 @@
 			children = (
 				084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */,
 				083DB5482F9A955C00F1F25F /* Social_Media_App_UIkitTests.xctest */,
+				084F194E2FA08BF70015F635 /* Social_Media_App_UIkitUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -178,6 +209,29 @@
 			productReference = 084495B52E7EC8BD00DB8EA3 /* Social_Media_App_UIkit.app */;
 			productType = "com.apple.product-type.application";
 		};
+		084F194D2FA08BF70015F635 /* Social_Media_App_UIkitUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 084F19562FA08BF70015F635 /* Build configuration list for PBXNativeTarget "Social_Media_App_UIkitUITests" */;
+			buildPhases = (
+				084F194A2FA08BF70015F635 /* Sources */,
+				084F194B2FA08BF70015F635 /* Frameworks */,
+				084F194C2FA08BF70015F635 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				084F19552FA08BF70015F635 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				084F194F2FA08BF70015F635 /* Social_Media_App_UIkitUITests */,
+			);
+			name = Social_Media_App_UIkitUITests;
+			packageProductDependencies = (
+			);
+			productName = Social_Media_App_UIkitUITests;
+			productReference = 084F194E2FA08BF70015F635 /* Social_Media_App_UIkitUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -194,6 +248,10 @@
 					};
 					084495B42E7EC8BD00DB8EA3 = {
 						CreatedOnToolsVersion = 26.0;
+					};
+					084F194D2FA08BF70015F635 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 084495B42E7EC8BD00DB8EA3;
 					};
 				};
 			};
@@ -220,6 +278,7 @@
 			targets = (
 				084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */,
 				083DB5472F9A955C00F1F25F /* Social_Media_App_UIkitTests */,
+				084F194D2FA08BF70015F635 /* Social_Media_App_UIkitUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -233,6 +292,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		084495B32E7EC8BD00DB8EA3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		084F194C2FA08BF70015F635 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -256,6 +322,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		084F194A2FA08BF70015F635 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -263,6 +336,11 @@
 			isa = PBXTargetDependency;
 			target = 084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */;
 			targetProxy = 083DB54C2F9A955C00F1F25F /* PBXContainerItemProxy */;
+		};
+		084F19552FA08BF70015F635 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */;
+			targetProxy = 084F19542FA08BF70015F635 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -514,6 +592,46 @@
 			};
 			name = Release;
 		};
+		084F19572FA08BF70015F635 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4NLRT8KSZR;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hakimAlyev.Social-Media-App-UIkitUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Social_Media_App_UIkit;
+			};
+			name = Debug;
+		};
+		084F19582FA08BF70015F635 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4NLRT8KSZR;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hakimAlyev.Social-Media-App-UIkitUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Social_Media_App_UIkit;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -540,6 +658,15 @@
 			buildConfigurations = (
 				084495C92E7EC8BE00DB8EA3 /* Debug */,
 				084495CA2E7EC8BE00DB8EA3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		084F19562FA08BF70015F635 /* Build configuration list for PBXNativeTarget "Social_Media_App_UIkitUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				084F19572FA08BF70015F635 /* Debug */,
+				084F19582FA08BF70015F635 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
