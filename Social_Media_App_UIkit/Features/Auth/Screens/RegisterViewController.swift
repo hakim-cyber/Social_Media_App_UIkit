@@ -110,6 +110,12 @@ class RegisterViewController: UIViewController {
         self.textfieldStackView.addArrangedSubview(confirmPasswordTextField)
         self.textfieldStackView.addArrangedSubview(registerButton)
         self.textfieldStackView.addArrangedSubview(errorLabel)
+        
+        customEmailTextField.textField.accessibilityIdentifier = A11y.Register.emailField.id
+        customPasswordTextField.textField.accessibilityIdentifier = A11y.Register.passwordField.id
+        confirmPasswordTextField.textField.accessibilityIdentifier = A11y.Register.confirmPasswordField.id
+        registerButton.accessibilityIdentifier = A11y.Register.registerButtonButton.id
+        errorLabel.accessibilityIdentifier = A11y.Register.errorLabel.id
       
         
         
@@ -157,6 +163,9 @@ class RegisterViewController: UIViewController {
         
         self.customSignStackView.addArrangedSubview(appleSignInButton)
         self.customSignStackView.addArrangedSubview(googleSignInButton)
+        
+        appleSignInButton.accessibilityIdentifier = A11y.Register.appleSignInButton.id
+        googleSignInButton.accessibilityIdentifier = A11y.Register.googleSignInButton.id
     
       
        

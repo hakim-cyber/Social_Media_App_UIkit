@@ -88,6 +88,10 @@ class ForgetPasswordEmailViewController: UIViewController {
       
         self.textfieldStackView.addArrangedSubview(sendButton)
         self.textfieldStackView.addArrangedSubview(errorLabel)
+        
+        customEmailTextField.textField.accessibilityIdentifier = A11y.ForgotPassword.emailField.id
+        sendButton.accessibilityIdentifier = A11y.ForgotPassword.sendButton.id
+        errorLabel.accessibilityIdentifier = A11y.ForgotPassword.errorLabel.id
       
         
         

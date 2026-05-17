@@ -103,9 +103,18 @@ struct A11y {
             type: .secureTextField
         )
 
-        static let createAccountButton = AccessibilityItem(
-            "register.createAccountButton",
+        static let registerButtonButton = AccessibilityItem(
+            "register.registerButton",
             type: .button
+        )
+        static let appleSignInButton = AccessibilityItem(
+            "register.appleSignInButton",
+            type: .otherElement
+        )
+
+        static let googleSignInButton = AccessibilityItem(
+            "register.googleSignInButton",
+            type: .otherElement
         )
 
         static let errorLabel = AccessibilityItem(
