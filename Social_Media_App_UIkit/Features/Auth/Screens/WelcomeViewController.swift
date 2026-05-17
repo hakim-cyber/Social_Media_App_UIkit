@@ -40,7 +40,7 @@ class WelcomeViewController: UIViewController {
         // Do any additional setup after loading the view.
         // on a label or cell content view
         view.backgroundColor = .systemBackground
-        view.accessibilityIdentifier = A11y.Welcome.screen
+        view.accessibilityIdentifier = A11y.Welcome.screen.id
 
         welcome_background_carousel.onPageChanged = { page in
             if page != self.visibleBackgroundImage{
@@ -94,7 +94,7 @@ class WelcomeViewController: UIViewController {
            
            // Main Title: "Desires Come Alive in Sound"
            let mainTitleLabel = UILabel()
-        mainTitleLabel.accessibilityIdentifier = A11y.Welcome.title
+        mainTitleLabel.accessibilityIdentifier = A11y.Welcome.title.id
            mainTitleLabel.numberOfLines = 0
            mainTitleLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
            mainTitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -110,7 +110,7 @@ class WelcomeViewController: UIViewController {
            
            // Subtitle
            let subtitleLabel = UILabel()
-        subtitleLabel.accessibilityIdentifier = A11y.Welcome.subtitle
+        subtitleLabel.accessibilityIdentifier = A11y.Welcome.subtitle.id
            subtitleLabel.text = "Be part of a community where every vibe matters."
            subtitleLabel.textColor = .lightGray
            subtitleLabel.font = UIFont.systemFont(ofSize: 16)

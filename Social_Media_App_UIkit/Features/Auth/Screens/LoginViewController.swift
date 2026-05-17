@@ -121,7 +121,7 @@ class LoginViewController: UIViewController {
         super.viewDidLoad()
         
         self.view.backgroundColor = .systemBackground
-        self.view.accessibilityIdentifier = A11y.Login.screen
+        self.view.accessibilityIdentifier = A11y.Login.screen.id
         
         setLabels()
         setTextFields()
@@ -144,8 +144,12 @@ class LoginViewController: UIViewController {
         self.textfieldStackView.addArrangedSubview(errorLabel)
         self.textfieldStackView.addArrangedSubview(forgotPasswordButton)
         
-        
-        
+        customEmailTextField.textField.accessibilityIdentifier = A11y.Login.emailField.id
+        customPasswordTextField.textField.accessibilityIdentifier = A11y.Login.passwordField.id
+        loginButton.accessibilityIdentifier = A11y.Login.loginButton.id
+        forgotPasswordButton.accessibilityIdentifier = A11y.Login.forgotPasswordButton.id
+        errorLabel.accessibilityIdentifier = A11y.Login.errorLabel.id
+         
         label3.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(label3)
         
@@ -191,7 +195,10 @@ class LoginViewController: UIViewController {
         self.customSignStackView.addArrangedSubview(googleSignInButton)
     
         self.view.addSubview(signUpButton)
-       
+        
+        signUpButton.accessibilityIdentifier = A11y.Login.signUpButton.id
+        appleSignInButton.accessibilityIdentifier = A11y.Login.appleSignInButton.id
+        googleSignInButton.accessibilityIdentifier = A11y.Login.googleSignInButton.id
         NSLayoutConstraint.activate([
             customSignStackView.topAnchor.constraint(equalTo: label3.bottomAnchor,constant: 36),
             customSignStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor,constant: 24),

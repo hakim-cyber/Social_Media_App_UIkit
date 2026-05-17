@@ -21,6 +21,8 @@ class CustomSignInButton: UIView {
         setupTitleLabel(title: title)
         setupLayout()
         setupGesture()
+        
+        self.isAccessibilityElement = true
     }
     
     required init?(coder: NSCoder) {

@@ -88,7 +88,7 @@ class RegisterViewController: UIViewController {
         super.viewDidLoad()
         
         self.view.backgroundColor = .systemBackground
-       
+        self.view.accessibilityIdentifier = A11y.Register.screen.id
         setLabels()
         setTextFields()
         

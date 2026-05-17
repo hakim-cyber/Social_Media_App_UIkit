@@ -29,16 +29,16 @@ final class WelcomeUITests: XCTestCase {
     }
 
     func testAssertVisible(){
-        XCTAssertTrue(app.otherElements[A11y.Welcome.screen].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.staticTexts[A11y.Welcome.title].exists)
-        XCTAssertTrue(app.staticTexts[A11y.Welcome.subtitle].exists)
-        XCTAssertTrue(app.otherElements[A11y.Welcome.slideTrack].exists)
-        XCTAssertTrue(app.otherElements[A11y.Welcome.sliderThumb].exists)
+        XCTAssertTrue(A11y.Welcome.screen.element(in: app).waitForExistence(timeout: 2))
+        XCTAssertTrue(A11y.Welcome.title.element(in: app).exists)
+        XCTAssertTrue(A11y.Welcome.subtitle.element(in: app).exists)
+        XCTAssertTrue(A11y.Welcome.slideTrack.element(in: app).exists)
+        XCTAssertTrue(A11y.Welcome.sliderThumb.element(in: app).exists)
        
     }
     func testSlideToUnlock() {
-        let sliderThumb = app.otherElements[A11y.Welcome.sliderThumb]
-        let sliderTrack = app.otherElements[A11y.Welcome.slideTrack]
+        let sliderThumb = A11y.Welcome.sliderThumb.element(in: app)
+        let sliderTrack = A11y.Welcome.slideTrack.element(in: app)
         
         XCTAssertTrue(sliderThumb.waitForExistence(timeout: 2))
         XCTAssertTrue(sliderTrack.exists)
@@ -48,7 +48,7 @@ final class WelcomeUITests: XCTestCase {
         
         start.press(forDuration: 0.1, thenDragTo: finish)
         
-        XCTAssertTrue(app.otherElements[A11y.Login.screen].waitForExistence(timeout: 2))
+        XCTAssertTrue(A11y.Login.screen.element(in: app).waitForExistence(timeout: 2))
     }
 
 }

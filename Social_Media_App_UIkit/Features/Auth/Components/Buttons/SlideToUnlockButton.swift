@@ -79,10 +79,10 @@ class SlideToUnlockView: UIView {
         trackImageView.translatesAutoresizingMaskIntoConstraints = false
         
         trackView.isAccessibilityElement = true
-        trackView.accessibilityIdentifier = A11y.Welcome.slideTrack
+        trackView.accessibilityIdentifier = A11y.Welcome.slideTrack.id
 
         sliderView.isAccessibilityElement = true
-        sliderView.accessibilityIdentifier = A11y.Welcome.sliderThumb
+        sliderView.accessibilityIdentifier = A11y.Welcome.sliderThumb.id
        
         NSLayoutConstraint.activate([
             self.heightAnchor.constraint(equalTo: widthAnchor, multiplier: 0.2),

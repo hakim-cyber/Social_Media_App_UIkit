@@ -69,6 +69,7 @@ class ForgetPasswordEmailViewController: UIViewController {
         super.viewDidLoad()
         
         self.view.backgroundColor = .systemBackground
+        self.view.accessibilityIdentifier = A11y.ForgotPassword.screen.id
        
         setLabels()
         setTextFields()
