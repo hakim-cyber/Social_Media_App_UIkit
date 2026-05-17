@@ -144,6 +144,63 @@ struct A11y {
             type: .staticText
         )
     }
+
+    struct Feed {
+        static let screen = AccessibilityItem(
+            "feed.screen",
+            type: .otherElement
+        )
+
+        static let tableView = AccessibilityItem(
+            "feed.tableView",
+            type: .table
+        )
+
+        static let bufferedBanner = AccessibilityItem(
+            "feed.bufferedBanner",
+            type: .otherElement
+        )
+
+        static let postCell = AccessibilityItem(
+            "feed.postCell",
+            type: .cell
+        )
+
+        static let avatarButton = AccessibilityItem(
+            "feed.avatarButton",
+            type: .otherElement
+        )
+
+        static let commentButton = AccessibilityItem(
+            "feed.commentButton",
+            type: .button
+        )
+
+        static let moreButton = AccessibilityItem(
+            "feed.moreButton",
+            type: .button
+        )
+    }
+
+    struct Profile {
+        static let screen = AccessibilityItem(
+            "profile.screen",
+            type: .otherElement
+        )
+    }
+
+    struct Comments {
+        static let screen = AccessibilityItem(
+            "comments.screen",
+            type: .otherElement
+        )
+    }
+    struct MoreSheet {
+        static let screen = AccessibilityItem(
+            "more.screen",
+            type: .otherElement
+        )
+    }
 }
 
 

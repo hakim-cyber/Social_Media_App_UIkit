@@ -60,6 +60,7 @@ class PostFeedViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        view.accessibilityIdentifier = A11y.Feed.screen.id
         setup()
 
        setupNavBar()
@@ -73,6 +74,7 @@ class PostFeedViewController: UIViewController {
     func setup() {
         self.view.backgroundColor = .systemBackground
         self.postFeedTableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        self.postFeedTableView.accessibilityIdentifier = A11y.Feed.tableView.id
 //
         // Add refresh control
            refreshControl.addTarget(self, action: #selector(handlePullToRefresh), for: .valueChanged)
@@ -90,6 +92,7 @@ class PostFeedViewController: UIViewController {
         self.view.addSubview(bufferedBannerView)
         self.view.bringSubviewToFront(bufferedBannerView)
         self.bufferedBannerView.isHidden = false
+        self.bufferedBannerView.accessibilityIdentifier = A11y.Feed.bufferedBanner.id
         NSLayoutConstraint.activate([
             bufferedBannerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
             bufferedBannerView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),

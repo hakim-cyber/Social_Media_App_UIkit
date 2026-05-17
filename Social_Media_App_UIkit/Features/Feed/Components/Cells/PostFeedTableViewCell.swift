@@ -200,6 +200,7 @@ final class PostFeedTableViewCell: UITableViewCell {
 
     // MARK: - Layout & setup
     private func setupView() {
+        accessibilityIdentifier = A11y.Feed.postCell.id
         setupTopContainerView()
         setupPostImageView()
         setupBottomContainerView()
@@ -211,10 +212,13 @@ final class PostFeedTableViewCell: UITableViewCell {
         // avatar
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         topContainerView.addSubview(avatarImageView)
+        avatarImageView.isAccessibilityElement = true
+        avatarImageView.accessibilityIdentifier = A11y.Feed.avatarButton.id
         avatarImageView.isUserInteractionEnabled = true
         avatarImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         nameTextView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAvatar)))
         // more
+        moreButton.accessibilityIdentifier = A11y.Feed.moreButton.id
         moreButton.addTarget(self, action: #selector(didTapMore), for: .touchUpInside)
         topContainerView.addSubview(moreButton)
 
@@ -282,6 +286,7 @@ final class PostFeedTableViewCell: UITableViewCell {
         bottomContainerView.addSubview(likeTextView)
 
         // Comment
+        commentButton.accessibilityIdentifier = A11y.Feed.commentButton.id
         commentButton.addTarget(self, action: #selector(didTapComment), for: .touchUpInside)
         bottomContainerView.addSubview(commentButton)
         bottomContainerView.addSubview(commentTextView)

@@ -86,6 +86,7 @@ class ProfileViewController: UIViewController,UIScrollViewDelegate,UICollectionV
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        view.accessibilityIdentifier = A11y.Profile.screen.id
         setup()
         setupNavBar()
         configureDataSource()

@@ -47,7 +47,7 @@ final class MoreSheetViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-
+        view.accessibilityIdentifier = A11y.MoreSheet.screen.id
         // Configure header
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerView.apply(
