@@ -60,6 +60,14 @@
 			);
 			target = 084F194D2FA08BF70015F635 /* Social_Media_App_UIkitUITests */;
 		};
+		087BD9F82FBEE2DA00CF9A0A /* Exceptions for "Social_Media_App_IntegrationTests" folder in "Social_Media_App_UIkit" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FeedServiceIntegrationTests.swift,
+				FeedViewModelIntegrationTests.swift,
+			);
+			target = 084495B42E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +88,14 @@
 		084F194F2FA08BF70015F635 /* Social_Media_App_UIkitUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Social_Media_App_UIkitUITests;
+			sourceTree = "<group>";
+		};
+		087E7E782FBED980003BF6F1 /* Social_Media_App_IntegrationTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				087BD9F82FBEE2DA00CF9A0A /* Exceptions for "Social_Media_App_IntegrationTests" folder in "Social_Media_App_UIkit" target */,
+			);
+			path = Social_Media_App_IntegrationTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -127,6 +143,7 @@
 				084495B72E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */,
 				083DB5492F9A955C00F1F25F /* Social_Media_App_UIkitTests */,
 				084F194F2FA08BF70015F635 /* Social_Media_App_UIkitUITests */,
+				087E7E782FBED980003BF6F1 /* Social_Media_App_IntegrationTests */,
 				08A2E0522E848E2C007B0875 /* Frameworks */,
 				084495B62E7EC8BD00DB8EA3 /* Products */,
 			);
@@ -167,6 +184,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				083DB5492F9A955C00F1F25F /* Social_Media_App_UIkitTests */,
+				087E7E782FBED980003BF6F1 /* Social_Media_App_IntegrationTests */,
 			);
 			name = Social_Media_App_UIkitTests;
 			packageProductDependencies = (
@@ -189,6 +207,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				084495B72E7EC8BD00DB8EA3 /* Social_Media_App_UIkit */,
+				087E7E782FBED980003BF6F1 /* Social_Media_App_IntegrationTests */,
 			);
 			name = Social_Media_App_UIkit;
 			packageProductDependencies = (

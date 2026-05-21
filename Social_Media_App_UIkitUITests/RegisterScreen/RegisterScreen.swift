@@ -83,6 +83,7 @@ final class RegisterScreen: XCTestCase {
         registerButton.tap()
 
         XCTAssertTrue(A11y.Register.errorLabel.element(in: app).waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Your email address is not valid. Make sure it includes '@' and a domain, like 'example@mail.com'."].exists)
     }
 
     func test_register_withMismatchedPasswords_showsError() {

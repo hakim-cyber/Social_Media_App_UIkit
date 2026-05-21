@@ -7,6 +7,7 @@
 
 import XCTest
 
+
 final class LoginScreen: XCTestCase {
     var app: XCUIApplication!
     var rootScreen:XCUIElement!
@@ -74,6 +75,7 @@ final class LoginScreen: XCTestCase {
         loginButton.tap()
         
         XCTAssertTrue(A11y.Login.errorLabel.element(in: app).waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Your email address is not valid. Make sure it includes '@' and a domain, like 'example@mail.com'."].exists)
     }
     func test_emptyPassword_showsEmptylError(){
         let emailTextField = A11y.Login.emailField.element(in: app)
@@ -90,6 +92,7 @@ final class LoginScreen: XCTestCase {
         loginButton.tap()
         
         XCTAssertTrue(A11y.Login.errorLabel.element(in: app).waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["Please enter your password."].exists)
     }
     func test_login_tappingSignUp_opensRegisterScreen(){
         A11y.Login.signUpButton.element(in: app).tap()
