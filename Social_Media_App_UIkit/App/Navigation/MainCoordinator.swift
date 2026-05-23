@@ -12,11 +12,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
 
     var childCoordinators: [Coordinator] = []
 
-    private let onboardingDependencies: MainOnboardingDependencies
-    private let feedDependencies: MainFeedDependencies
-    private let searchDependencies: MainSearchDependencies
-    private let profileDependencies: MainProfileDependencies
-    private let createPostDependencies: MainCreatePostDependencies
+    
     private let startResolver: any MainStartResolving
 
     let tabBarController = UITabBarController()
@@ -35,16 +31,15 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
     let searchTabIndex: Int = 1
     let profileTabIndex: Int = 3
 
+    
+    private let coordinatorFactory:CoordinatorFactory
     init(
         dependencies: MainFlowDependencies,
         startResolver: (any MainStartResolving)? = nil
     ) {
-        self.onboardingDependencies = dependencies.onboarding
-        self.feedDependencies = dependencies.feed
-        self.searchDependencies = dependencies.search
-        self.profileDependencies = dependencies.profile
-        self.createPostDependencies = dependencies.createPost
+       
         self.startResolver = startResolver ?? MainStartResolver(profileService: dependencies.profile.profileService)
+        self.coordinatorFactory = CoordinatorFactory(mainDependecies: dependencies)
     }
 
     func start(animated: Bool) {
@@ -64,7 +59,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
     }
 
     private func setupTabs() {
-        let feedCoordinator = makeFeedCoordinator(navigationController: feedNav)
+        let feedCoordinator = coordinatorFactory.makeFeedCoordinator(navigationController: feedNav)
         feedCoordinator.parentCoordinator = self
         addChild(feedCoordinator)
         feedCoordinator.start(animated: false)
@@ -76,7 +71,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
             selectedImage: UIImage(systemName: "house.fill")
         )
 
-        let searchCoordinator = makeSearchCoordinator(navigationController: searchNav)
+        let searchCoordinator = coordinatorFactory.makeSearchCoordinator(navigationController: searchNav)
         searchCoordinator.parentCoordinator = self
         addChild(searchCoordinator)
         searchCoordinator.start(animated: false)
@@ -88,7 +83,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
             selectedImage: UIImage(systemName: "magnifyingglass")
         )
 
-        let profileCoordinator = makeProfileCoordinator(
+        let profileCoordinator = coordinatorFactory.makeProfileCoordinator(
             navigationController: profileNav,
             target: .me
         )
@@ -137,7 +132,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
         nav.modalPresentationStyle = .fullScreen
         onboardingNav = nav
 
-        let onboarding = makeOnboardingSetupCoordinator(navigationController: nav)
+        let onboarding = coordinatorFactory.makeOnboardingSetupCoordinator(navigationController: nav)
         onboarding.parentCoordinator = self
         addChild(onboarding)
         onboardingCoordinator = onboarding
@@ -169,58 +164,11 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
             return
         }
 
-        let coord = makeCreatePostCoordinator(presenter: presenter)
+        let coord = coordinatorFactory.makeCreatePostCoordinator(presenter: presenter)
         coord.parentCoordinator = self
         addChild(coord)
         createPostCoordinator = coord
         coord.start(animated: true)
-    }
-}
-
-private extension MainCoordinator {
-    func makeProfileCoordinator(
-        navigationController: UINavigationController,
-        target: ProfileTarget
-    ) -> ProfileCoordinator {
-        ProfileCoordinator(
-            navigationController: navigationController,
-            dependencies: profileDependencies,
-            feedDependencies: feedDependencies,
-            target: target
-        )
-    }
-
-    func makeFeedCoordinator(navigationController: UINavigationController) -> FeedCoordinator {
-        FeedCoordinator(
-            navigationController: navigationController,
-            dependencies: feedDependencies,
-            profileDependencies: profileDependencies
-        )
-    }
-
-    func makeSearchCoordinator(navigationController: UINavigationController) -> SearchProfileCoordinator {
-        SearchProfileCoordinator(
-            navigationController: navigationController,
-            dependencies: searchDependencies,
-            profileDependencies: profileDependencies,
-            feedDependencies: feedDependencies
-        )
-    }
-
-    func makeOnboardingSetupCoordinator(
-        navigationController: UINavigationController
-    ) -> OnboardingSetupCoordinator {
-        OnboardingSetupCoordinator(
-            navigationController: navigationController,
-            dependencies: onboardingDependencies
-        )
-    }
-
-    func makeCreatePostCoordinator(presenter: UIViewController) -> CreatePostCoordinator {
-        CreatePostCoordinator(
-            presenter: presenter,
-            dependencies: createPostDependencies
-        )
     }
 }
 
