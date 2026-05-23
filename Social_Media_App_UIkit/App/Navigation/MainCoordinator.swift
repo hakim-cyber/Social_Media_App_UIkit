@@ -32,14 +32,14 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
     let profileTabIndex: Int = 3
 
     
-    private let coordinatorFactory:CoordinatorFactory
+    private let coordinatorFactory:MainFlowCoordinatorFactory
     init(
         dependencies: MainFlowDependencies,
         startResolver: (any MainStartResolving)? = nil
     ) {
        
         self.startResolver = startResolver ?? MainStartResolver(profileService: dependencies.profile.profileService)
-        self.coordinatorFactory = CoordinatorFactory(mainDependecies: dependencies)
+        self.coordinatorFactory = MainFlowCoordinatorFactory(mainDependecies: dependencies)
     }
 
     func start(animated: Bool) {

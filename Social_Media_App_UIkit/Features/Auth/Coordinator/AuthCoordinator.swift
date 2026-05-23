@@ -10,15 +10,17 @@ import UIKit
 final class AuthCoordinator: NavigationCoordinator {
     var navigationController: UINavigationController
     private let dependencies: AuthFlowDependencies
-
+    private let authFactory:AuthFlowFactory
+    
     init(
         navigationController: UINavigationController,
         dependencies: AuthFlowDependencies
     ) {
         self.navigationController = navigationController
         self.dependencies = dependencies
+        self.authFactory = AuthFlowFactory(dependencies: dependencies)
     }
-
+    
     func start(animated: Bool = true) {
         if !dependencies.onboardingService.hasSeenWelcome {
             showWelcomeScreen()
@@ -26,72 +28,57 @@ final class AuthCoordinator: NavigationCoordinator {
             showLoginScreen()
         }
     }
-
+    
     // MARK: - Screens
-
-       func showWelcomeScreen() {
-           let welcomeVC = WelcomeViewController()
-           welcomeVC.onUnlock = { [weak self] in
-               self?.dependencies.onboardingService.setHasSeenWelcome()
-               self?.showLoginScreen()
-           }
-           navigationController.setViewControllers([welcomeVC], animated: true)
-       }
-
-	       func showLoginScreen() {
-	           let viewModel = LoginViewModel(
-                authService: dependencies.authService,
-                socialAuthService: dependencies.socialAuthService
-            )
-	           viewModel.onRoute = { [weak self] route in
-	               DispatchQueue.main.async {
-	                   self?.handleLoginRoute(route)
-	               }
-	           }
-
-           let vc = LoginViewController(viewModel: viewModel)
-           navigationController.setViewControllers([vc], animated: true)
-       }
-	    func showSignUpScreen(email:String){
-	        let viewModel = RegisterViewModel(
-            authService: dependencies.authService,
-            socialAuthService: dependencies.socialAuthService
+    
+    func showWelcomeScreen() {
+        let welcomeVC = authFactory.makeWelcomeVC {[weak self] in
+            self?.dependencies.onboardingService.setHasSeenWelcome()
+            self?.showLoginScreen()
+        }
+        navigationController.setViewControllers([welcomeVC], animated: true)
+    }
+    
+    func showLoginScreen() {
+        let vc = authFactory.makeLoginScreen { [weak self] route in
+            self?.handleLoginRoute(route)
+        }
+        navigationController.setViewControllers([vc], animated: true)
+    }
+    func showSignUpScreen(email:String){
+        let vc = authFactory.makeRegisterScreen(
+            email: email,
+            onRoute: { [weak self] route in
+                self?.handleRegisterRoute(route)
+            }
         )
-	        viewModel.onRoute = { [weak self] route in
-	            DispatchQueue.main.async {
-	                self?.handleRegisterRoute(route)
-	            }
-	        }
-        viewModel.email = email
-        let vc = RegisterViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
     }
-
-
-	    func showForgotPasswordEmailScreen(email:String) {
-	        let viewModel = ForgotPasswordViewModel(authService: dependencies.authService)
-	        viewModel.email = email
-	        viewModel.onRoute = { [weak self] route in
-	            DispatchQueue.main.async {
-	                self?.handleForgotPasswordRoute(route)
-	            }
-        }
-        let vc = ForgetPasswordEmailViewController(viewModel: viewModel)
+    
+    
+    func showForgotPasswordEmailScreen(email: String) {
+        let vc = authFactory.makeForgotPasswordEmailScreen(
+            email: email,
+            onRoute: { [weak self] route in
+                self?.handleForgotPasswordRoute(route)
+            }
+        )
+        
         navigationController.pushViewController(vc, animated: true)
     }
-
-	    func showForgotPasswordSetNewPasswordScreen(finished:@escaping ()->()) {
-	        let viewModel = ForgotPasswordViewModel(authService: dependencies.authService)
-	        viewModel.onRoute = { [weak self] route in
-	            DispatchQueue.main.async {
-	                self?.handleForgotPasswordRoute(route, finished: finished)
-	            }
-        }
-        let resetVC = ForgotPasswordChangeVIew(viewModel: viewModel)
-      resetVC.modalPresentationStyle = .automatic
+    
+    func showForgotPasswordSetNewPasswordScreen(
+        finished: @escaping () -> Void
+    ) {
+        let resetVC = authFactory.makeForgotPasswordSetNewPasswordScreen(
+            onRoute: { [weak self] route in
+                self?.handleForgotPasswordRoute(route, finished: finished)
+            }
+        )
+        
         navigationController.present(resetVC, animated: true)
     }
-
+    
 }
 
 extension AuthCoordinator {
@@ -103,14 +90,14 @@ extension AuthCoordinator {
             showForgotPasswordEmailScreen(email: email)
         }
     }
-
+    
     private func handleRegisterRoute(_ route: RegisterRoute) {
         switch route {
         case .showConfirmAlert(let email, let type):
             showConfirmAlert(email: email, type: type)
         }
     }
-
+    
     private func handleForgotPasswordRoute(_ route: ForgotPasswordRoute, finished: (() -> Void)? = nil) {
         switch route {
         case .showConfirmAlert(let email, let type):
@@ -130,13 +117,13 @@ extension AuthCoordinator {
 }
 
 enum ConfirmAlerrType {
-   case passwordReset, emailVerification
+    case passwordReset, emailVerification
 }
 extension AuthCoordinator {
-
+    
     func showConfirmAlert(email: String,type:ConfirmAlerrType) {
         switch type {
-
+            
         case .passwordReset:
             AppAlertPresenter.showAlert(title: "Check Your Email", message:  "A password reset link has been sent to \(email).",presenter: self.navigationController) {[weak self] in
                 self?.navigationController.popViewController(animated: true)
@@ -150,7 +137,7 @@ extension AuthCoordinator {
                 self?.navigationController.popViewController(animated: true)
             }
         }
-        }
-
-
+    }
+    
+    
 }

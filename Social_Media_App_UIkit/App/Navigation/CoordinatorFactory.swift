@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-final class CoordinatorFactory{
+final class MainFlowCoordinatorFactory{
     private let mainDependecies:MainFlowDependencies
     
     init(mainDependecies: MainFlowDependencies) {
