@@ -1,0 +1,83 @@
+name: Supabase heartbeat
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */8 * * *"
+
+permissions: {}
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Sign in and update heartbeat
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
+          SUPABASE_KEEPALIVE_EMAIL: ${{ secrets.SUPABASE_KEEPALIVE_EMAIL }}
+          SUPABASE_KEEPALIVE_PASSWORD: ${{ secrets.SUPABASE_KEEPALIVE_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          from datetime import datetime, timezone
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+
+          base = os.environ["SUPABASE_URL"].strip().rstrip("/")
+          key = os.environ["SUPABASE_API_KEY"].strip()
+
+          def call(path, method, payload, extra_headers=None):
+              headers = {
+                  "apikey": key,
+                  "Content-Type": "application/json",
+              }
+              headers.update(extra_headers or {})
+
+              request = Request(
+                  base + path,
+                  data=json.dumps(payload).encode(),
+                  headers=headers,
+                  method=method,
+              )
+
+              try:
+                  with urlopen(request, timeout=30) as response:
+                      return json.load(response)
+              except HTTPError as error:
+                  sys.exit(f"{method} {path}: HTTP {error.code}")
+              except URLError:
+                  sys.exit("Could not connect to Supabase")
+
+          session = call(
+              "/auth/v1/token?grant_type=password",
+              "POST",
+              {
+                  "email": os.environ["SUPABASE_KEEPALIVE_EMAIL"],
+                  "password": os.environ["SUPABASE_KEEPALIVE_PASSWORD"],
+              },
+          )
+
+          token = session.get("access_token")
+          if not token:
+              sys.exit("Sign-in failed: no access token returned")
+
+          rows = call(
+              "/rest/v1/keepalive_heartbeat?id=eq.1&select=id,last_seen",
+              "PATCH",
+              {"last_seen": datetime.now(timezone.utc).isoformat()},
+              {
+                  "Authorization": f"Bearer {token}",
+                  "Prefer": "return=representation",
+              },
+          )
+
+          if not isinstance(rows, list) or len(rows) != 1:
+              sys.exit("Update failed: check the heartbeat row and RLS policies")
+
+          print("Heartbeat updated successfully")
+          PY
