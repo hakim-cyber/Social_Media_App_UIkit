@@ -12,6 +12,8 @@ final class MainStartResolverMockProfileService: ProfileServicing {
     var checkIfUserHasProfileResult: Result<Bool, Error> = .success(false)
 
     private(set) var checkIfUserHasProfileCallCount = 0
+    private(set) var createdUsername: String?
+    private(set) var createdFullName: String?
 
     func checkIfUserHasProfile() async throws -> Bool {
         checkIfUserHasProfileCallCount += 1
@@ -32,6 +34,8 @@ final class MainStartResolverMockProfileService: ProfileServicing {
         bio: String?,
         avatarImage: UIImage?
     ) async throws -> UserProfile {
+        createdUsername = username
+        createdFullName = fullName
         throw MainStartResolverTestError("Not used in tests")
     }
 

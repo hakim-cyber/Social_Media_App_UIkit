@@ -10,6 +10,7 @@ import Foundation
 enum MainStartDestination {
     case mainTabs
     case onboarding
+    case retry
 }
 
 protocol MainStartResolving {
@@ -28,7 +29,7 @@ struct MainStartResolver: MainStartResolving {
             let userHasProfile = try await profileService.checkIfUserHasProfile()
             return userHasProfile ? .mainTabs : .onboarding
         } catch {
-            return .onboarding
+            return .retry
         }
     }
 }

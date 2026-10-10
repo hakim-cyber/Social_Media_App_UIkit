@@ -308,8 +308,8 @@ class LoginViewController: UIViewController {
         }
     
     private func bindButtons() {
-        loginButton.addTarget(nil, action: #selector(loginButtonTapped), for: .touchUpInside)
-        forgotPasswordButton.addTarget(nil, action: #selector(forgotPasswordsButtonTapped), for: .touchUpInside)
+        loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        forgotPasswordButton.addTarget(self, action: #selector(forgotPasswordsButtonTapped), for: .touchUpInside)
         appleSignInButton.tapAction = { [weak self] in
             self?.signInWithApple()
            
@@ -318,7 +318,7 @@ class LoginViewController: UIViewController {
             self?.signInWithGoogle()
            
         }
-        signUpButton.addTarget(nil, action: #selector(signUpButtonTapped), for: .touchUpInside)
+        signUpButton.addTarget(self, action: #selector(signUpButtonTapped), for: .touchUpInside)
     }
     
     

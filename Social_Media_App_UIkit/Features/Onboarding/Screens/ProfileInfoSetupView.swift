@@ -94,11 +94,14 @@ class ProfileInfoSetupView: UIViewController {
     let viewModel:OnboardingSetupViewModel
     private var cancellables = Set<AnyCancellable>()
     private var usernameDebounceTimer: Timer?
+    private var usernameValidationTask: Task<Void, Never>?
+    private var isSubmitting = false
     
     var userNameIsValid: Bool  = false
-    var nameIsValid: Bool  = false
+    var nameIsValid: Bool  = true
     deinit {
             usernameDebounceTimer?.invalidate()
+            usernameValidationTask?.cancel()
         }
     
     init(viewModel: OnboardingSetupViewModel) {
@@ -129,6 +132,10 @@ class ProfileInfoSetupView: UIViewController {
     @objc private func usernameEditingChanged(_ textField: UITextField) {
            // Cancel previous timer
            usernameDebounceTimer?.invalidate()
+           usernameValidationTask?.cancel()
+           userNameIsValid = false
+           userNameTextField.changeUnderlineColor(color: .systemGray3)
+           viewModel.error = nil
 
            // Start a new debounce timer (fires once after 0.5s)
            usernameDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
@@ -144,6 +151,7 @@ class ProfileInfoSetupView: UIViewController {
         guard  name.isEmpty == false else {
             self.nameTextField.changeUnderlineColor(color: UIColor.systemGray3)
             self.nameIsValid = true
+            self.errorLabel.isHidden = true
             return
         }
         if validateFullName(name) {
@@ -171,19 +179,17 @@ class ProfileInfoSetupView: UIViewController {
            let username = raw.replacingOccurrences(of: "@", with: "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
            
            self.userNameTextField.textField.text = username
-           Task { [weak self] in
+           usernameValidationTask?.cancel()
+           usernameValidationTask = Task { [weak self] in
                guard let self = self else { return }
                let available = await self.viewModel.checkUsername(userName: username)
-               
-               print(available)
-               // Example UI feedback: underline color
-               DispatchQueue.main.async {
-                   UIView.animate(withDuration: 0.2){
-                       self.userNameTextField.changeUnderlineColor(color: (available ? UIColor.systemGreen.withAlphaComponent(0.6) : UIColor.electricPurple))
-                       self.userNameTextField.setNeedsLayout()
-                   }
-                   self.userNameIsValid = available
+               guard !Task.isCancelled,
+                     self.userNameTextField.textField.text == username else { return }
+               UIView.animate(withDuration: 0.2){
+                   self.userNameTextField.changeUnderlineColor(color: (available ? UIColor.systemGreen.withAlphaComponent(0.6) : UIColor.electricPurple))
+                   self.userNameTextField.setNeedsLayout()
                }
+               self.userNameIsValid = available
            }
        }
     func setButtons(){
@@ -291,16 +297,40 @@ class ProfileInfoSetupView: UIViewController {
     }
     
     @objc func handleNext(){
-        if self.userNameIsValid && nameIsValid{
-            print("next")
-            self.viewModel.setInfo(userName: userNameTextField.textField.text ?? "", name: nameTextField.textField.text ?? "", bio: bioTextField.textView.text ?? "")
-        }
-        
+        submitInfo(skipOptionalInfo: false)
     }
     @objc func handleSkip(){
-        if self.userNameIsValid{
-            print("skip")
-            self.viewModel.setInfo(userName: userNameTextField.textField.text ?? "", name: "", bio: "")
+        submitInfo(skipOptionalInfo: true)
+    }
+
+    private func submitInfo(skipOptionalInfo: Bool) {
+        guard !isSubmitting, !viewModel.loading else { return }
+        view.endEditing(true)
+        usernameDebounceTimer?.invalidate()
+        usernameValidationTask?.cancel()
+        let username = (userNameTextField.textField.text ?? "")
+            .replacingOccurrences(of: "@", with: "")
+            .lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        userNameTextField.textField.text = username
+        let name = skipOptionalInfo ? "" : (nameTextField.textField.text ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard name.isEmpty || validateFullName(name) else {
+            viewModel.error = "Name must be 2–40 letters, only letters/spaces."
+            nameTextField.changeUnderlineColor(color: .electricPurple)
+            return
+        }
+        let bio = skipOptionalInfo ? "" : (bioTextField.textView.text ?? "")
+        isSubmitting = true
+        view.isUserInteractionEnabled = false
+        Task { [weak self] in
+            guard let self else { return }
+            let valid = await viewModel.checkUsername(userName: username)
+            self.isSubmitting = false
+            self.view.isUserInteractionEnabled = true
+            self.userNameIsValid = valid
+            self.userNameTextField.changeUnderlineColor(color: valid ? .systemGreen : .electricPurple)
+            guard valid else { return }
+            self.viewModel.setInfo(userName: username, name: name, bio: bio)
         }
     }
     

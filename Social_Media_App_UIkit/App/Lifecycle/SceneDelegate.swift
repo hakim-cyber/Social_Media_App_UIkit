@@ -37,30 +37,33 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         self.appCoordinator = appCoordinator
         appCoordinator.start(animated: false)
+        for context in connectionOptions.urlContexts {
+            handleIncomingURL(context.url)
+        }
     }
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         for context in URLContexts {
-            let url = context.url
-            
-            // 1️⃣ Handle Google Sign-In
-            if GIDSignIn.sharedInstance.handle(url) {
-                return
-            }
-            
-            // 2️⃣ Handle Supabase Email Confirmation / Auth Callback
-            if url.scheme == "myapp" { // your custom URL scheme
-                Task {
-                    do {
-                        if let deepLink = DeepLinkRouter.parse(url: url) {
-                            await handleDeepLink(deepLink,url: url)
-                        }
-                    } catch {
-                        print("Deep link handling failed:", error)
-                    }
+            handleIncomingURL(context.url)
+        }
+    }
+
+    private func handleIncomingURL(_ url: URL) {
+        if GIDSignIn.sharedInstance.handle(url) { return }
+        guard let link = DeepLinkRouter.parse(url: url) else { return }
+        Task { @MainActor in
+            do {
+                try await handleDeepLink(link, url: url)
+            } catch {
+                guard var presenter = window?.rootViewController else { return }
+                while let presented = presenter.presentedViewController {
+                    presenter = presented
                 }
+                AppAlertPresenter.showAlert(
+                    title: "Couldn't open this link",
+                    message: "The link may have expired or your connection may be unavailable. Please try again or request a new link.",
+                    presenter: presenter
+                )
             }
-            
-            // 3️⃣ Handle other URLs if needed
         }
     }
     
@@ -96,14 +99,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 extension SceneDelegate{
     @MainActor
-    private func handleDeepLink(_ link: AppDeepLink,url:URL) async {
+    private func handleDeepLink(_ link: AppDeepLink,url:URL) async throws {
         switch link {
         case .resetPassword:
-            try? await handleForgotPasswordLink(url: url)
-            print("Show Reset \(url)")
+            try await handleForgotPasswordLink(url: url)
         case .auth:
-            try? await handleEmailConfirmationLink(url:url)
-            print("Show Auth \(url)")
+            try await handleEmailConfirmationLink(url:url)
         case .profile(let userId):
             self.appCoordinator?.showProfile(userid: userId)
             print("Show Profile")

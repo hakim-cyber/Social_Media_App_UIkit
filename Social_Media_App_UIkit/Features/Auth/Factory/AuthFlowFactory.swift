@@ -15,7 +15,9 @@ final class AuthFlowFactory{
     }
     
     func makeWelcomeVC(onUnlock: @escaping () -> Void)->WelcomeViewController{
-        return WelcomeViewController()
+        let vc = WelcomeViewController()
+        vc.onUnlock = onUnlock
+        return vc
     }
     func makeLoginScreen(
            onRoute: @escaping (LoginRoute) -> Void

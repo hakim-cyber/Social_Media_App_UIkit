@@ -35,14 +35,14 @@ struct MainStartResolverTests {
     }
 
     @Test
-    func test_resolve_whenServiceThrows_returnsOnboarding() async {
+    func test_resolve_whenServiceThrows_returnsRetry() async {
         let profileService = MainStartResolverMockProfileService()
         profileService.checkIfUserHasProfileResult = .failure(MainStartResolverTestError("backend failed"))
         let sut = await MainStartResolver(profileService: profileService)
 
         let destination = await sut.resolve()
 
-        #expect(matchesMainStartDestination(destination, expected: .onboarding))
+        #expect(matchesMainStartDestination(destination, expected: .retry))
         #expect(profileService.checkIfUserHasProfileCallCount == 1)
     }
 }

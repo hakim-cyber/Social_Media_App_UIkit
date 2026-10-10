@@ -30,6 +30,7 @@ final class OnboardingSetupViewModel {
     
     func checkUsername(userName:String)async->Bool{
       let (valid,error) = await userNameValidator.validate(userName)
+        guard !Task.isCancelled else { return false }
         if !valid{
             self.error = error?.localizedDescription
         }else{
@@ -52,9 +53,11 @@ final class OnboardingSetupViewModel {
         createUserProfile()
     }
     func createUserProfile(){
+        guard !loading else { return }
+        loading = true
+        error = nil
         Task {
             do{
-                self.loading = true
              let newProfile = try await profileService.createNewProfile(
                 username: userName,
                 fullName: name,

@@ -14,7 +14,7 @@ extension MainStartResolverTests {
         expected: MainStartDestination
     ) -> Bool {
         switch (received, expected) {
-        case (.mainTabs, .mainTabs), (.onboarding, .onboarding):
+        case (.mainTabs, .mainTabs), (.onboarding, .onboarding), (.retry, .retry):
             return true
         default:
             return false

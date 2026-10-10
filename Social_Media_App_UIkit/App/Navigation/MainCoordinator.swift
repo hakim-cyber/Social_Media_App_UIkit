@@ -43,6 +43,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
     }
 
     func start(animated: Bool) {
+        showProfileCheckState(isLoading: true)
         Task { [weak self] in
             guard let self else { return }
             let destination = await startResolver.resolve()
@@ -50,12 +51,33 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
             await MainActor.run {
                 switch destination {
                 case .mainTabs:
+                    self.tabBarController.tabBar.isHidden = false
                     self.showMainView(animated: false)
                 case .onboarding:
+                    self.tabBarController.viewControllers?.first?.contentUnavailableConfiguration = nil
                     self.showOnboardingSetup()
+                case .retry:
+                    self.showProfileCheckState(isLoading: false)
                 }
             }
         }
+    }
+
+    private func showProfileCheckState(isLoading: Bool) {
+        let screen = UIViewController()
+        screen.view.backgroundColor = .systemBackground
+        var configuration = isLoading ? UIContentUnavailableConfiguration.loading() : .empty()
+        configuration.text = isLoading ? "Loading your profile…" : "Couldn't load your profile"
+        if !isLoading {
+            configuration.secondaryText = "Check your connection and try again."
+            configuration.button.title = "Retry"
+            configuration.buttonProperties.primaryAction = UIAction { [weak self] _ in
+                self?.start(animated: false)
+            }
+        }
+        screen.contentUnavailableConfiguration = configuration
+        tabBarController.tabBar.isHidden = true
+        tabBarController.viewControllers = [screen]
     }
 
     private func setupTabs() {
@@ -115,6 +137,7 @@ final class MainCoordinator: NSObject, Coordinator, ParentCoordinator {
     }
 
     func showMainView(animated: Bool = true) {
+        tabBarController.tabBar.isHidden = false
         setupTabs()
     }
 

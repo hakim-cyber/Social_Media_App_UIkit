@@ -102,5 +102,15 @@ final class LoginScreen: XCTestCase {
         A11y.Login.forgotPasswordButton.element(in: app).tap()
         XCTAssertTrue(A11y.ForgotPassword.screen.element(in: app).waitForExistence(timeout: 2))
     }
+    func test_login_tappingForgotPasswordWithKeyboardVisible_preservesEmail(){
+        let email = "reset@example.com"
+        emailTextField.tap()
+        emailTextField.typeText(email)
+
+        forgotPasswordButton.tap()
+
+        XCTAssertTrue(A11y.ForgotPassword.screen.element(in: app).waitForExistence(timeout: 2))
+        XCTAssertEqual(A11y.ForgotPassword.emailField.element(in: app).value as? String, email)
+    }
    
 }

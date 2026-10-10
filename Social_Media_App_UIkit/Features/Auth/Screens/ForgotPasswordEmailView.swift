@@ -190,7 +190,7 @@ class ForgetPasswordEmailViewController: UIViewController {
         }
     
     private func bindButtons() {
-        sendButton.addTarget(nil, action: #selector(sendButtonTapped), for: .touchUpInside)
+        sendButton.addTarget(self, action: #selector(sendButtonTapped), for: .touchUpInside)
        
     
     }
