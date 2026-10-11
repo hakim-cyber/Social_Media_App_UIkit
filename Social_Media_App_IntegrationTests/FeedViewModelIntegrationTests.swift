@@ -12,11 +12,17 @@ import Supabase
 import Foundation
 
 @MainActor
+// These tests share MockURLProtocol.handler and must not overwrite it concurrently.
+@Suite(.serialized)
 struct FeedViewModelIntegrationTests {
 
     
     @Test func testLoadInitialUsingRealFeedServiceSetsPosts() async throws {
         URLProtocol.registerClass(MockURLProtocol.self)
+        defer {
+            MockURLProtocol.handler = nil
+            URLProtocol.unregisterClass(MockURLProtocol.self)
+        }
         
         MockURLProtocol.handler = { request in
             #expect(request.url?.path == "/rest/v1/rpc/get_global_feed_cursor")
@@ -56,6 +62,10 @@ struct FeedViewModelIntegrationTests {
     
     @Test func testLoadInitialUsingRealFeedServiceWhenServerFailsSetsErrorMessage() async throws {
         URLProtocol.registerClass(MockURLProtocol.self)
+        defer {
+            MockURLProtocol.handler = nil
+            URLProtocol.unregisterClass(MockURLProtocol.self)
+        }
         
         MockURLProtocol.handler = { request in
             #expect(request.url?.path == "/rest/v1/rpc/get_global_feed_cursor")
