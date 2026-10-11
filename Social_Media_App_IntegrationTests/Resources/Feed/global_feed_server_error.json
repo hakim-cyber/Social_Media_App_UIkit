@@ -1,0 +1,6 @@
+{
+  "message": "database error",
+  "code": "XX000",
+  "details": "mock failure from get_global_feed_cursor",
+  "hint": null
+}

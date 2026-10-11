@@ -1,0 +1,77 @@
+//
+//  OnboardingSetupViewModel.swift
+//  Social_Media_App_UIkit
+//
+//  Created by aplle on 9/29/25.
+//
+
+import UIKit
+import Combine
+
+@MainActor
+final class OnboardingSetupViewModel {
+    weak var delegate: OnboardingSetupViewModelDelegate?
+    let profileService: any ProfileServicing
+    private let userNameValidator: any UsernameValidating
+
+    init(
+        profileService: any ProfileServicing,
+        userNameValidator: any UsernameValidating
+    ) {
+        self.profileService = profileService
+        self.userNameValidator = userNameValidator
+    }
+    var image: UIImage?
+    var userName: String = ""
+    var name: String = ""
+    var bio: String = ""
+    @Published var error:String? = nil
+    @Published var loading:Bool = false
+    
+    func checkUsername(userName:String)async->Bool{
+      let (valid,error) = await userNameValidator.validate(userName)
+        guard !Task.isCancelled else { return false }
+        if !valid{
+            self.error = error?.localizedDescription
+        }else{
+            self.error = nil
+        }
+        return valid
+    }
+    func checkName(name:String){
+        
+    }
+    func setProfileImage(_ image: UIImage?) {
+        self.image = image
+        delegate?.selectedProfileImage()
+    }
+    func setInfo(userName: String, name: String, bio: String) {
+        self.userName = userName
+        self.name = name
+        self.bio = bio
+       
+        createUserProfile()
+    }
+    func createUserProfile(){
+        guard !loading else { return }
+        loading = true
+        error = nil
+        Task {
+            do{
+             let newProfile = try await profileService.createNewProfile(
+                username: userName,
+                fullName: name,
+                bio: bio,
+                avatarImage: image
+             )
+                delegate?.finishedInfoSetup()
+                self.loading = false
+                print("nice finished creation \(newProfile)")
+            }catch{
+                self.error = error.localizedDescription
+                self.loading = false
+            }
+          
+        }
+    }
+}

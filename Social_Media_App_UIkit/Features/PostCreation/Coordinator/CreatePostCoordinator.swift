@@ -1,0 +1,78 @@
+//
+//  CreatePostCoordinator.swift
+//  Social_Media_App_UIkit
+//
+//  Created by aplle on 12/9/25.
+//
+
+import UIKit
+
+final class CreatePostCoordinator: NavigationCoordinator, ChildCoordinator {
+    weak var parentCoordinator: ParentCoordinator?
+
+    /// This is the nav (or VC) that will present the create flow.
+    private unowned let presenter: UIViewController
+
+    /// This is the modal nav controller we present full-screen.
+    var navigationController: UINavigationController
+    private let dependencies: MainCreatePostDependencies
+    private lazy var viewModel = CreatePostViewModel(postService: dependencies.postActionService)
+
+    init(presenter: UIViewController, dependencies: MainCreatePostDependencies) {
+        self.presenter = presenter
+        self.navigationController = UINavigationController()
+        self.dependencies = dependencies
+    }
+
+    func start(animated: Bool) {
+        viewModel.onRoute = { [weak self] route in
+            DispatchQueue.main.async {
+                self?.handleCreatePostRoute(route: route)
+            }
+        }
+
+        let vc = PostCreationViewController(vm: viewModel)
+
+        navigationController.setViewControllers([vc], animated: false)
+        navigationController.modalPresentationStyle = .fullScreen
+
+        presenter.present(navigationController, animated: animated)
+    }
+
+    private func finish() {
+        navigationController.dismiss(animated: true) { [weak self] in
+            guard let self else { return }
+            self.viewModel.onRoute = nil
+            self.parentCoordinator?.childDidFinish(self)
+        }
+    }
+
+    func coordinatorDidFinish() {
+        finish()
+    }
+
+    private func showLocationPicker() {
+        guard navigationController.presentedViewController == nil else { return }
+
+        let picker = LocationTextPickerViewController()
+        picker.onSelect = { [weak self] locationString in
+            self?.viewModel.setSelectedLocation(locationString)
+        }
+        let nav = UINavigationController(rootViewController: picker)
+        navigationController.present(nav, animated: true)
+    }
+
+}
+
+extension CreatePostCoordinator {
+    private func handleCreatePostRoute(route: CreatePostRoute) {
+        switch route {
+        case .cancel:
+            finish()
+        case .finished:
+            finish()
+        case .showLocationPicker:
+            showLocationPicker()
+        }
+    }
+}
